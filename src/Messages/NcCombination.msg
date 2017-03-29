@@ -15,13 +15,7 @@
 
 namespace HaecComm;
 
-cplusplus {{
-#include "NetworkCodingManager.h"
-}}
-
-class noncobject ncGen;
-
 message NcCombination {
     int generationId;
-    ncGen *origin;
+    long origin; // this is soooo bad: we use a long as storage for a pointer (since pointers in messages are unsupported atm)
 }

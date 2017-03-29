@@ -21,9 +21,10 @@ int NetworkCodingManager::getNextGenerationId() {
     return 42;
 }
 
-ncGen* NetworkCodingManager::getOrCreateGeneration(int i) {
+NcGen* NetworkCodingManager::getOrCreateGeneration(int i) {
     if (!knownGen[i]) { // implicit creation is okay, because we fill it now
-        ncGen *g = new ncGen(getNextGenerationId(), genSize, combiSize);
+        NcGen *g = new NcGen(getNextGenerationId(), genSize, combiSize);
+        g->setCoded(true); // this is the receiving side, we receive coded stuff
         knownGen[i] = g;
         return g;
     } else {
@@ -31,46 +32,14 @@ ncGen* NetworkCodingManager::getOrCreateGeneration(int i) {
     }
 }
 
-ncGen* NetworkCodingManager::getOrCreateGeneration() {
-    ncGen *g = new ncGen(getNextGenerationId(), genSize, combiSize);
-    knownGen[newId] = g;
+NcGen* NetworkCodingManager::getOrCreateGeneration() {
+    NcGen *g = new NcGen(getNextGenerationId(), genSize, combiSize);
+    knownGen[g->getId()] = g;
     return g;
 }
 
-void ncGen::addCombination(cMessage *msg) {
-    combinations->add(msg);
-}
-
-void ncGen::addMessage(cMessage *msg) {
-    messages->add(msg);
-}
-
-bool ncGen::code() {
-    if (!coded && isCodeable()) {
-        for (int i = 0; i < c; i++) {
-            // this "emulates" the combination calculation
-            NcCombination *c = new NcCombination;
-            c->setOrigin(this);
-            combinations->add(c);
-        }
-        coded = true;
-        return true;
-    } else {
-        return false;
-    }
-}
-
-void ncGen::decode() {
-    if (coded && isDecodeable()) {
-        origin = combinations[0]->origin;
-        delete (messages); // this is pretty invasive
-        combinations->clear();
-        message = new cArray(origin->messages);
-        coded = false;
-        return true;
-    } else {
-        return false;
-    }
+void NetworkCodingManager::deleteGeneration(int id){
+    knownGen.erase(id);
 }
 
 } /* namespace HaecComm */

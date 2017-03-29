@@ -33,21 +33,18 @@ network Mesh2DDemo
         app[columns*rows]: HaecModule {
             id = index;
             portNumber = 1;
-            middleware = "HaecComm.MW.ReportArrival,HaecComm.MW.GenTraffic";
             
             @display("p=100,40,matrix,$columns,170,170");
         };
         ni[columns*rows]: HaecModule {
             id = index;
             portNumber = 2;
-            middleware = "HaecComm.MW.DummyMW";
             
             @display("p=140,80,matrix,$columns,170,170");
         };
         router[columns*rows]: HaecModule {
             id = index;
             portNumber = 5;
-            middleware = "HaecComm.MW.RouterXY";
             
             @display("p=180,120,matrix,$columns,170,170");
         };

@@ -13,34 +13,47 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef CORE_NETWORKCODINGMANAGER_H_
-#define CORE_NETWORKCODINGMANAGER_H_
+#ifndef UTIL_NCGEN_H_
+#define UTIL_NCGEN_H_
+
 
 #include "omnetpp.h"
-#include "NcGen.h"
 #include "NcCombination_m.h"
 
 using namespace omnetpp;
 
 namespace HaecComm {
 
-class NetworkCodingManager {
+class NcGen {
 private:
-    int genSize, combiSize;
-    int genIdCounter;
-    std::map<int, NcGen*> knownGen;
-
-    int getNextGenerationId();
+    int id;
+    int mSize;
+    int cSize;
+    bool coded;
 
 public:
-    NetworkCodingManager(int genSize, int combiSize) : genSize(genSize), combiSize(combiSize) {};
-    virtual ~NetworkCodingManager() {};
+    NcGen() { throw cRuntimeError(NULL, "Trying to create NC gen without id!"); };
+    NcGen(int id, int mSize, int cSize) : id(id), mSize(mSize), cSize(cSize) {
+        combinations = new cArray; messages = new cArray;
+    };
+    virtual ~NcGen() { delete(combinations); delete(messages); };
 
-    NcGen* getOrCreateGeneration();
-    NcGen* getOrCreateGeneration(int id);
-    void deleteGeneration(int id);
+    cArray *messages;
+    cArray *combinations;
+    NcGen *origin;
+
+    void setCoded(bool b) {coded = b; };
+    int getId() { return id;};
+    bool isDecodeable() { return cSize == combinations->size(); };
+    bool isCodeable() { return mSize == messages->size(); };
+
+    void addCombination(NcCombination *msg);
+    void addMessage(cMessage *msg);
+    bool code();
+    bool decode();
+
 };
 
 } /* namespace HaecComm */
 
-#endif /* CORE_NETWORKCODINGMANAGER_H_ */
+#endif /* UTIL_NCGEN_H_ */

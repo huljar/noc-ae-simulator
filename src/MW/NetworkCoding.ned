@@ -19,7 +19,7 @@ simple NetworkCoding
 {
     parameters:
         int parentId = default(0);
-        int generationSize = default(4);
+        int generationSize = default(2);
         int combinations = default(3);
         bool inputClocked = default(false);
 }

@@ -19,19 +19,15 @@
 #include <omnetpp.h>
 #include "cMiddlewareBase.h"
 #include "NetworkCodingManager.h"
+#include "NcCombination_m.h"
 
 using namespace omnetpp;
 
 namespace HaecComm {
 
 class NetworkCoding: public cMiddlewareBase {
-public:
-    virtual ~NetworkCoding();
-
 protected:
     virtual void initialize();
-    virtual void handleCycle();
-    virtual void handleCycle(cMessage *msg);
     virtual void handleMessageInternal(cMessage *msg);
 
 private:

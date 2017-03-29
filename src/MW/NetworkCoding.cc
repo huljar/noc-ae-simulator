@@ -22,38 +22,31 @@ Define_Module(NetworkCoding);
 void NetworkCoding::initialize() {
     cMiddlewareBase::initialize();
 
-    NC = new NetworkCodingManager(par("NCGenSize"), par("NCCombiSize"));
-}
-
-void NetworkCoding::handleCycle(cMessage *msg) {
-
+    NC = new NetworkCodingManager(par("generationSize"), par("combinations"));
 }
 
 void NetworkCoding::handleMessageInternal(cMessage *msg){
     if((int)msg->par("inPort") == 0) {        // Message from router
-        check_and_cast<NcCombination *> msg;
-        ncGen *g = NC->getOrCreateGeneration(msg->getGenerationId());
+        NcCombination *msgNc = check_and_cast<NcCombination *>(msg);
+        NcGen *g = NC->getOrCreateGeneration(msgNc->getGenerationId());
 
-        g->addCombination(msg);
+        g->addCombination(msgNc);
         if(g->decode()){
-            for(int i = g->messages->size(); i > 0; i--){
-                cMessage *m = (cMessage *) g->messages->get(i);
-                //take(m);
+            for(int i = g->messages->size(); i > 0; --i){
+                cMessage *m = (cMessage *) g->messages->get(i-1)->dup();
                 m->addPar("outPort");
                 m->par("outPort") = 1; // send to app
                 send(m,"out");
             }
-            // the generation is done, also this msg
+            // the generation is done
             NC->deleteGeneration(g->getId());
-            dropAndDelete(msg);
         }
     } else if((int)msg->par("inPort") == 1){ // Message from app
-        ncGen *g = NC->getOrCreateGeneration();
+        NcGen *g = NC->getOrCreateGeneration();
         g->addMessage(msg);
         if(g->code()) {
-            for(int i = g->combinations->size(); i > 0; i--){
-                cMessage *m = (cMessage *) g->combinations->get(i);
-                //take(m);
+            for(int i = g->combinations->size(); i > 0; --i){
+                cMessage *m = (cMessage *) g->combinations->get(i-1)->dup();
                 m->addPar("outPort");
                 m->par("outPort") = 0; // send to router
                 send(m,"out");
