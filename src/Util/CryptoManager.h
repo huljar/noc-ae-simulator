@@ -36,14 +36,13 @@ private:
     bool available;
     cGate *outGate;
     cQueue q;
-    cSimpleModule *parent;
     CryptoUnit *cus;
     std::queue<int> freeUnits;
 
     bool processMessage(cMessage *msg, int unitId);
 
 public:
-    CryptoManager(int units, int cycles, cGate *out, cSimpleModule *p);
+    CryptoManager(int units, int cycles, cGate *out);
     virtual ~CryptoManager();
 
     bool enqueue(cMessage *msg);

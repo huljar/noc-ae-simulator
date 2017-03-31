@@ -17,7 +17,7 @@
 
 namespace HaecComm {
 
-CryptoManager::CryptoManager(int units, int cycles, cGate *out, cSimpleModule *p){
+CryptoManager::CryptoManager(int units, int cycles, cGate *out){
     cus = (CryptoUnit *) malloc(units * sizeof(CryptoUnit));
     for(int i = 0; i < units; i++){
         freeUnits.push(i);
@@ -26,7 +26,6 @@ CryptoManager::CryptoManager(int units, int cycles, cGate *out, cSimpleModule *p
     }
     this->cycles = cycles;
     outGate = out;
-    parent = p;
 }
 
 CryptoManager::~CryptoManager(){
@@ -47,7 +46,7 @@ bool CryptoManager::enqueue(cMessage *msg){
         q.insert(msg);
         return true;
     } else {
-        parent->dropAndDelete(msg); // TODO: report it!
+        // the issuing class should drop the packet
         return false;
     }
 }
@@ -68,6 +67,7 @@ void CryptoManager::tick(){
         // in use units
         if(!(--cu->remainingCycles)) { // this always decrements
             // if it reaches 0
+            cSimpleModule *parent = (cSimpleModule *) cu->processedMsg->getOwner();
             parent->send(cu->processedMsg, outGate);
             cu->processedMsg = NULL;
         }
