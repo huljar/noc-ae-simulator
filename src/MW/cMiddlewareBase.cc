@@ -18,9 +18,10 @@
 namespace HaecComm {
 
 cMiddlewareBase::cMiddlewareBase() {
-    this->isClocked = false;
-    this->locallyClocked = false;
-    this->currentCycle = 0;
+    isClocked = false;
+    locallyClocked = false;
+    queueLength = 0;
+    currentCycle = 0;
     q = new cQueue();
 }
 
@@ -38,12 +39,16 @@ void cMiddlewareBase::handleMessageInternal(cMessage *msg) {
 
 void cMiddlewareBase::initialize() {
     if (getAncestorPar("isClocked")) {
-        this->isClocked = true;
+        isClocked = true;
         getSimulation()->getSystemModule()->subscribe("clock", this);
     }
 
     if (par("inputClocked")) {
-        this->locallyClocked = true;
+        locallyClocked = true;
+    }
+
+    if (par("queueLength")) {
+        queueLength = par("queueLength");
     }
 
     HaecModule *parent = dynamic_cast<HaecModule *>(getParentModule());
@@ -70,6 +75,10 @@ void cMiddlewareBase::receiveSignal(cComponent *source, simsignal_t id,
 void cMiddlewareBase::handleMessage(cMessage *msg) {
     if (locallyClocked) {
         // enqueue until signal
+        if(queueLength && q->getLength() >= queueLength) { // queue is size restricted
+            dropAndDelete(msg);
+            // TODO report it!
+        }
         q->insert(msg);
     } else {
         handleMessageInternal(msg);

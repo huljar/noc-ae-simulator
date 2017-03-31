@@ -32,7 +32,7 @@ public:
 protected:
     bool isClocked;
     bool locallyClocked;
-    int parentId, X, Y;
+    int parentId, X, Y, queueLength;
     unsigned long currentCycle;
     cQueue *q;
 
