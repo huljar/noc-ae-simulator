@@ -19,7 +19,10 @@ namespace HaecComm {
 
 Define_Module(GenTraffic);
 
-void GenTraffic::handleCycle() {
+void GenTraffic::handleCycle(cMessage *msg) {
+    // we ignore the msg var, because we just generate traffic
+
+    // TODO create parameter for injection prob
     int r = (int) uniform(0,16);
     if(r != 4)
         return;

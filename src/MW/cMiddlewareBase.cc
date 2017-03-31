@@ -28,12 +28,8 @@ cMiddlewareBase::~cMiddlewareBase() {
     delete(q);
 }
 
-void cMiddlewareBase::handleCycle(){
-    // handle clock tick
-}
-
 void cMiddlewareBase::handleCycle(cMessage *msg){
-    // handle clock tick with pending message
+    // handle clock tick with pending message or NULL
 }
 
 void cMiddlewareBase::handleMessageInternal(cMessage *msg) {
@@ -64,7 +60,7 @@ void cMiddlewareBase::receiveSignal(cComponent *source, simsignal_t id,
         // this is a tick
         this->currentCycle = l;
         if (q->isEmpty()) {
-            handleCycle();
+            handleCycle(NULL);
         } else {
             handleCycle((cMessage *) q->pop());
         }
