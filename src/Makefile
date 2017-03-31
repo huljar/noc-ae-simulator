@@ -37,7 +37,9 @@ OBJS = \
     $O/MW/ReportArrival.o \
     $O/MW/cMiddlewareBase.o \
     $O/MW/DummyMW.o \
+    $O/MW/NetworkCodingAuthGen.o \
     $O/MW/GenTraffic.o \
+    $O/Util/CryptoManager.o \
     $O/Util/NetworkCodingManager.o \
     $O/Util/NcGen.o \
     $O/Messages/NcCombination_m.o
@@ -161,6 +163,14 @@ $O/MW/NetworkCoding.o: MW/NetworkCoding.cc \
 	Messages/NcCombination_m.h \
 	Util/NcGen.h \
 	Util/NetworkCodingManager.h
+$O/MW/NetworkCodingAuthGen.o: MW/NetworkCodingAuthGen.cc \
+	Core/HaecModule.h \
+	MW/NetworkCodingAuthGen.h \
+	MW/cMiddlewareBase.h \
+	Messages/NcCombination_m.h \
+	Util/CryptoManager.h \
+	Util/NcGen.h \
+	Util/NetworkCodingManager.h
 $O/MW/ReportArrival.o: MW/ReportArrival.cc \
 	Core/HaecModule.h \
 	MW/ReportArrival.h \
@@ -174,6 +184,9 @@ $O/MW/cMiddlewareBase.o: MW/cMiddlewareBase.cc \
 	MW/cMiddlewareBase.h
 $O/Messages/NcCombination_m.o: Messages/NcCombination_m.cc \
 	Messages/NcCombination_m.h
+$O/Util/CryptoManager.o: Util/CryptoManager.cc \
+	Messages/NcCombination_m.h \
+	Util/CryptoManager.h
 $O/Util/NcGen.o: Util/NcGen.cc \
 	Messages/NcCombination_m.h \
 	Util/NcGen.h

@@ -25,7 +25,7 @@ namespace HaecComm {
 
 class GenTraffic: public cMiddlewareBase {
 protected:
-    virtual void handleCycle();
+    virtual void handleCycle(cMessage *msg);
 };
 
 } //namespace

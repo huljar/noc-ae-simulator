@@ -32,7 +32,7 @@ public:
 protected:
     bool isClocked;
     bool locallyClocked;
-    int parentId, X, Y;
+    int parentId, X, Y, queueLength;
     unsigned long currentCycle;
     cQueue *q;
 
@@ -43,7 +43,6 @@ protected:
                 cObject *);
 
     // Override these for your functionality
-    virtual void handleCycle();
     virtual void handleCycle(cMessage *msg);
     virtual void handleMessageInternal(cMessage *msg);
 

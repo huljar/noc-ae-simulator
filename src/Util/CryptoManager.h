@@ -13,31 +13,42 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __HAECCOMM_NETWORKCODING_H_
-#define __HAECCOMM_NETWORKCODING_H_
+#ifndef UTIL_CRYPTOMANAGER_H_
+#define UTIL_CRYPTOMANAGER_H_
 
-#include <omnetpp.h>
-#include "cMiddlewareBase.h"
-#include "NetworkCodingManager.h"
+#include <queue>
+
+#include "omnetpp.h"
 #include "NcCombination_m.h"
 
 using namespace omnetpp;
 
 namespace HaecComm {
 
-/*
- * FIXME We currently do not consider the local queue and its size!
- */
-
-class NetworkCoding: public cMiddlewareBase {
-protected:
-    virtual void initialize();
-    virtual void handleMessageInternal(cMessage *msg);
-
-private:
-    NetworkCodingManager *NC;
+struct CryptoUnit {
+    int remainingCycles;
+    cMessage *processedMsg;
 };
 
-} //namespace
+class CryptoManager {
+private:
+    int units, cycles, queueLength;
+    bool available;
+    cQueue *outQueue;
+    cQueue q;
+    CryptoUnit *cus;
+    std::queue<int> freeUnits;
 
-#endif
+    bool processMessage(cMessage *msg, int unitId);
+
+public:
+    CryptoManager(int units, int cycles, cQueue *out);
+    virtual ~CryptoManager();
+
+    bool enqueue(cMessage *msg);
+    void tick();
+};
+
+} /* namespace HaecComm */
+
+#endif /* UTIL_CRYPTOMANAGER_H_ */

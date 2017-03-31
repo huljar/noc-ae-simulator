@@ -13,29 +13,28 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __HAECCOMM_NETWORKCODING_H_
-#define __HAECCOMM_NETWORKCODING_H_
+#ifndef __HAECCOMM_NETWORKCODINGAUTHGEN_H_
+#define __HAECCOMM_NETWORKCODINGAUTHGEN_H_
 
 #include <omnetpp.h>
 #include "cMiddlewareBase.h"
 #include "NetworkCodingManager.h"
+#include "CryptoManager.h"
 #include "NcCombination_m.h"
 
 using namespace omnetpp;
 
 namespace HaecComm {
 
-/*
- * FIXME We currently do not consider the local queue and its size!
- */
-
-class NetworkCoding: public cMiddlewareBase {
+class NetworkCodingAuthGen: public cMiddlewareBase {
 protected:
     virtual void initialize();
+    virtual void handleCycle(cMessage *msg);
     virtual void handleMessageInternal(cMessage *msg);
 
 private:
     NetworkCodingManager *NC;
+    CryptoManager *CU;
 };
 
 } //namespace

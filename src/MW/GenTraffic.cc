@@ -19,7 +19,10 @@ namespace HaecComm {
 
 Define_Module(GenTraffic);
 
-void GenTraffic::handleCycle() {
+void GenTraffic::handleCycle(cMessage *msg) {
+    // we ignore the msg var, because we just generate traffic
+
+    // TODO create parameter for injection prob
     int r = (int) uniform(0,16);
     if(r != 4)
         return;
@@ -48,13 +51,13 @@ void GenTraffic::handleCycle() {
     char msgName[128] = {0};
     sprintf(msgName, "msg-%02d-%02d-%05lu", parentId, trg, currentCycle);
 
-    cMessage *msg = createMessage(msgName);
-    msg->addPar("targetId");
-    msg->par("targetId") = trg;
-    msg->par("outPort")  = 0;
+    cMessage *m = createMessage(msgName);
+    m->addPar("targetId");
+    m->par("targetId") = trg;
+    m->par("outPort")  = 0;
 
-    EV << this->getFullPath() << " sending msg " << msg << " at cycle " << currentCycle << std::endl;
-    send(msg, "out");
+    EV << this->getFullPath() << " sending msg " << m << " at cycle " << currentCycle << std::endl;
+    send(m, "out");
 
 }
 
