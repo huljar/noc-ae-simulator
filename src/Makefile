@@ -38,6 +38,7 @@ OBJS = \
     $O/MW/cMiddlewareBase.o \
     $O/MW/DummyMW.o \
     $O/MW/GenTraffic.o \
+    $O/Util/CryptoManager.o \
     $O/Util/NetworkCodingManager.o \
     $O/Util/NcGen.o \
     $O/Messages/NcCombination_m.o
@@ -174,6 +175,9 @@ $O/MW/cMiddlewareBase.o: MW/cMiddlewareBase.cc \
 	MW/cMiddlewareBase.h
 $O/Messages/NcCombination_m.o: Messages/NcCombination_m.cc \
 	Messages/NcCombination_m.h
+$O/Util/CryptoManager.o: Util/CryptoManager.cc \
+	Messages/NcCombination_m.h \
+	Util/CryptoManager.h
 $O/Util/NcGen.o: Util/NcGen.cc \
 	Messages/NcCombination_m.h \
 	Util/NcGen.h
