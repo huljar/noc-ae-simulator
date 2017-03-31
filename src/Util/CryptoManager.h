@@ -34,7 +34,7 @@ class CryptoManager {
 private:
     int units, cycles, queueLength;
     bool available;
-    cGate *outGate;
+    cQueue *outQueue;
     cQueue q;
     CryptoUnit *cus;
     std::queue<int> freeUnits;
