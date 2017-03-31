@@ -43,7 +43,6 @@ protected:
                 cObject *);
 
     // Override these for your functionality
-    virtual void handleCycle();
     virtual void handleCycle(cMessage *msg);
     virtual void handleMessageInternal(cMessage *msg);
 

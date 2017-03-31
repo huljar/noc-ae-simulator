@@ -42,7 +42,7 @@ private:
     bool processMessage(cMessage *msg, int unitId);
 
 public:
-    CryptoManager(int units, int cycles, cGate *out);
+    CryptoManager(int units, int cycles, cQueue *out);
     virtual ~CryptoManager();
 
     bool enqueue(cMessage *msg);

@@ -23,7 +23,13 @@ void NetworkCodingAuthGen::initialize() {
     cMiddlewareBase::initialize();
 
     NC = new NetworkCodingManager(par("generationSize"), par("combinations"));
-    CU = new CryptoManager(par("cryptoUnits"), par("cryptoCycles"));
+    CU = new CryptoManager(par("cryptoUnits"), par("cryptoCycles"), NULL);
+}
+
+void NetworkCodingAuthGen::handleCycle(cMessage *msg) {
+    CU->tick();
+
+    // processed messages will now be pushed into the local queue
 }
 
 void NetworkCodingAuthGen::handleMessageInternal(cMessage *msg) {
