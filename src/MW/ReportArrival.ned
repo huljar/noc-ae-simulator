@@ -19,5 +19,4 @@ simple ReportArrival
 {
     parameters:
         int  parentId = default(0);
-        bool inputClocked = default(false);
 }

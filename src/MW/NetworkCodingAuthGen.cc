@@ -22,8 +22,12 @@ Define_Module(NetworkCodingAuthGen);
 void NetworkCodingAuthGen::initialize() {
     cMiddlewareBase::initialize();
 
+    outQueue = new cQueue();
+    inQueue = new cQueue();
+
     NC = new NetworkCodingManager(par("generationSize"), par("combinations"));
-    CU = new CryptoManager(par("cryptoUnits"), par("cryptoCycles"), NULL);
+    CU = new CryptoManager(par("cryptoUnits"), par("cryptoCycles"), outQueue);
+
 }
 
 void NetworkCodingAuthGen::handleCycle(cMessage *msg) {

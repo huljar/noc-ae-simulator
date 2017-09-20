@@ -33,6 +33,8 @@ protected:
     virtual void handleMessageInternal(cMessage *msg);
 
 private:
+    cQueue *inQueue;
+    cQueue *outQueue;
     NetworkCodingManager *NC;
     CryptoManager *CU;
 };

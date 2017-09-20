@@ -43,13 +43,8 @@ void cMiddlewareBase::initialize() {
         getSimulation()->getSystemModule()->subscribe("clock", this);
     }
 
-    if (par("inputClocked")) {
-        locallyClocked = true;
-    }
-
-    if (par("queueLength")) {
-        queueLength = par("queueLength");
-    }
+    if(hasPar("locallyClocked")) locallyClocked = par("locallyClocked");
+    if(hasPar("queueLength")) queueLength = par("queueLength");
 
     HaecModule *parent = dynamic_cast<HaecModule *>(getParentModule());
 

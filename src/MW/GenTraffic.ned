@@ -19,5 +19,5 @@ simple GenTraffic
 {
     parameters:
         int  parentId = default(0);
-        bool inputClocked = default(false);
+        double injectionRate = default(0.5);
 }

@@ -23,6 +23,8 @@ void GenTraffic::handleCycle(cMessage *msg) {
     // we ignore the msg var, because we just generate traffic
 
     // TODO create parameter for injection prob
+    double rate = par("injectionRate");
+    EV << " gt hast par " << rate << std::endl;
     int r = (int) uniform(0,16);
     if(r != 4)
         return;
