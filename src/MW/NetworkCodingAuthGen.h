@@ -18,9 +18,9 @@
 
 #include <omnetpp.h>
 #include "cMiddlewareBase.h"
-#include "NetworkCodingManager.h"
-#include "CryptoManager.h"
-#include "NcCombination_m.h"
+#include <Util/NetworkCodingManager.h>
+#include <Util/CryptoManager.h>
+#include <Messages/NcCombination_m.h>
 
 using namespace omnetpp;
 

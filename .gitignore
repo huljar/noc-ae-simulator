@@ -1,0 +1,15 @@
+# lockfiles
+*.autosave
+.*.swp
+
+# output directory
+out/
+
+# eclipse user settings
+.settings/
+
+# automatically generated files
+src/Makefile
+src/HaecComm
+src/Messages/*.h
+src/Messages/*.cc

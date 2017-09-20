@@ -19,7 +19,7 @@
 #include <queue>
 
 #include "omnetpp.h"
-#include "NcCombination_m.h"
+#include <Messages/NcCombination_m.h>
 
 using namespace omnetpp;
 

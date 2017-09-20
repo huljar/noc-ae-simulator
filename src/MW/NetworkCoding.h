@@ -18,8 +18,8 @@
 
 #include <omnetpp.h>
 #include "cMiddlewareBase.h"
-#include "NetworkCodingManager.h"
-#include "NcCombination_m.h"
+#include <Util/NetworkCodingManager.h>
+#include <Messages/NcCombination_m.h>
 
 using namespace omnetpp;
 

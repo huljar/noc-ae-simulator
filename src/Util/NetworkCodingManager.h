@@ -18,7 +18,7 @@
 
 #include "omnetpp.h"
 #include "NcGen.h"
-#include "NcCombination_m.h"
+#include <Messages/NcCombination_m.h>
 
 using namespace omnetpp;
 

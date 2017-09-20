@@ -151,7 +151,7 @@ void HaecModule::handleMessage(cMessage *msg) {
     } else {
         // this probably should not exist...
         throw cRuntimeError(this, "packet arrived from nowhere (%s)",
-                msg->info());
+                msg->str().c_str());
     }
 
 }

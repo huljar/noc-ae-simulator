@@ -65,7 +65,7 @@ void NetworkCodingAuthGen::handleMessageInternal(cMessage *msg) {
         }
     } else {
         throw cRuntimeError(this, "Received msg %s with stupid inPort %d",
-                msg->getName(), msg->par("inPort"));
+                msg->getName(), msg->par("inPort").str().c_str());
     }
 }
 
