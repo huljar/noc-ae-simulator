@@ -7,9 +7,11 @@ out/
 
 # eclipse user settings
 .settings/
+simulations/.qtenvrc
 
 # automatically generated files
 src/Makefile
 src/HaecComm
+src/HaecComm_dbg
 src/Messages/*.h
 src/Messages/*.cc
