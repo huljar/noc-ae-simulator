@@ -17,7 +17,7 @@
 #define MW_CMIDDLEWAREBASE_H_
 
 #include <omnetpp.h>
-#include "Core/HaecModule.h"
+#include <Core/HaecModule.h>
 
 using namespace omnetpp;
 

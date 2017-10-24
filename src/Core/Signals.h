@@ -25,13 +25,13 @@
 using namespace omnetpp;
 
 namespace HaecComm {
-class haecClockSignal : public cObject, noncopyable
+class HaecClockSignal : public cObject, noncopyable
 {
   public:
     unsigned long cycle;
 
-    haecClockSignal() { haecClockSignal(0);};
-    haecClockSignal(unsigned long c): cycle(c){};
+    HaecClockSignal(): cycle(0) {}
+    HaecClockSignal(unsigned long c): cycle(c) {}
 
 };
 

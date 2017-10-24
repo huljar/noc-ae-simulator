@@ -19,8 +19,9 @@ namespace HaecComm {
 
 Define_Module(Clock);
 
-Clock::Clock() {
-    timerMessage = NULL;
+Clock::Clock()
+    : timerMessage(nullptr)
+{
 }
 
 Clock::~Clock() {

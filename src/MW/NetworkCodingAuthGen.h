@@ -17,7 +17,7 @@
 #define __HAECCOMM_NETWORKCODINGAUTHGEN_H_
 
 #include <omnetpp.h>
-#include "cMiddlewareBase.h"
+#include <MW/cMiddlewareBase.h>
 #include <Util/NetworkCodingManager.h>
 #include <Util/CryptoManager.h>
 #include <Messages/NcCombination_m.h>

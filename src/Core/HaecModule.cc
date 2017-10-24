@@ -30,8 +30,7 @@ void HaecModule::initMiddleware() {
     std::vector<std::string> mws;
     this->addGate("MWinput", cGate::INPUT);
 
-    cStringTokenizer tok(par("middleware").stringValue());
-    tok.setDelimiter(",");
+    cStringTokenizer tok(par("middleware").stringValue(), ",");
 
     while(tok.hasMoreTokens()){
         const char *mwName = tok.nextToken();

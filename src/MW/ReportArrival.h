@@ -17,7 +17,7 @@
 #define REPORTARRIVAL_H_
 
 #include <omnetpp.h>
-#include "cMiddlewareBase.h"
+#include <MW/cMiddlewareBase.h>
 
 using namespace omnetpp;
 

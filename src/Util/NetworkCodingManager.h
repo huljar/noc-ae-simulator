@@ -16,8 +16,8 @@
 #ifndef CORE_NETWORKCODINGMANAGER_H_
 #define CORE_NETWORKCODINGMANAGER_H_
 
-#include "omnetpp.h"
-#include "NcGen.h"
+#include <omnetpp.h>
+#include <Util/NcGen.h>
 #include <Messages/NcCombination_m.h>
 
 using namespace omnetpp;

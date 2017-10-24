@@ -13,7 +13,7 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include "RouterXY.h"
+#include <MW/RouterXY.h>
 
 namespace HaecComm {
 
@@ -22,7 +22,7 @@ Define_Module(RouterXY);
 void RouterXY::handleMessageInternal(cMessage *msg)
 {
     if(!msg->hasPar("targetId")){
-        EV << " got message without target - drop it like it's hot! " << msg->info() << std::endl;
+        EV << " got message without target - drop it like it's hot! " << msg->str() << std::endl;
         dropAndDelete(msg);
     }
 

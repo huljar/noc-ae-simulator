@@ -17,7 +17,7 @@
 #define CLOCK_H_
 
 #include <omnetpp.h>
-#include "Signals.h"
+#include <Core/Signals.h>
 
 using namespace omnetpp;
 

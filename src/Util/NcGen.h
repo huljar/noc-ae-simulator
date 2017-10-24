@@ -17,7 +17,7 @@
 #define UTIL_NCGEN_H_
 
 
-#include "omnetpp.h"
+#include <omnetpp.h>
 #include <Messages/NcCombination_m.h>
 
 using namespace omnetpp;
@@ -32,7 +32,7 @@ private:
     bool coded;
 
 public:
-    NcGen() { throw cRuntimeError(NULL, "Trying to create NC gen without id!"); };
+    NcGen() = delete;
     NcGen(int id, int mSize, int cSize) : id(id), mSize(mSize), cSize(cSize) {
         combinations = new cArray; messages = new cArray;
     };

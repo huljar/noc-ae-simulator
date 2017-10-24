@@ -18,7 +18,7 @@
 
 #include <queue>
 
-#include "omnetpp.h"
+#include <omnetpp.h>
 #include <Messages/NcCombination_m.h>
 
 using namespace omnetpp;

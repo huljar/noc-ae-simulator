@@ -17,7 +17,7 @@
 #define __HAECCOMM_NETWORKCODING_H_
 
 #include <omnetpp.h>
-#include "cMiddlewareBase.h"
+#include <MW/cMiddlewareBase.h>
 #include <Util/NetworkCodingManager.h>
 #include <Messages/NcCombination_m.h>
 
