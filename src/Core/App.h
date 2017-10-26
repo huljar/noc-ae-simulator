@@ -13,29 +13,24 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __HAECCOMM_NETWORKCODING_H_
-#define __HAECCOMM_NETWORKCODING_H_
+#ifndef __HAECCOMM_APP_H_
+#define __HAECCOMM_APP_H_
 
 #include <omnetpp.h>
-#include <MW/MiddlewareBase.h>
-#include <Util/NetworkCodingManager.h>
-#include <Messages/NcCombination_m.h>
+#include <Core/HaecModule.h>
 
 using namespace omnetpp;
 
 namespace HaecComm {
 
-/*
- * FIXME We currently do not consider the local queue and its size!
+/**
+ * TODO - Generated class
  */
-
-class NetworkCoding: public MiddlewareBase {
+class App : public HaecModule
+{
 protected:
     virtual void initialize();
-    virtual void handleMessageInternal(cMessage *msg);
-
-private:
-    NetworkCodingManager *NC;
+    virtual void handleMessage(cMessage *msg);
 };
 
 } //namespace

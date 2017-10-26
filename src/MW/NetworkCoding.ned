@@ -15,8 +15,7 @@
 
 package HaecComm.MW;
 
-simple NetworkCoding
-{
+simple NetworkCoding like IMiddlewareBase {
     parameters:
         int parentId = default(0);
         int generationSize = default(2);

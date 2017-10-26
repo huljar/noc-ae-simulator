@@ -17,6 +17,7 @@
 #define __HAECCOMM_HAECMOD_H
 
 #include <omnetpp.h>
+#include <vector>
 
 using namespace omnetpp;
 
@@ -32,11 +33,9 @@ private:
     int nextIn;
     int id, X, Y;
 
-    cGate *middlewareEntryGate;
     cArray inQueues;
     cArray outQueues;
     cArray localBuffer;
-
 
 public:
     HaecModule();
@@ -50,7 +49,7 @@ protected:
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);
 
-    void initMiddleware();
+    void createMiddleware();
 };
 
 }; // namespace

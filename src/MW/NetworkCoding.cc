@@ -13,14 +13,14 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include <MW/NetworkCoding.h>
+#include "NetworkCoding.h"
 
 namespace HaecComm {
 
 Define_Module(NetworkCoding);
 
 void NetworkCoding::initialize() {
-    cMiddlewareBase::initialize();
+    MiddlewareBase::initialize();
 
     NC = new NetworkCodingManager(par("generationSize"), par("combinations"));
 }

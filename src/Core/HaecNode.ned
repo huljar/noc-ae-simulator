@@ -13,31 +13,30 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __HAECCOMM_NETWORKCODING_H_
-#define __HAECCOMM_NETWORKCODING_H_
+package HaecComm.Core;
 
-#include <omnetpp.h>
-#include <MW/MiddlewareBase.h>
-#include <Util/NetworkCodingManager.h>
-#include <Messages/NcCombination_m.h>
-
-using namespace omnetpp;
-
-namespace HaecComm {
-
-/*
- * FIXME We currently do not consider the local queue and its size!
- */
-
-class NetworkCoding: public MiddlewareBase {
-protected:
-    virtual void initialize();
-    virtual void handleMessageInternal(cMessage *msg);
-
-private:
-    NetworkCodingManager *NC;
-};
-
-} //namespace
-
-#endif
+module HaecNode like IHaecNode {
+    parameters:
+        int id;
+    gates:
+        inout port[];
+    submodules:
+        app: App {
+            id = id;
+        };
+        ni: NetworkInterface {
+            id = id;
+        };
+        router: Router {
+            id = id;
+            gates: port[sizeof(port)];
+        };
+    connections:
+        app.networkOut --> ni.appIn;
+        app.networkIn <-- ni.appOut;
+        ni.routerOut --> router.localIn;
+        ni.routerIn <-- router.localOut;
+        for i=0..sizeof(port) {
+            port[i] <--> router.port[i];
+        }
+}

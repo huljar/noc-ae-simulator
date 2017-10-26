@@ -15,8 +15,7 @@
 
 package HaecComm.MW;
 
-simple ReportArrival
-{
+simple ReportArrival like IMiddlewareBase {
     parameters:
         int  parentId = default(0);
 }

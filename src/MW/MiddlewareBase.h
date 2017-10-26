@@ -13,8 +13,8 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef MW_CMIDDLEWAREBASE_H_
-#define MW_CMIDDLEWAREBASE_H_
+#ifndef MW_MIDDLEWAREBASE_H_
+#define MW_MIDDLEWAREBASE_H_
 
 #include <omnetpp.h>
 #include <Core/HaecModule.h>
@@ -23,11 +23,10 @@ using namespace omnetpp;
 
 namespace HaecComm {
 
-class cMiddlewareBase: public cSimpleModule, public cListener {
+class MiddlewareBase: public cSimpleModule, public cListener {
 public:
-    cMiddlewareBase();
-    virtual ~cMiddlewareBase();
-
+    MiddlewareBase();
+    virtual ~MiddlewareBase();
 
 protected:
     bool isClocked;
@@ -53,4 +52,4 @@ protected:
 
 } /* namespace HaecComm */
 
-#endif /* MW_CMIDDLEWAREBASE_H_ */
+#endif /* MW_MIDDLEWAREBASE_H_ */

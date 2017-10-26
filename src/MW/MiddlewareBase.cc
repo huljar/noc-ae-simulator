@@ -13,11 +13,11 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include <MW/cMiddlewareBase.h>
+#include "MiddlewareBase.h"
 
 namespace HaecComm {
 
-cMiddlewareBase::cMiddlewareBase() {
+MiddlewareBase::MiddlewareBase() {
     isClocked = false;
     locallyClocked = false;
     queueLength = 0;
@@ -25,19 +25,19 @@ cMiddlewareBase::cMiddlewareBase() {
     q = new cQueue();
 }
 
-cMiddlewareBase::~cMiddlewareBase() {
+MiddlewareBase::~MiddlewareBase() {
     delete(q);
 }
 
-void cMiddlewareBase::handleCycle(cMessage *msg){
+void MiddlewareBase::handleCycle(cMessage *msg){
     // handle clock tick with pending message or NULL
 }
 
-void cMiddlewareBase::handleMessageInternal(cMessage *msg) {
+void MiddlewareBase::handleMessageInternal(cMessage *msg) {
     // handle message directly (no local input clocking)
 }
 
-void cMiddlewareBase::initialize() {
+void MiddlewareBase::initialize() {
     if (getAncestorPar("isClocked")) {
         isClocked = true;
         getSimulation()->getSystemModule()->subscribe("clock", this);
@@ -54,7 +54,7 @@ void cMiddlewareBase::initialize() {
 
     q->clear();
 }
-void cMiddlewareBase::receiveSignal(cComponent *source, simsignal_t id,
+void MiddlewareBase::receiveSignal(cComponent *source, simsignal_t id,
         unsigned long l, cObject *details) {
     if (id == registerSignal("clock")) {
         // this is a tick
@@ -67,7 +67,7 @@ void cMiddlewareBase::receiveSignal(cComponent *source, simsignal_t id,
     }
 }
 
-void cMiddlewareBase::handleMessage(cMessage *msg) {
+void MiddlewareBase::handleMessage(cMessage *msg) {
     if (locallyClocked) {
         // enqueue until signal
         if(queueLength && q->getLength() >= queueLength) { // queue is size restricted
@@ -80,7 +80,7 @@ void cMiddlewareBase::handleMessage(cMessage *msg) {
     }
 }
 
-cMessage* cMiddlewareBase::createMessage(const char* name) {
+cMessage* MiddlewareBase::createMessage(const char* name) {
     cMessage *lol = new cMessage(name);
     take(lol);
     lol->addPar("outPort");

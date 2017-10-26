@@ -17,10 +17,10 @@ package HaecComm.Core;
 
 simple HaecModule {
     parameters:
-        int id = default(9999);
-        int portNumber;
-        string middleware;
+        int id;
+        int mwPipelineCount;
+        string mwDefinition;
     gates:
-         input  inPorts[portNumber] @loose;
-        output outPorts[portNumber] @loose;
+        output mwEntry[mwPipelineCount];
+        input  mwExit[mwPipelineCount];
 }

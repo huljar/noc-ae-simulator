@@ -15,7 +15,9 @@
 
 //TODO refactor for in/out queues with fixed size
 
-#include <Core/HaecModule.h>
+#include "HaecModule.h"
+#include <string>
+#include <utility>
 
 namespace HaecComm {
 
@@ -25,68 +27,80 @@ HaecModule::HaecModule() {}
 
 HaecModule::~HaecModule() {}
 
-void HaecModule::initMiddleware() {
-    cModule *lastMW = NULL;
-    std::vector<std::string> mws;
-    this->addGate("MWinput", cGate::INPUT);
+void HaecModule::createMiddleware() {
+    size_t mwPipelineCount = static_cast<size_t>(par("mwPipelineCount"));
+    const char* mwDefinition = par("mwDefinition");
 
-    cStringTokenizer tok(par("middleware").stringValue(), ",");
+    // Split middleware string on whitespace
+    std::vector<std::string> pipelineDefs = cStringTokenizer(mwDefinition).asVector();
 
-    while(tok.hasMoreTokens()){
-        const char *mwName = tok.nextToken();
-        cModuleType *moduleType = cModuleType::get(mwName);
-        cModule *module = moduleType->create(mwName, this);
+    // Check if middleware count matches string definition
+    if(pipelineDefs.size() != mwPipelineCount)
+        throw cRuntimeError(this, "Specified number of pipelines (%u) doesn't match string definition (%u)", mwPipelineCount, pipelineDefs.size());
 
-        module->par("parentId") = this->id;
-        module->finalizeParameters();
-        module->addGate("in",  cGate::INPUT);
-        module->addGate("out", cGate::OUTPUT);
+    // Iterate over pipelines
+    for(size_t i = 0; i < pipelineDefs.size(); ++i) {
+        // Split pipeline definition on commas
+        std::vector<std::string> mwDefs = cStringTokenizer(pipelineDefs[i].c_str(), ",").asVector();
 
-        if(!lastMW){
-            // this is the first MW
-            this->middlewareEntryGate = module->gate("in");
-        } else {
-            lastMW->gate("out")->connectTo(module->gate("in"));
+        // Iterate over the middlewares of this pipeline
+        cModule* lastModule = nullptr;
+        for(auto it = mwDefs.begin(); it != mwDefs.end(); ++it) {
+            // Create middleware
+            cModuleType* mwType = cModuleType::get(it->c_str());
+            cModule* middleware = mwType->create(mwName, this);
+
+            // TODO: is there a way to check if the module implements the IMiddlewareBase interface?
+
+            middleware->par("parentId") = id;
+            middleware->finalizeParameters();
+
+            // If this is the first middleware, connect to entry gate, else connect to previous middleware
+            if(!lastModule)
+                gate("mwEntry", static_cast<int>(i))->connectTo(middleware->gate("in"));
+            else
+                lastModule->gate("out")->connectTo(middleware->gate("in"));
+
+            // Update last created module
+            lastModule = middleware;
         }
 
-        if(!tok.hasMoreTokens()) {
-            // this is the last MW
-            module->gate("out")->connectTo(this->gate("MWinput"));
-        }
+        // Connect last module to the exit gate. If there were no modules, directly connect entry and exit
+        if(lastModule)
+            lastModule->gate("out")->connectTo(gate("mwExit", static_cast<int>(i)));
+        else
+            gate("mwEntry", static_cast<int>(i))->connectTo(gate("mwExit", static_cast<int>(i)));
 
-        module->buildInside();
-        module->scheduleStart(simTime());
-        lastMW = module;
+        // Start up the modules
+        for(auto it = modules.begin(); it != modules.end(); ++it) {
+            (*it)->buildInside();
+            (*it)->scheduleStart(simTime());
+        }
     }
 }
 
 void HaecModule::initialize() {
     id = par("id");
-    X  = id % (int) getAncestorPar("columns");
-    Y  = id / (int) getAncestorPar("columns");
+    X  = id % static_cast<int>(getAncestorPar("columns"));
+    Y  = id / static_cast<int>(getAncestorPar("columns"));
 
-    if (hasPar("middleware")) {
-        initMiddleware();
-    } else {
-        throw cRuntimeError(this, "middleware par required");
-    }
-
-    this->isClocked = false;
-    if (getAncestorPar("isClocked")) {
-        this->isClocked = true;
-
+    isClocked = getAncestorPar("isClocked");
+    if (isClocked) {
         // setup queues for in & out ports
-        for (int i = 0; i < gateSize("inPorts"); i++) {
-            inQueues.addAt(i, new cQueue);
-        }
-
-        for (int i = 0; i < gateSize("outPorts"); i++) {
-            outQueues.addAt(i, new cQueue);
-        }
+//        for (int i = 0; i < gateSize("inPorts"); i++) {
+//            inQueues.addAt(i, new cQueue);
+//        }
+//
+//        for (int i = 0; i < gateSize("outPorts"); i++) {
+//            outQueues.addAt(i, new cQueue);
+//        }
 
         // subscribe to clock signal
         getSimulation()->getSystemModule()->subscribe("clock", this);
     }
+
+    // Set up middleware
+    createMiddleware();
 }
 
 void HaecModule::receiveSignal(cComponent *, simsignal_t id, unsigned long l,

@@ -15,8 +15,7 @@
 
 package HaecComm.MW;
 
-simple DummyMW
-{
+simple DummyMW like IMiddlewareBase {
     parameters:
         int  parentId = default(0);
 }

@@ -17,13 +17,13 @@
 #define __HAECCOMM_ROUTERXY_H_
 
 #include <omnetpp.h>
-#include <MW/cMiddlewareBase.h>
+#include <MW/MiddlewareBase.h>
 
 using namespace omnetpp;
 
 namespace HaecComm {
 
-class RouterXY : public cMiddlewareBase
+class RouterXY : public MiddlewareBase
 {
   protected:
     virtual void handleMessageInternal(cMessage *msg);

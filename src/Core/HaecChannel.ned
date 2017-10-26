@@ -13,31 +13,14 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __HAECCOMM_NETWORKCODING_H_
-#define __HAECCOMM_NETWORKCODING_H_
+package HaecComm.Core;
 
-#include <omnetpp.h>
-#include <MW/MiddlewareBase.h>
-#include <Util/NetworkCodingManager.h>
-#include <Messages/NcCombination_m.h>
-
-using namespace omnetpp;
-
-namespace HaecComm {
-
-/*
- * FIXME We currently do not consider the local queue and its size!
- */
-
-class NetworkCoding: public MiddlewareBase {
-protected:
-    virtual void initialize();
-    virtual void handleMessageInternal(cMessage *msg);
-
-private:
-    NetworkCodingManager *NC;
-};
-
-} //namespace
-
-#endif
+//
+// TODO auto-generated type
+//
+channel HaecChannel extends ned.DatarateChannel like IHaecChannel {
+    datarate = default(0bps);
+    delay = default(0s);
+    ber = default(0);
+    per = default(0);
+}

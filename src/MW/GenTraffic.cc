@@ -13,7 +13,7 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include <MW/GenTraffic.h>
+#include "GenTraffic.h"
 
 namespace HaecComm {
 
