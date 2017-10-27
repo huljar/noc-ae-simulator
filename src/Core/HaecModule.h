@@ -17,7 +17,6 @@
 #define __HAECCOMM_HAECMOD_H
 
 #include <omnetpp.h>
-#include <vector>
 
 using namespace omnetpp;
 
@@ -27,21 +26,11 @@ namespace HaecComm {
  * Base class for all network components
  */
 class HaecModule: public cSimpleModule, public cListener {
-private:
-    bool isClocked;
-    int tickCount;
-    int nextIn;
-    int id, X, Y;
-
-    cArray inQueues;
-    cArray outQueues;
-    cArray localBuffer;
-
 public:
     HaecModule();
     virtual ~HaecModule();
-    void receiveSignal(cComponent *, simsignal_t signalID, unsigned long l,
-            cObject *d);
+    virtual void receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l,
+            cObject* details);
     int getX() { return X; };
     int getY() { return Y; };
 
@@ -50,6 +39,18 @@ protected:
     virtual void handleMessage(cMessage *msg);
 
     void createMiddleware();
+    bool processQueue(cPacketQueue* queue, const char* targetGate, int targetGateIndex = -1);
+
+    bool isClocked;
+
+private:
+    int tickCount;
+    int nextIn;
+    int id, X, Y;
+
+    cArray inQueues;
+    cArray outQueues;
+    cArray localBuffer;
 };
 
 }; // namespace

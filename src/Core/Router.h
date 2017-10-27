@@ -18,6 +18,7 @@
 
 #include <omnetpp.h>
 #include <Core/HaecModule.h>
+#include <vector>
 
 using namespace omnetpp;
 
@@ -26,11 +27,21 @@ namespace HaecComm {
 /**
  * TODO - Generated class
  */
-class Router : public HaecModule
-{
+class Router : public HaecModule {
+public:
+	Router();
+	virtual ~Router();
+    virtual void receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details);
+
 protected:
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);
+
+private:
+    cPacketQueue* localSendQueue;
+    cPacketQueue* localReceiveQueue;
+    std::vector<cPacketQueue*> portSendQueues;
+    std::vector<cPacketQueue*> portReceiveQueues;
 };
 
 } //namespace

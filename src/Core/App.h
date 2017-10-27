@@ -28,9 +28,18 @@ namespace HaecComm {
  */
 class App : public HaecModule
 {
+public:
+	App();
+	virtual ~App();
+    virtual void receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details);
+
 protected:
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);
+
+private:
+    cPacketQueue* sendQueue;
+    cPacketQueue* receiveQueue;
 };
 
 } //namespace

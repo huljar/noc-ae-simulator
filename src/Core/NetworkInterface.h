@@ -26,11 +26,21 @@ namespace HaecComm {
 /**
  * TODO - Generated class
  */
-class NetworkInterface : public HaecModule
-{
+class NetworkInterface : public HaecModule {
+public:
+	NetworkInterface();
+	virtual ~NetworkInterface();
+    virtual void receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details);
+
 protected:
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);
+
+private:
+    cPacketQueue* appSendQueue;
+    cPacketQueue* appReceiveQueue;
+    cPacketQueue* routerSendQueue;
+    cPacketQueue* routerReceiveQueue;
 };
 
 } //namespace

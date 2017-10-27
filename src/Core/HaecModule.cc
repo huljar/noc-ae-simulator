@@ -16,8 +16,6 @@
 //TODO refactor for in/out queues with fixed size
 
 #include "HaecModule.h"
-#include <string>
-#include <utility>
 
 namespace HaecComm {
 
@@ -79,13 +77,22 @@ void HaecModule::createMiddleware() {
     }
 }
 
+bool HaecModule::processQueue(cPacketQueue* queue, const char* targetGate, int targetGateIndex) {
+	if(!queue->isEmpty()) {
+		cPacket* packet = queue->pop();
+		send(packet, targetGate, targetGateIndex);
+		return true;
+	}
+	return false;
+}
+
 void HaecModule::initialize() {
     id = par("id");
     X  = id % static_cast<int>(getAncestorPar("columns"));
     Y  = id / static_cast<int>(getAncestorPar("columns"));
 
     isClocked = getAncestorPar("isClocked");
-    if (isClocked) {
+    if(isClocked) {
         // setup queues for in & out ports
 //        for (int i = 0; i < gateSize("inPorts"); i++) {
 //            inQueues.addAt(i, new cQueue);
@@ -103,9 +110,9 @@ void HaecModule::initialize() {
     createMiddleware();
 }
 
-void HaecModule::receiveSignal(cComponent *, simsignal_t id, unsigned long l,
-        cObject *details) {
-    cMessage *tmp;
+void HaecModule::receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l,
+        cObject* details) {
+    cMessage* tmp;
     // TODO create arbiter class for parameterized inqueue selection
     // round robin over all inPorts
     for (int i = 0; i < inQueues.size(); i++) {
