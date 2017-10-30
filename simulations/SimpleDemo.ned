@@ -16,7 +16,7 @@
 package HaecComm.simulations;
 
 import HaecComm.Core.Clock;
-import HaecComm.Core.HaecModule;
+import HaecComm.Core.App;
 
 network SimpleDemo
 {
@@ -26,19 +26,17 @@ network SimpleDemo
         clock: Clock {
             @display("p=40,40");
         }
-        source: HaecModule {
-            parameters:
-                portNumber = 1;
-                middleware = "HaecComm.MW.GenTraffic";
-                @display("p=200,40");
+        source: App {
+            mwPipelineCount = 1;
+            mwDefinition = "HaecComm.MW.GenTraffic";
+            @display("p=200,40");
         }
-        sink: HaecModule {
-            parameters:
-                portNumber = 1;
-                middleware = "HaecComm.MW.ReportArrival";
-                @display("p=200,140");
+        sink: App {
+            mwPipelineCount = 1;
+            mwDefinition = "HaecComm.MW.ReportArrival";
+            @display("p=200,140");
         }
 
     connections allowunconnected:
-        source.outPorts[0] --> sink.inPorts[0];
+        source.networkOut --> sink.networkIn;
 }

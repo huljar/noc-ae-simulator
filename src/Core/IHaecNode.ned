@@ -21,7 +21,6 @@ package HaecComm.Core;
 moduleinterface IHaecNode {
     parameters:
         int id;
-        @display("i=misc/node_vs");
     gates:
         inout port[];
 }

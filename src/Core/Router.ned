@@ -20,7 +20,8 @@ package HaecComm.Core;
 //
 simple Router extends HaecModule {
     @class(Router);
-    mwPipelineCount = 2;
+    @display("i=block/routing");
+    mwPipelineCount = 1;
     gates:
         input  localIn;
         output localOut;

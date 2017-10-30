@@ -42,17 +42,17 @@ void Router::receiveSignal(cComponent* source, simsignal_t signalID, unsigned lo
 		if(isClocked) {
 			// If there is a packet in the local send queue, send it to the local node
 			processQueue(localSendQueue, "localOut");
-			// If there is a packet in the local receive queue, pass it to the middleware (local->network pipeline)
+			// If there is a packet in the local receive queue, pass it to the middleware
 			processQueue(localReceiveQueue, "mwEntry", 0);
 
 			// If there is a packet in any of the port send queues, send them to the network
 			for(size_t i = 0; i < portSendQueues.size(); ++i)
 				processQueue(portSendQueues[i], "port$o", static_cast<int>(i));
 
-			// If there is a packet in any of the  port receive queues, pass them to the middleware (network->network/local pipeline)
+			// If there is a packet in any of the port receive queues, pass them to the middleware
 			// TODO: round robin here?
 			for(size_t i = 0; i < portReceiveQueues.size(); ++i)
-				processQueue(portReceiveQueues[i], "mwEntry", 1);
+				processQueue(portReceiveQueues[i], "mwEntry", 0);
 		}
 		else
 			EV_WARN << "Received a clock signal in an unclocked module. Discarding signal." << std::endl;
@@ -84,8 +84,7 @@ void Router::handleMessage(cMessage *msg) {
 	// The middleware is supposed to add control info to the packet to designate the
 	// desired output gate of the packet. We check for this information if we need it.
 	if(strcmp(packet->getArrivalGate()->getName(), "mwExit") == 0) {
-		// Handle packet arriving from middleware (local->network or
-		// network->network/local pipeline)
+		// Handle packet arriving from middleware
 		// Get control info and remove it from the packet (it is obsolete after we
 		// performed the routing)
 		cObject* info = packet->removeControlInfo();
@@ -114,7 +113,7 @@ void Router::handleMessage(cMessage *msg) {
 	else if(strcmp(packet->getArrivalGate()->getName(), "port$i") == 0) {
 		// Handle packet arriving from network
 		if(isClocked) portReceiveQueues[packet->getArrivalGate()->getIndex()]->insert(packet);
-		else send(packet, "mwEntry", 1);
+		else send(packet, "mwEntry", 0);
 	}
 	else {
 		EV_WARN << "Received a packet from unexcepted gate \"" << packet->getArrivalGate()->getFullName() << "\". Discarding it." << std::endl;

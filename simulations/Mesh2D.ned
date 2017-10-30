@@ -17,6 +17,7 @@
 
 package HaecComm.simulations;
 
+import HaecComm.Core.Clock;
 import HaecComm.Core.IHaecNode;
 import HaecComm.Core.IHaecChannel;
 
@@ -32,8 +33,11 @@ network Mesh2D
         string nodeType;
         string channelType;
     submodules:
+        clock: Clock {
+            @display("p=30,40");
+        }
         node[columns*rows]: <nodeType> like IHaecNode {
-            @display("p=,,matrix,$columns");
+            @display("p=100,40,matrix,$columns,100,100");
             id = index;
             gates: port[4];
         }

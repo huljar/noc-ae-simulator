@@ -18,17 +18,21 @@ package HaecComm.Core;
 module HaecNode like IHaecNode {
     parameters:
         int id;
+        @display("i=block/network");
     gates:
         inout port[];
     submodules:
         app: App {
             id = id;
+            @display("p=30,40");
         };
         ni: NetworkInterface {
             id = id;
+            @display("p=30,100");
         };
         router: Router {
             id = id;
+            @display("p=30,160");
             gates: port[sizeof(port)];
         };
     connections:

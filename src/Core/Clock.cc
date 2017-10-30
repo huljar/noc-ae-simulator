@@ -39,6 +39,7 @@ void Clock::initialize(){
 void Clock::handleMessage(cMessage *msg){
     ASSERT(msg == timerMessage);
 
+    bubble(cycleCounter % 2 == 0 ? "tick" : "tock");
     emit(clockSignal, cycleCounter++);
     scheduleAt(simTime() + par("inter"), timerMessage);
 }

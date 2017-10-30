@@ -21,6 +21,6 @@ package HaecComm.Core;
 channel HaecChannel extends ned.DatarateChannel like IHaecChannel {
     datarate = default(0bps);
     delay = default(0s);
-    ber = default(0);
-    per = default(0);
+    ber = default(0); // bit error rate
+    per = default(0); // packet error rate
 }

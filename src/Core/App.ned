@@ -20,6 +20,7 @@ package HaecComm.Core;
 //
 simple App extends HaecModule {
     @class(App);
+    @display("i=block/app2");
     mwPipelineCount = 2;
     gates:
         input  networkIn;
