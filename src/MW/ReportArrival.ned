@@ -17,5 +17,10 @@ package HaecComm.MW;
 
 simple ReportArrival like IMiddlewareBase {
     parameters:
-        int  parentId = default(0);
+        int parentId;
+        bool locallyClocked;
+        int queueLength;
+    gates:
+        input  in;
+        output out;
 }

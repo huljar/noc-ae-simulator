@@ -17,6 +17,11 @@ package HaecComm.MW;
 
 simple GenTraffic like IMiddlewareBase {
     parameters:
-        int  parentId = default(0);
+        int parentId;
+        bool locallyClocked;
+        int queueLength;
         double injectionRate = default(0.5);
+    gates:
+        input  in;
+        output out;
 }

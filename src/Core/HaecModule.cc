@@ -50,7 +50,7 @@ void HaecModule::createMiddleware() {
             // Check if the middleware implements the IMiddlewareBase interface
             std::string mwDesc = mwType->str();
             std::cout << " === Middleware Description ===\n" << mwDesc << std::endl;
-            if(mwDesc.find("MiddlewareBase") == std::string::npos)
+            if(mwDesc.find("HaecComm.MW.IMiddlewareBase") == std::string::npos)
             	throw cRuntimeError(this, "Middleware %s does not implement IMiddlewareBase interface!", it->c_str());
 
             // Create and initialize the module

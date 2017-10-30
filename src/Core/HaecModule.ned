@@ -21,6 +21,6 @@ simple HaecModule {
         int mwPipelineCount;
         string mwDefinition;
     gates:
-        output mwEntry[mwPipelineCount];
-        input  mwExit[mwPipelineCount];
+        output mwEntry[mwPipelineCount] @loose; // loose required because the connection are set up dynamically at runtime
+        input  mwExit[mwPipelineCount] @loose; // same here
 }

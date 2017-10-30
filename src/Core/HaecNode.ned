@@ -36,7 +36,7 @@ module HaecNode like IHaecNode {
         app.networkIn <-- ni.appOut;
         ni.routerOut --> router.localIn;
         ni.routerIn <-- router.localOut;
-        for i=0..sizeof(port) {
+        for i=0..sizeof(port)-1 {
             port[i] <--> router.port[i];
         }
 }
