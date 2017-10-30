@@ -34,6 +34,7 @@ network Mesh2D
     submodules:
         node[columns*rows]: <nodeType> like IHaecNode {
             @display("p=,,matrix,$columns");
+            id = index;
             gates: port[4];
         }
     connections allowunconnected:

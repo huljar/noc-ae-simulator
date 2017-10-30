@@ -13,8 +13,8 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __HAECCOMM_HAECMOD_H
-#define __HAECCOMM_HAECMOD_H
+#ifndef UTIL_ROUTINGCONTROLINFO_H_
+#define UTIL_ROUTINGCONTROLINFO_H_
 
 #include <omnetpp.h>
 
@@ -22,31 +22,18 @@ using namespace omnetpp;
 
 namespace HaecComm {
 
-/**
- * Base class for all network components
- */
-class HaecModule: public cSimpleModule, public cListener {
+class RoutingControlInfo : public cObject {
 public:
-    HaecModule();
-    virtual ~HaecModule();
-    virtual void receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l,
-            cObject* details);
-    int getX() { return X; };
-    int getY() { return Y; };
+	RoutingControlInfo(int portIdx);
+	virtual ~RoutingControlInfo();
 
-protected:
-    virtual void initialize();
-    virtual void handleMessage(cMessage *msg);
-
-    void createMiddleware();
-    bool processQueue(cPacketQueue* queue, const char* targetGate, int targetGateIndex = -1);
-
-    bool isClocked;
+	int getPortIdx() const;
+	void setPortIdx(int portIdx);
 
 private:
-    int id, X, Y;
+	int portIdx;
 };
 
-}; // namespace
+} /* namespace HaecComm */
 
-#endif
+#endif /* UTIL_ROUTINGCONTROLINFO_H_ */

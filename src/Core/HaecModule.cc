@@ -44,12 +44,17 @@ void HaecModule::createMiddleware() {
         // Iterate over the middlewares of this pipeline
         cModule* lastModule = nullptr;
         for(auto it = mwDefs.begin(); it != mwDefs.end(); ++it) {
-            // Create middleware
+            // Get middleware type information
             cModuleType* mwType = cModuleType::get(it->c_str());
-            cModule* middleware = mwType->create(mwName, this);
 
-            // TODO: is there a way to check if the module implements the IMiddlewareBase interface?
+            // Check if the middleware implements the IMiddlewareBase interface
+            std::string mwDesc = mwType->str();
+            std::cout << " === Middleware Description ===\n" << mwDesc << std::endl;
+            if(mwDesc.find("MiddlewareBase") == std::string::npos)
+            	throw cRuntimeError(this, "Middleware %s does not implement IMiddlewareBase interface!", it->c_str());
 
+            // Create and initialize the module
+            cModule* middleware = mwType->create(it->c_str(), this);
             middleware->par("parentId") = id;
             middleware->finalizeParameters();
 
@@ -58,6 +63,10 @@ void HaecModule::createMiddleware() {
                 gate("mwEntry", static_cast<int>(i))->connectTo(middleware->gate("in"));
             else
                 lastModule->gate("out")->connectTo(middleware->gate("in"));
+
+            // Finalize module
+            middleware->buildInside();
+            middleware->scheduleStart(simTime());
 
             // Update last created module
             lastModule = middleware;
@@ -68,12 +77,6 @@ void HaecModule::createMiddleware() {
             lastModule->gate("out")->connectTo(gate("mwExit", static_cast<int>(i)));
         else
             gate("mwEntry", static_cast<int>(i))->connectTo(gate("mwExit", static_cast<int>(i)));
-
-        // Start up the modules
-        for(auto it = modules.begin(); it != modules.end(); ++it) {
-            (*it)->buildInside();
-            (*it)->scheduleStart(simTime());
-        }
     }
 }
 
@@ -93,15 +96,6 @@ void HaecModule::initialize() {
 
     isClocked = getAncestorPar("isClocked");
     if(isClocked) {
-        // setup queues for in & out ports
-//        for (int i = 0; i < gateSize("inPorts"); i++) {
-//            inQueues.addAt(i, new cQueue);
-//        }
-//
-//        for (int i = 0; i < gateSize("outPorts"); i++) {
-//            outQueues.addAt(i, new cQueue);
-//        }
-
         // subscribe to clock signal
         getSimulation()->getSystemModule()->subscribe("clock", this);
     }
@@ -110,69 +104,11 @@ void HaecModule::initialize() {
     createMiddleware();
 }
 
-void HaecModule::receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l,
-        cObject* details) {
-    cMessage* tmp;
-    // TODO create arbiter class for parameterized inqueue selection
-    // round robin over all inPorts
-    for (int i = 0; i < inQueues.size(); i++) {
-        nextIn = (nextIn + 1) % inQueues.size();
-        if (inQueues[nextIn]) {
-            cQueue *q = (cQueue *) inQueues[nextIn];
-            if (!q->isEmpty()) {
-                tmp = (cMessage *) q->pop();
-                take(tmp);
-                sendDirect(tmp, this->middlewareEntryGate);
-            }
-        }
-    }
+void HaecModule::receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) {
 
-    // round robin over aloutPorts (no state keeper needed)
-    for (int i = 0; i < outQueues.size(); i++) {
-        if (outQueues[i]) {
-            cQueue *q = (cQueue *) outQueues[i];
-            if (!q->isEmpty()) {
-                tmp = (cMessage *) q->pop();
-                take(tmp);
-                send(tmp, gate("outPorts", i));
-            }
-        }
-    }
 }
 
 void HaecModule::handleMessage(cMessage *msg) {
-    if (msg->getArrivalGate() == this->gate("MWinput")) {
-        // a message from the local middleware stack
-        if (!msg->hasPar("outPort")) {
-            EV << this->getFullName()
-                      << " received local message without destination!"
-                      << std::endl;
-            return;
-        }
-
-        if (isClocked) {
-            cQueue *q =
-                    (cQueue *) outQueues[(int) msg->par("outPort").longValue()];
-            q->insert(msg);
-        } else {
-            send(msg, gate(msg->par("outPort").longValue()));
-        }
-    } else if (msg->getArrivalGate()->getType() == cGate::INPUT) {
-        // a message from a local input
-        int inPortNr = msg->getArrivalGateId() - (gateBaseId("inPorts"));
-        msg->addPar("inPort");
-        msg->par("inPort").setLongValue((long) inPortNr);
-        if (isClocked) {
-            cQueue *q = (cQueue *) inQueues[inPortNr];
-            q->insert(msg);
-        } else {
-            send(msg, this->middlewareEntryGate);
-        }
-    } else {
-        // this probably should not exist...
-        throw cRuntimeError(this, "packet arrived from nowhere (%s)",
-                msg->str().c_str());
-    }
 
 }
 

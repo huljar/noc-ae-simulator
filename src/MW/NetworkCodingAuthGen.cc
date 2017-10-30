@@ -20,7 +20,7 @@ namespace HaecComm {
 Define_Module(NetworkCodingAuthGen);
 
 void NetworkCodingAuthGen::initialize() {
-    cMiddlewareBase::initialize();
+    MiddlewareBase::initialize();
 
     outQueue = new cQueue();
     inQueue = new cQueue();

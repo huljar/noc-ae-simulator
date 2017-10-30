@@ -14,6 +14,7 @@
 // 
 
 #include "Router.h"
+#include <Util/RoutingControlInfo.h>
 
 namespace HaecComm {
 
@@ -64,8 +65,10 @@ void Router::initialize() {
     localSendQueue = new cPacketQueue;
     localReceiveQueue = new cPacketQueue;
     int portCount = gateSize("port");
-    for(int i = 0; i < portCount; ++i)
+    for(int i = 0; i < portCount; ++i) {
     	portSendQueues.push_back(new cPacketQueue);
+    	portReceiveQueues.push_back(new cPacketQueue);
+    }
 }
 
 void Router::handleMessage(cMessage *msg) {
@@ -78,30 +81,44 @@ void Router::handleMessage(cMessage *msg) {
 
 	cPacket* packet = static_cast<cPacket*>(msg); // No need for dynamic_cast or check_and_cast here
 
-	// TODO: check packet tag and extract correct port/queue index
-	if(packet->getArrivalGate() == gate("mwExit", 0)) {
-		// Handle packet arriving from middleware (local->network pipeline)
-		// If we are clocked, insert into port send queue, else send immediately
-		if(isClocked) portSendQueues[0]->insert(packet);
-		else send(packet, "port$o", 0);
+	// The middleware is supposed to add control info to the packet to designate the
+	// desired output gate of the packet. We check for this information if we need it.
+	if(strcmp(packet->getArrivalGate()->getName(), "mwExit") == 0) {
+		// Handle packet arriving from middleware (local->network or
+		// network->network/local pipeline)
+		// Get control info and remove it from the packet (it is obsolete after we
+		// performed the routing)
+		cObject* info = packet->removeControlInfo();
+		if(RoutingControlInfo* rcInfo = dynamic_cast<RoutingControlInfo*>(info)) {
+			// If we are clocked, insert into port/local send queue, else send immediately
+			if(isClocked) {
+				if(rcInfo->getPortIdx() == -1) localSendQueue->insert(packet);
+				else portSendQueues[rcInfo->getPortIdx()]->insert(packet);
+			}
+			else {
+				if(rcInfo->getPortIdx() == -1) send(packet, "localOut");
+				else send(packet, "port$o", rcInfo->getPortIdx());
+			}
+		}
+		else {
+			EV_WARN << "Packet didn't contain expected routing control info. Discarding it." << std::endl;
+			delete packet;
+		}
+		delete info;
 	}
-	else if(packet->getArrivalGate() == gate("mwExit", 1)) {
-		// Handle packet arriving from middleware (network->network/local pipeline)
-		if(isClocked) portSendQueues[0]->insert(packet);
-		else send(packet, "port$o", 0);
-	}
-	else if(packet->getArrivalGate() == gate("routerIn")) {
-		// Handle packet arriving from network
-		if(isClocked) routerReceiveQueue->insert(packet);
-		else send(packet, "mwEntry", 1);
-	}
-	else if(packet->getArrivalGate() == gate("appIn")) {
+	else if(packet->getArrivalGate() == gate("localIn")) {
 		// Handle packet arriving from local node
-		if(isClocked) appReceiveQueue->insert(packet);
+		if(isClocked) localReceiveQueue->insert(packet);
 		else send(packet, "mwEntry", 0);
 	}
+	else if(strcmp(packet->getArrivalGate()->getName(), "port$i") == 0) {
+		// Handle packet arriving from network
+		if(isClocked) portReceiveQueues[packet->getArrivalGate()->getIndex()]->insert(packet);
+		else send(packet, "mwEntry", 1);
+	}
 	else {
-		EV_WARN << "Received a packet from unexcepted gate \"" << packet->getArrivalGate()->getFullName() << "\"" << std::endl;
+		EV_WARN << "Received a packet from unexcepted gate \"" << packet->getArrivalGate()->getFullName() << "\". Discarding it." << std::endl;
+		delete packet;
 	}
 }
 
