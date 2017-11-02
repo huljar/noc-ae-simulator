@@ -30,15 +30,15 @@ void NetworkCodingAuthGen::initialize() {
 
 }
 
-void NetworkCodingAuthGen::handleCycle(cMessage *msg) {
+void NetworkCodingAuthGen::handleCycle(cPacket* packet) {
     CU->tick();
 
     // processed messages will now be pushed into the local queue
 }
 
-void NetworkCodingAuthGen::handleMessageInternal(cMessage *msg) {
-    if ((int) msg->par("inPort") == 0) {        // Message from router
-        NcCombination *msgNc = check_and_cast<NcCombination *>(msg);
+void NetworkCodingAuthGen::handleMessageInternal(cPacket* packet) {
+    if ((int) packet->par("inPort") == 0) {        // Message from router
+        NcCombination *msgNc = check_and_cast<NcCombination *>(packet);
         NcGen *g = NC->getOrCreateGeneration(msgNc->getGenerationId());
 
         g->addCombination(msgNc);
@@ -52,9 +52,9 @@ void NetworkCodingAuthGen::handleMessageInternal(cMessage *msg) {
             // the generation is done
             NC->deleteGeneration(g->getId());
         }
-    } else if ((int) msg->par("inPort") == 1) { // Message from app
+    } else if ((int) packet->par("inPort") == 1) { // Message from app
         NcGen *g = NC->getOrCreateGeneration();
-        g->addMessage(msg);
+        g->addMessage(packet);
         if (g->code()) {
             for (int i = g->combinations->size(); i > 0; --i) {
                 cMessage *m = (cMessage *) g->combinations->get(i - 1)->dup();
@@ -65,7 +65,7 @@ void NetworkCodingAuthGen::handleMessageInternal(cMessage *msg) {
         }
     } else {
         throw cRuntimeError(this, "Received msg %s with stupid inPort %d",
-                msg->getName(), msg->par("inPort").str().c_str());
+                packet->getName(), packet->par("inPort").str().c_str());
     }
 }
 

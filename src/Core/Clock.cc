@@ -36,6 +36,11 @@ void Clock::initialize(){
     scheduleAt(simTime(), timerMessage);
 }
 
+unsigned long Clock::getCurrentCycle() const {
+	// Subtract 1 because the counter always contains the next cycle
+	return cycleCounter - 1;
+}
+
 void Clock::handleMessage(cMessage *msg){
     ASSERT(msg == timerMessage);
 

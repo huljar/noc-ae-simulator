@@ -35,7 +35,7 @@ public:
 
 protected:
     virtual void initialize();
-    virtual void handleMessage(cMessage *msg);
+    virtual void handleMessage(cMessage* msg);
 
 private:
     cPacketQueue* sendQueue;

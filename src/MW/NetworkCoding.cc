@@ -25,9 +25,12 @@ void NetworkCoding::initialize() {
     NC = new NetworkCodingManager(par("generationSize"), par("combinations"));
 }
 
-void NetworkCoding::handleMessageInternal(cMessage *msg){
-    if((int)msg->par("inPort") == 0) {        // Message from router
-        NcCombination *msgNc = check_and_cast<NcCombination *>(msg);
+void NetworkCoding::handleCycle(cPacket* packet) {
+}
+
+void NetworkCoding::handleMessageInternal(cPacket* packet){
+    if((int)packet->par("inPort") == 0) {        // Message from router
+        NcCombination *msgNc = check_and_cast<NcCombination *>(packet);
         NcGen *g = NC->getOrCreateGeneration(msgNc->getGenerationId());
 
         g->addCombination(msgNc);
@@ -41,9 +44,9 @@ void NetworkCoding::handleMessageInternal(cMessage *msg){
             // the generation is done
             NC->deleteGeneration(g->getId());
         }
-    } else if((int)msg->par("inPort") == 1){ // Message from app
+    } else if((int)packet->par("inPort") == 1){ // Message from app
         NcGen *g = NC->getOrCreateGeneration();
-        g->addMessage(msg);
+        g->addMessage(packet);
         if(g->code()) {
             for(int i = g->combinations->size(); i > 0; --i){
                 cMessage *m = (cMessage *) g->combinations->get(i-1)->dup();
@@ -53,7 +56,7 @@ void NetworkCoding::handleMessageInternal(cMessage *msg){
             }
         }
     } else {
-        throw cRuntimeError(this, "Received msg %s with stupid inPort %d", msg->getName(), msg->par("inPort").str().c_str());
+        throw cRuntimeError(this, "Received msg %s with stupid inPort %d", packet->getName(), packet->par("inPort").str().c_str());
     }
 }
 

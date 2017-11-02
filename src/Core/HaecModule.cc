@@ -21,9 +21,50 @@ namespace HaecComm {
 
 Define_Module(HaecModule);
 
-HaecModule::HaecModule() {}
+HaecModule::HaecModule()
+	: isClocked(false)
+	, id(0)
+	, X(0)
+	, Y(0)
+{
+}
 
 HaecModule::~HaecModule() {}
+
+void HaecModule::receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) {
+
+}
+
+int HaecModule::getNodeId() const {
+	return id;
+}
+
+int HaecModule::getNodeX() const {
+	return X;
+}
+
+int HaecModule::getNodeY() const {
+	return Y;
+}
+
+void HaecModule::initialize() {
+    id = getAncestorPar("id");
+    X  = id % static_cast<int>(getAncestorPar("columns"));
+    Y  = id / static_cast<int>(getAncestorPar("columns"));
+
+    isClocked = getAncestorPar("isClocked");
+    if(isClocked) {
+        // subscribe to clock signal
+        getSimulation()->getSystemModule()->subscribe("clock", this);
+    }
+
+    // Set up middleware
+    createMiddleware();
+}
+
+void HaecModule::handleMessage(cMessage* msg) {
+
+}
 
 void HaecModule::createMiddleware() {
     size_t mwPipelineCount = static_cast<size_t>(par("mwPipelineCount"));
@@ -85,29 +126,6 @@ bool HaecModule::processQueue(cPacketQueue* queue, const char* targetGate, int t
 		return true;
 	}
 	return false;
-}
-
-void HaecModule::initialize() {
-    id = par("id");
-    X  = id % static_cast<int>(getAncestorPar("columns"));
-    Y  = id / static_cast<int>(getAncestorPar("columns"));
-
-    isClocked = getAncestorPar("isClocked");
-    if(isClocked) {
-        // subscribe to clock signal
-        getSimulation()->getSystemModule()->subscribe("clock", this);
-    }
-
-    // Set up middleware
-    createMiddleware();
-}
-
-void HaecModule::receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) {
-
-}
-
-void HaecModule::handleMessage(cMessage *msg) {
-
 }
 
 }; // namespace

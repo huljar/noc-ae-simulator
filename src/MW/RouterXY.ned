@@ -17,7 +17,6 @@ package HaecComm.MW;
 
 simple RouterXY like IMiddlewareBase {
     parameters:
-        int parentId;
         bool locallyClocked;
         int queueLength;
         bool inputClocked = default(false);

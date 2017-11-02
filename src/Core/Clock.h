@@ -36,6 +36,8 @@ public:
     Clock();
     virtual ~Clock();
 
+    unsigned long getCurrentCycle() const;
+
 protected:
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);

@@ -20,7 +20,6 @@ package HaecComm.MW;
 //
 moduleinterface IMiddlewareBase {
     parameters:
-        int parentId;
         bool locallyClocked;
         int queueLength;
     gates:

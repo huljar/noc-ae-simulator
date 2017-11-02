@@ -19,11 +19,12 @@ namespace HaecComm {
 
 Define_Module(DummyMW);
 
-void DummyMW::handleMessageInternal(cMessage *msg)
-{
+void DummyMW::handleCycle(cPacket* packet) {
+	send(packet, "out");
+}
 
-    msg->par("outPort") = ((int)msg->par("inPort") + 1) % 2;
-    send(msg,"out");
+void DummyMW::handleMessageInternal(cPacket* packet) {
+	send(packet, "out");
 }
 
 } /* namespace HaecComm */

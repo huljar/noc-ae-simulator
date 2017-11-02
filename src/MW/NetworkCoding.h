@@ -32,7 +32,8 @@ namespace HaecComm {
 class NetworkCoding: public MiddlewareBase {
 protected:
     virtual void initialize();
-    virtual void handleMessageInternal(cMessage *msg);
+    virtual void handleCycle(cPacket* packet);
+    virtual void handleMessageInternal(cPacket* packet);
 
 private:
     NetworkCodingManager *NC;

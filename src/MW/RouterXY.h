@@ -23,10 +23,10 @@ using namespace omnetpp;
 
 namespace HaecComm {
 
-class RouterXY : public MiddlewareBase
-{
-  protected:
-    virtual void handleMessageInternal(cMessage *msg);
+class RouterXY : public MiddlewareBase {
+protected:
+	virtual void handleCycle(cPacket* packet);
+    virtual void handleMessageInternal(cPacket* packet);
 };
 
 } //namespace

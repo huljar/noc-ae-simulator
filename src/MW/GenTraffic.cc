@@ -19,48 +19,58 @@ namespace HaecComm {
 
 Define_Module(GenTraffic);
 
-void GenTraffic::handleCycle(cMessage *msg) {
-    // we ignore the msg var, because we just generate traffic
+void GenTraffic::handleCycle(cPacket* packet) {
+	if(packet) {
+		EV_WARN << "Received a packet in GenTraffic, where no packet should arrive. Discarding it." << std::endl;
+		delete packet;
+	}
 
-    // TODO create parameter for injection prob
-    double rate = par("injectionRate");
-    EV << " gt hast par " << rate << std::endl;
-    int r = (int) uniform(0,16);
-    if(r != 4)
-        return;
+    // Decide if we should generate a packet based on injection probability parameter
+    double prob = par("injectionProb");
+    if(prob == 0.0) // Explicit zero check because uniform(0.0, 1.0) can return 0
+    	return;
 
-    int mWidth = 0, mHeight = 0;
-    int trg;
+    if(uniform(0.0, 1.0) < prob) {
+    	// Generate a packet
+    	// We assume that we are operating in a 2-dimensional mesh
+    	// TODO: continue work here
+    	int mWidth = 0, mHeight = 0;
+		int trg;
 
-    try {
-        mWidth = getAncestorPar("rows");
-        mHeight = getAncestorPar("columns");
-    } catch (const cRuntimeError ex) {
-        EV << " ancestors don't have width/height parameters!" << std::endl;
+		try {
+			mWidth = getAncestorPar("rows");
+			mHeight = getAncestorPar("columns");
+		} catch (const cRuntimeError ex) {
+			EV << " ancestors don't have width/height parameters!" << std::endl;
+		}
+
+		if(mWidth == 0 && mHeight == 0) {
+			trg = 0;
+		} else {
+			// TODO create paramterized target selection class
+			// Uniform target selection
+			do {
+				trg = (int) uniform(0, (double) mWidth*mHeight);
+			} while (trg == parentId);
+
+		}
+
+		char msgName[128] = {0};
+		sprintf(msgName, "msg-%02d-%02d-%05lu", parentId, trg, currentCycle);
+
+		cPacket* newPacket = createMessage(msgName);
+		newPacket->addPar("targetId");
+		newPacket->par("targetId") = trg;
+		newPacket->par("outPort")  = 0;
+
+		EV << this->getFullPath() << " sending msg " << newPacket << " at cycle " << currentCycle << std::endl;
+		send(newPacket, "out");
     }
+}
 
-    if(mWidth == 0 && mHeight == 0) {
-        trg = 0;
-    } else {
-        // TODO create paramterized target selection class
-        // Uniform target selection
-        do {
-            trg = (int) uniform(0, (double) mWidth*mHeight);
-        } while (trg == parentId);
-
-    }
-
-    char msgName[128] = {0};
-    sprintf(msgName, "msg-%02d-%02d-%05lu", parentId, trg, currentCycle);
-
-    cMessage *m = createMessage(msgName);
-    m->addPar("targetId");
-    m->par("targetId") = trg;
-    m->par("outPort")  = 0;
-
-    EV << this->getFullPath() << " sending msg " << m << " at cycle " << currentCycle << std::endl;
-    send(m, "out");
-
+void GenTraffic::handleMessageInternal(cPacket* packet) {
+	EV_WARN << "Received a packet in GenTraffic, where no packet should arrive. Discarding it." << std::endl;
+	delete packet;
 }
 
 } //namespace

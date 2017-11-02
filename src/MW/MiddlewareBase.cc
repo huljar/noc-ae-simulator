@@ -17,74 +17,74 @@
 
 namespace HaecComm {
 
-MiddlewareBase::MiddlewareBase() {
-    isClocked = false;
-    locallyClocked = false;
-    queueLength = 0;
-    currentCycle = 0;
-    q = new cQueue();
+MiddlewareBase::MiddlewareBase()
+	: isClocked(false)
+	, locallyClocked(false)
+	, queueLength(0)
+	, incoming(nullptr)
+	, parent(nullptr)
+{
 }
 
 MiddlewareBase::~MiddlewareBase() {
-    delete(q);
-}
-
-void MiddlewareBase::handleCycle(cMessage *msg){
-    // handle clock tick with pending message or NULL
-}
-
-void MiddlewareBase::handleMessageInternal(cMessage *msg) {
-    // handle message directly (no local input clocking)
+    delete incoming;
 }
 
 void MiddlewareBase::initialize() {
-    if (getAncestorPar("isClocked")) {
-        isClocked = true;
-        getSimulation()->getSystemModule()->subscribe("clock", this);
-    }
+	isClocked = getAncestorPar("isClocked");
+	if(isClocked) {
+		// subscribe to clock signal
+		getSimulation()->getSystemModule()->subscribe("clock", this);
+	}
 
-    if(hasPar("locallyClocked")) locallyClocked = par("locallyClocked");
-    if(hasPar("queueLength")) queueLength = par("queueLength");
+    locallyClocked = isClocked ? par("locallyClocked") : false;
+    queueLength = par("queueLength");
 
-    HaecModule *parent = dynamic_cast<HaecModule *>(getParentModule());
+    incoming = new cPacketQueue;
 
-    parentId = par("parentId");
-    X = parent->getX();
-    Y = parent->getY();
-
-    q->clear();
-}
-void MiddlewareBase::receiveSignal(cComponent *source, simsignal_t id,
-        unsigned long l, cObject *details) {
-    if (id == registerSignal("clock")) {
-        // this is a tick
-        this->currentCycle = l;
-        if (q->isEmpty()) {
-            handleCycle(NULL);
-        } else {
-            handleCycle((cMessage *) q->pop());
-        }
-    }
+    parent = dynamic_cast<HaecModule*>(getParentModule());
+    if(!parent)
+    	throw cRuntimeError(this, "Middleware parent module must be of type HaecModule");
 }
 
-void MiddlewareBase::handleMessage(cMessage *msg) {
+void MiddlewareBase::handleMessage(cMessage* msg) {
+	// Confirm that this is a packet
+	if(!msg->isPacket()) {
+		EV_WARN << "Received a message that is not a packet. Discarding it." << std::endl;
+		delete msg;
+		return;
+	}
+
+	cPacket* packet = static_cast<cPacket*>(msg); // No need for dynamic_cast or check_and_cast here
+
     if (locallyClocked) {
         // enqueue until signal
-        if(queueLength && q->getLength() >= queueLength) { // queue is size restricted
-            dropAndDelete(msg);
-            // TODO report it!
+        if(queueLength && incoming->getLength() >= queueLength) { // queue is size restricted
+            dropAndDelete(packet);
+            EV << "Received message, but queue is full" << std::endl;
         }
-        q->insert(msg);
+        incoming->insert(packet);
     } else {
-        handleMessageInternal(msg);
+        handleMessageInternal(packet);
+    }
+}
+
+void MiddlewareBase::receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) {
+    if(signalID == registerSignal("clock")) {
+        // this is a tick
+        if(incoming->isEmpty()) {
+            handleCycle(nullptr);
+        }
+        else {
+            handleCycle(incoming->pop());
+        }
     }
 }
 
 cMessage* MiddlewareBase::createMessage(const char* name) {
-    cMessage *lol = new cMessage(name);
-    take(lol);
-    lol->addPar("outPort");
-    return lol;
+    cMessage *msg = new cMessage(name);
+    take(msg);
+    return msg;
 }
 
 } /* namespace HaecComm */

@@ -23,15 +23,12 @@ module HaecNode like IHaecNode {
         inout port[];
     submodules:
         app: App {
-            id = id;
             @display("p=30,40");
         };
         ni: NetworkInterface {
-            id = id;
             @display("p=30,100");
         };
         router: Router {
-            id = id;
             @display("p=30,160");
             gates: port[sizeof(port)];
         };

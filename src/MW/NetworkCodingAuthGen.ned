@@ -17,7 +17,6 @@ package HaecComm.MW;
 
 simple NetworkCodingAuthGen like IMiddlewareBase {
     parameters:
-        int parentId       = default(0);
         bool locallyClocked;
         int queueLength = default(100);
         int generationSize = default(2);

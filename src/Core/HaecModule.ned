@@ -17,7 +17,6 @@ package HaecComm.Core;
 
 simple HaecModule {
     parameters:
-        int id;
         int mwPipelineCount;
         string mwDefinition;
     gates:

@@ -19,19 +19,22 @@ namespace HaecComm {
 
 Define_Module(RouterXY);
 
-void RouterXY::handleMessageInternal(cMessage *msg)
+void RouterXY::handleCycle(cPacket* packet) {
+}
+
+void RouterXY::handleMessageInternal(cPacket* packet)
 {
-    if(!msg->hasPar("targetId")){
-        EV << " got message without target - drop it like it's hot! " << msg->str() << std::endl;
-        dropAndDelete(msg);
+    if(!packet->hasPar("targetId")){
+        EV << " got message without target - drop it like it's hot! " << packet->str() << std::endl;
+        dropAndDelete(packet);
     }
 
-    int targetId = (int) msg->par("targetId");
+    int targetId = (int) packet->par("targetId");
     // TODO maybe this could be a independent preceding MW
     if(targetId == parentId){
         // set out port to NI port and pass it
-        msg->par("outPort") = 4;
-        send(msg,"out");
+        packet->par("outPort") = 4;
+        send(packet,"out");
         return;
     }
 
@@ -43,12 +46,12 @@ void RouterXY::handleMessageInternal(cMessage *msg)
     // Since it is definitely not this node (see above) the following is sufficient
     if(tX != X){
         // Move in X direction
-        msg->par("outPort") = tX < X ? 3 : 1; // implicit knowledge
+        packet->par("outPort") = tX < X ? 3 : 1; // implicit knowledge
     } else {
         // Move in Y direction
-        msg->par("outPort") = tY < Y ? 0 : 2;
+        packet->par("outPort") = tY < Y ? 0 : 2;
     }
-    send(msg,"out");
+    send(packet,"out");
 }
 
 } //namespace

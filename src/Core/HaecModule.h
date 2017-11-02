@@ -31,12 +31,13 @@ public:
     virtual ~HaecModule();
     virtual void receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l,
             cObject* details);
-    int getX() { return X; };
-    int getY() { return Y; };
+    int getNodeId() const;
+    int getNodeX() const;
+    int getNodeY() const;
 
 protected:
     virtual void initialize();
-    virtual void handleMessage(cMessage *msg);
+    virtual void handleMessage(cMessage* msg);
 
     void createMiddleware();
     bool processQueue(cPacketQueue* queue, const char* targetGate, int targetGateIndex = -1);
