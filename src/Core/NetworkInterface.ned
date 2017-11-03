@@ -17,7 +17,7 @@ package HaecComm.Core;
 
 import HaecComm.MW.*;
 
-module NetworkInterface {
+module NetworkInterface like INetworkInterface {
     parameters:
         @display("i=block/control");
     gates:

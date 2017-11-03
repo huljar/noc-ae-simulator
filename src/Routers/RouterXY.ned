@@ -20,5 +20,5 @@ simple RouterXY like IRouter {
         @display("i=block/routing");
     gates:
         inout local;
-        inout port[4];
+        inout port[];
 }
