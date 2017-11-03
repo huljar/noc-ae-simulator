@@ -15,16 +15,25 @@
 
 package HaecComm.Core;
 
-//
-// TODO auto-generated module
-//
-simple NetworkInterface extends HaecModule {
-    @class(NetworkInterface);
-    @display("i=block/control");
-    mwPipelineCount = 2;
+import HaecComm.MW.*;
+
+module NetworkInterface {
+    parameters:
+        @display("i=block/control");
     gates:
-        input  appIn;
-        output appOut;
-        input  routerIn;
-        output routerOut;
+        inout app;
+        inout router;
+    submodules:
+        ncEnc: NetworkCoding {
+            @display("p=60,60;i=block/encrypt");
+        }
+        ncDec: NetworkCoding {
+            @display("p=160,60;i=block/decrypt");
+        }
+    connections:
+        ncEnc.in <-- app$i;
+        ncEnc.out --> router$o;
+        
+        ncDec.in <-- router$i;
+        ncDec.out --> app$o; // TODO: add conditional queues in between (-> locallyClocked)
 }

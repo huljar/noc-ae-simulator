@@ -26,17 +26,13 @@ network SimpleDemo
         clock: Clock {
             @display("p=40,40");
         }
-        source: App {
-            mwPipelineCount = 1;
-            mwDefinition = "HaecComm.MW.GenTraffic";
+        node1: App {
             @display("p=200,40");
         }
-        sink: App {
-            mwPipelineCount = 1;
-            mwDefinition = "HaecComm.MW.ReportArrival";
+        node2: App {
             @display("p=200,140");
         }
 
     connections allowunconnected:
-        source.networkOut --> sink.networkIn;
+        node1.net <--> node2.net;
 }

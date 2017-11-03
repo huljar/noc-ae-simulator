@@ -13,8 +13,8 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef UTIL_ROUTINGCONTROLINFO_H_
-#define UTIL_ROUTINGCONTROLINFO_H_
+#ifndef ROUTERS_ROUTERBASE_H_
+#define ROUTERS_ROUTERBASE_H_
 
 #include <omnetpp.h>
 
@@ -22,28 +22,12 @@ using namespace omnetpp;
 
 namespace HaecComm {
 
-class RoutingControlInfo : public cObject {
+class RouterBase : public cSimpleModule {
 public:
-	RoutingControlInfo();
-	RoutingControlInfo(int portIdx);
-	virtual ~RoutingControlInfo();
-
-	/**
-	 * Return the port index to be used for routing. Index of -1 means that
-	 * the message shall be sent to the local node output gate.
-	 */
-	int getPortIdx() const;
-
-	/**
-	 * Set the port index to be used for routing. Index of -1 means that
-	 * the message shall be sent to the local node output gate.
-	 */
-	void setPortIdx(int portIdx);
-
-private:
-	int portIdx;
+	RouterBase();
+	virtual ~RouterBase();
 };
 
 } /* namespace HaecComm */
 
-#endif /* UTIL_ROUTINGCONTROLINFO_H_ */
+#endif /* ROUTERS_ROUTERBASE_H_ */

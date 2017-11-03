@@ -13,37 +13,17 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __HAECCOMM_ROUTER_H_
-#define __HAECCOMM_ROUTER_H_
-
-#include <omnetpp.h>
-#include <Core/HaecModule.h>
-#include <vector>
-
-using namespace omnetpp;
+#include "RouterBase.h"
 
 namespace HaecComm {
 
-/**
- * TODO - Generated class
- */
-class Router : public HaecModule {
-public:
-	Router();
-	virtual ~Router();
-    virtual void receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details);
+RouterBase::RouterBase() {
+	// TODO Auto-generated constructor stub
 
-protected:
-    virtual void initialize();
-    virtual void handleMessage(cMessage *msg);
+}
 
-private:
-    cPacketQueue* localSendQueue;
-    cPacketQueue* localReceiveQueue;
-    std::vector<cPacketQueue*> portSendQueues;
-    std::vector<cPacketQueue*> portReceiveQueues;
-};
+RouterBase::~RouterBase() {
+	// TODO Auto-generated destructor stub
+}
 
-} //namespace
-
-#endif
+} /* namespace HaecComm */

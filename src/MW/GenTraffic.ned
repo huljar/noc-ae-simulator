@@ -20,7 +20,8 @@ simple GenTraffic like IMiddlewareBase {
         bool locallyClocked;
         int queueLength;
         double injectionProb = default(0.5);
+        @display("i=block/departure");
     gates:
-        input  in;
+        input  in @loose;
         output out;
 }

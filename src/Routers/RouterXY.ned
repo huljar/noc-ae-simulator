@@ -13,35 +13,12 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __HAECCOMM_APP_H_
-#define __HAECCOMM_APP_H_
+package HaecComm.Routers;
 
-#include <omnetpp.h>
-#include <Core/HaecModule.h>
-
-using namespace omnetpp;
-
-namespace HaecComm {
-
-/**
- * TODO - Generated class
- */
-class App : public HaecModule
-{
-public:
-	App();
-	virtual ~App();
-    virtual void receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details);
-
-protected:
-    virtual void initialize();
-    virtual void handleMessage(cMessage* msg);
-
-private:
-    cPacketQueue* sendQueue;
-    cPacketQueue* receiveQueue;
-};
-
-} //namespace
-
-#endif
+simple RouterXY like IRouter {
+    parameters:
+        @display("i=block/routing");
+    gates:
+        inout local;
+        inout port[4];
+}

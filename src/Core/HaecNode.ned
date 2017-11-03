@@ -15,29 +15,46 @@
 
 package HaecComm.Core;
 
+import HaecComm.Routers.IRouter;
+
 module HaecNode like IHaecNode {
     parameters:
         int id;
+        string appType;
+        string niType;
+        string routerType;
         @display("i=block/network");
     gates:
         inout port[];
     submodules:
-        app: App {
-            @display("p=30,40");
-        };
-        ni: NetworkInterface {
-            @display("p=30,100");
-        };
-        router: Router {
-            @display("p=30,160");
+        app: <appType> like IApp {
+            @display("p=60,60");
+        }
+        appQueue: BidirectionalPacketQueue {
+            @display("p=160,60");
+        }
+        ni: <niType> like INetworkInterface {
+            @display("p=260,60");
+        }
+        niQueue: BidirectionalPacketQueue {
+            @display("p=360,60");
+        }
+        router: <routerType> like IRouter {
+            @display("p=460,60");
             gates: port[sizeof(port)];
-        };
+        }
+        routerQueue[sizeof(port)]: BidirectionalPacketQueue {
+            @display("p=310,180,row,40");
+        }
     connections:
-        app.networkOut --> ni.appIn;
-        app.networkIn <-- ni.appOut;
-        ni.routerOut --> router.localIn;
-        ni.routerIn <-- router.localOut;
+        app.net <--> appQueue.left;
+        appQueue.right <--> ni.app;
+        
+        ni.router <--> niQueue.left;
+        niQueue.right <--> router.local;
+        
         for i=0..sizeof(port)-1 {
-            port[i] <--> router.port[i];
+            router.port[i] <--> routerQueue[i].left;
+            port[i] <--> routerQueue[i].right;
         }
 }

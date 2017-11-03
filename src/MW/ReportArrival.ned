@@ -19,7 +19,8 @@ simple ReportArrival like IMiddlewareBase {
     parameters:
         bool locallyClocked;
         int queueLength;
+        @display("i=block/arrival");
     gates:
         input  in;
-        output out;
+        output out @loose;
 }

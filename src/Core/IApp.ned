@@ -15,11 +15,7 @@
 
 package HaecComm.Core;
 
-simple HaecModule {
-    parameters:
-        int mwPipelineCount;
-        string mwDefinition;
+moduleinterface IApp {
     gates:
-        output mwEntry[mwPipelineCount] @loose; // loose required because the connection are set up dynamically at runtime
-        input  mwExit[mwPipelineCount] @loose; // same here
+        inout net;
 }

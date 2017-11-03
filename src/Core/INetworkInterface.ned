@@ -13,22 +13,10 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __HAECCOMM_ROUTERXY_H_
-#define __HAECCOMM_ROUTERXY_H_
+package HaecComm.Core;
 
-#include <omnetpp.h>
-#include <MW/MiddlewareBase.h>
-
-using namespace omnetpp;
-
-namespace HaecComm {
-
-class RouterXY : public MiddlewareBase {
-protected:
-	virtual void handleCycle(cPacket* packet);
-    virtual void handleMessageInternal(cPacket* packet);
-};
-
-} //namespace
-
-#endif
+moduleinterface INetworkInterface {
+    gates:
+        inout app;
+        inout router;
+}

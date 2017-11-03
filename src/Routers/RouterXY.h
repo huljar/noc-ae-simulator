@@ -13,14 +13,22 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package HaecComm.MW;
+#ifndef __HAECCOMM_ROUTERXY_H_
+#define __HAECCOMM_ROUTERXY_H_
 
-simple RouterXY like IMiddlewareBase {
-    parameters:
-        bool locallyClocked;
-        int queueLength;
-        bool inputClocked = default(false);
-    gates:
-        input  in;
-        output out;
-}
+#include <omnetpp.h>
+#include <Routers/RouterBase.h>
+
+using namespace omnetpp;
+
+namespace HaecComm {
+
+class RouterXY : public RouterBase {
+protected:
+	virtual void initialize();
+	virtual void handleMessage(cMessage* msg);
+};
+
+} //namespace
+
+#endif

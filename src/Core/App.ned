@@ -15,14 +15,21 @@
 
 package HaecComm.Core;
 
-//
-// TODO auto-generated module
-//
-simple App extends HaecModule {
-    @class(App);
-    @display("i=block/app2");
-    mwPipelineCount = 2;
+import HaecComm.MW.*;
+
+module App like IApp {
+    parameters:
+        @display("i=block/app2");
     gates:
-        input  networkIn;
-        output networkOut;
+        inout net;
+    submodules:
+        producer: GenTraffic {
+            @display("p=160,60");
+        }
+        consumer: ReportArrival {
+            @display("p=60,60");
+        }
+    connections:
+        producer.out --> net$o;
+        consumer.in <-- net$i; // TODO: add conditional queues in between (-> locallyClocked)
 }

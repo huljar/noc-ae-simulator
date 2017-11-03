@@ -13,17 +13,10 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package HaecComm.Core;
+package HaecComm.Routers;
 
-//
-// TODO auto-generated module
-//
-simple Router extends HaecModule {
-    @class(Router);
-    @display("i=block/routing");
-    mwPipelineCount = 1;
+moduleinterface IRouter {
     gates:
-        input  localIn;
-        output localOut;
-        inout  port[];
+        inout local;
+        inout port[];
 }
