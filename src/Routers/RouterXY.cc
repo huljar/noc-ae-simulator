@@ -14,7 +14,6 @@
 // 
 
 #include "RouterXY.h"
-#include <Util/RoutingControlInfo.h>
 
 namespace HaecComm {
 

@@ -19,9 +19,6 @@ package HaecComm.MW;
 // TODO auto-generated type
 //
 moduleinterface IMiddlewareBase {
-    parameters:
-        bool locallyClocked;
-        int queueLength;
     gates:
         input  in;
         output out;

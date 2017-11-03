@@ -19,12 +19,9 @@ namespace HaecComm {
 
 Define_Module(ReportArrival);
 
-void ReportArrival::handleCycle(cPacket* packet) {
-}
-
-void ReportArrival::handleMessageInternal(cPacket* packet) {
-    EV << this->getFullName() << "+++++ recv msg: " << packet->getName() << std::endl;
-    delete packet;
+void ReportArrival::handleMessage(cMessage* msg) {
+    EV << this->getFullName() << "+++++ recv msg: " << msg->getName() << std::endl;
+    delete msg;
 }
 
 } /* namespace HaecComm */

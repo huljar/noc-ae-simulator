@@ -28,9 +28,9 @@ namespace HaecComm {
 
 class NetworkCodingAuthGen: public MiddlewareBase {
 protected:
-    virtual void initialize();
+    virtual void initialize() override;
     virtual void handleCycle(cPacket* packet);
-    virtual void handleMessageInternal(cPacket* packet);
+    virtual void handleMessage(cMessage* msg) override;
 
 private:
     cQueue *inQueue;

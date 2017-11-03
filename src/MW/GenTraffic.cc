@@ -20,17 +20,27 @@ namespace HaecComm {
 
 Define_Module(GenTraffic);
 
-void GenTraffic::handleCycle(cPacket* packet) {
-	if(packet) {
-		EV_WARN << "Received a packet in GenTraffic, where no packet should arrive. Discarding it." << std::endl;
-		delete packet;
-	}
+void GenTraffic::initialize() {
+	MiddlewareBase::initialize();
 
+	if(getAncestorPar("isClocked")) {
+		// subscribe to clock signal
+		getSimulation()->getSystemModule()->subscribe("clock", this);
+	}
+}
+
+void GenTraffic::handleMessage(cMessage* msg) {
+	EV_WARN << "Received a message in GenTraffic, where nothing should arrive. Discarding it." << std::endl;
+	delete msg;
+}
+
+void GenTraffic::receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) {
     // Decide if we should generate a packet based on injection probability parameter
     double prob = par("injectionProb");
     if(prob == 0.0) // Explicit zero check because uniform(0.0, 1.0) can return 0
     	return;
 
+    int myId = getAncestorPar("id");
     if(uniform(0.0, 1.0) < prob) {
     	// Generate a packet
     	// We assume that we are operating in a 2-dimensional grid topology
@@ -52,11 +62,11 @@ void GenTraffic::handleCycle(cPacket* packet) {
 			// Uniform target selection
 			do {
 				targetNodeId = static_cast<int>(intrand(gridWidth * gridHeight));
-			} while(targetNodeId == parent->getNodeId());
+			} while(targetNodeId == myId);
 		}
 
 		std::ostringstream packetName;
-		packetName << "packet-" << parent->getNodeId() << "-" << targetNodeId;
+		packetName << "packet-" << myId << "-" << targetNodeId;
 
 		cPacket* newPacket = createPacket(packetName.str().c_str()); // TODO: use custom packet class with targetId parameter
 		newPacket->addPar("targetId") = targetNodeId;
@@ -64,11 +74,6 @@ void GenTraffic::handleCycle(cPacket* packet) {
 		EV << this->getFullPath() << " sending packet " << newPacket << std::endl;
 		send(newPacket, "out");
     }
-}
-
-void GenTraffic::handleMessageInternal(cPacket* packet) {
-	EV_WARN << "Received a packet in GenTraffic, where no packet should arrive. Discarding it." << std::endl;
-	delete packet;
 }
 
 } //namespace

@@ -25,8 +25,7 @@ namespace HaecComm {
 
 class ReportArrival: public MiddlewareBase {
 protected:
-	virtual void handleCycle(cPacket* packet);
-    virtual void handleMessageInternal(cPacket* packet);
+    virtual void handleMessage(cMessage* msg) override;
 };
 
 } /* namespace HaecComm */

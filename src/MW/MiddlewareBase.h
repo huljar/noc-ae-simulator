@@ -17,33 +17,20 @@
 #define MW_MIDDLEWAREBASE_H_
 
 #include <omnetpp.h>
-#include <Core/HaecModule.h>
 
 using namespace omnetpp;
 
 namespace HaecComm {
 
-class MiddlewareBase: public cSimpleModule, public cListener {
+class MiddlewareBase: public cSimpleModule {
 public:
     MiddlewareBase();
     virtual ~MiddlewareBase();
 
 protected:
-    bool isClocked;
-    bool locallyClocked;
-    int queueLength;
-    cPacketQueue* incoming;
-    HaecModule* parent;
-
     // If you override one of these, call the parent method as first operation!
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);
-
-    void receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details);
-
-    // Override these for your functionality
-    virtual void handleCycle(cPacket* packet) = 0; // handle clock tick with pending message or NULL
-    virtual void handleMessageInternal(cPacket* packet) = 0; // handle message directly (no local input clocking)
 
     // Convenience stuff
     cPacket* createPacket(const char* name);

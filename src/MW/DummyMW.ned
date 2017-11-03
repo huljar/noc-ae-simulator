@@ -16,9 +16,6 @@
 package HaecComm.MW;
 
 simple DummyMW like IMiddlewareBase {
-    parameters:
-        bool locallyClocked;
-        int queueLength;
     gates:
         input  in;
         output out;

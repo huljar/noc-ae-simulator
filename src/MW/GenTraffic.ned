@@ -17,8 +17,6 @@ package HaecComm.MW;
 
 simple GenTraffic like IMiddlewareBase {
     parameters:
-        bool locallyClocked;
-        int queueLength;
         double injectionProb = default(0.5);
         @display("i=block/departure");
     gates:
