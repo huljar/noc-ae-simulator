@@ -14,6 +14,7 @@
 // 
 
 #include "GenTraffic.h"
+#include <sstream>
 
 namespace HaecComm {
 
@@ -32,38 +33,35 @@ void GenTraffic::handleCycle(cPacket* packet) {
 
     if(uniform(0.0, 1.0) < prob) {
     	// Generate a packet
-    	// We assume that we are operating in a 2-dimensional mesh
-    	// TODO: continue work here
-    	int mWidth = 0, mHeight = 0;
-		int trg;
+    	// We assume that we are operating in a 2-dimensional grid topology
+    	int gridWidth = 0, gridHeight = 0;
+		int targetNodeId;
 
 		try {
-			mWidth = getAncestorPar("rows");
-			mHeight = getAncestorPar("columns");
-		} catch (const cRuntimeError ex) {
-			EV << " ancestors don't have width/height parameters!" << std::endl;
+			gridWidth = getAncestorPar("rows");
+			gridHeight = getAncestorPar("columns");
+		}
+		catch(const cRuntimeError& ex) {
+			EV_WARN << " ancestors don't have width/height parameters!" << std::endl;
 		}
 
-		if(mWidth == 0 && mHeight == 0) {
-			trg = 0;
+		if(gridWidth == 0 && gridHeight == 0) {
+			targetNodeId = 0;
 		} else {
 			// TODO create paramterized target selection class
 			// Uniform target selection
 			do {
-				trg = (int) uniform(0, (double) mWidth*mHeight);
-			} while (trg == parentId);
-
+				targetNodeId = static_cast<int>(intrand(gridWidth * gridHeight));
+			} while(targetNodeId == parent->getNodeId());
 		}
 
-		char msgName[128] = {0};
-		sprintf(msgName, "msg-%02d-%02d-%05lu", parentId, trg, currentCycle);
+		std::ostringstream packetName;
+		packetName << "packet-" << parent->getNodeId() << "-" << targetNodeId;
 
-		cPacket* newPacket = createMessage(msgName);
-		newPacket->addPar("targetId");
-		newPacket->par("targetId") = trg;
-		newPacket->par("outPort")  = 0;
+		cPacket* newPacket = createPacket(packetName.str().c_str()); // TODO: use custom packet class with targetId parameter
+		newPacket->addPar("targetId") = targetNodeId;
 
-		EV << this->getFullPath() << " sending msg " << newPacket << " at cycle " << currentCycle << std::endl;
+		EV << this->getFullPath() << " sending packet " << newPacket << std::endl;
 		send(newPacket, "out");
     }
 }

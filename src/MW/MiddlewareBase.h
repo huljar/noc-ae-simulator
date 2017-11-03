@@ -46,7 +46,7 @@ protected:
     virtual void handleMessageInternal(cPacket* packet) = 0; // handle message directly (no local input clocking)
 
     // Convenience stuff
-    cMessage* createMessage(const char*);
+    cPacket* createPacket(const char* name);
 };
 
 } /* namespace HaecComm */

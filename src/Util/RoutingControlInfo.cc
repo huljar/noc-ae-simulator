@@ -17,6 +17,11 @@
 
 namespace HaecComm {
 
+RoutingControlInfo::RoutingControlInfo()
+	: portIdx(-1)
+{
+}
+
 RoutingControlInfo::RoutingControlInfo(int portIdx)
 	: portIdx(portIdx)
 {
@@ -25,18 +30,10 @@ RoutingControlInfo::RoutingControlInfo(int portIdx)
 RoutingControlInfo::~RoutingControlInfo() {
 }
 
-/**
- * Return the port index to be used for routing. Index of -1 means that
- * the message shall be sent to the local node output gate.
- */
 int RoutingControlInfo::getPortIdx() const {
 	return portIdx;
 }
 
-/**
- * Set the port index to be used for routing. Index of -1 means that
- * the message shall be sent to the local node output gate.
- */
 void RoutingControlInfo::setPortIdx(int portIdx) {
 	this->portIdx = portIdx;
 }

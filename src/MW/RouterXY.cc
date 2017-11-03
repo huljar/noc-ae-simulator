@@ -14,6 +14,7 @@
 // 
 
 #include "RouterXY.h"
+#include <Util/RoutingControlInfo.h>
 
 namespace HaecComm {
 
@@ -22,36 +23,38 @@ Define_Module(RouterXY);
 void RouterXY::handleCycle(cPacket* packet) {
 }
 
-void RouterXY::handleMessageInternal(cPacket* packet)
-{
+void RouterXY::handleMessageInternal(cPacket* packet) {
     if(!packet->hasPar("targetId")){
-        EV << " got message without target - drop it like it's hot! " << packet->str() << std::endl;
-        dropAndDelete(packet);
+        EV << " got message without target - drop it like it's hot! " << packet->getName() << std::endl;
+        delete packet;
     }
 
-    int targetId = (int) packet->par("targetId");
+    int targetId = static_cast<int>(packet->par("targetId"));
     // TODO maybe this could be a independent preceding MW
-    if(targetId == parentId){
+    if(targetId == parent->getNodeId()){
         // set out port to NI port and pass it
-        packet->par("outPort") = 4;
-        send(packet,"out");
+        packet->setControlInfo(new RoutingControlInfo(-1));
+        send(packet, "out");
         return;
     }
 
     // Decide on next port based on id
-    int mCols = (int) getAncestorPar("columns");
-    int tX = targetId % mCols;
-    int tY = targetId / mCols;
+    int gridCols = static_cast<int>(getAncestorPar("columns"));
+    int targetX = targetId % gridCols;
+    int targetY = targetId / gridCols;
+
+    RoutingControlInfo* rcInfo = new RoutingControlInfo;
 
     // Since it is definitely not this node (see above) the following is sufficient
-    if(tX != X){
+    if(targetX != parent->getNodeX()){
         // Move in X direction
-        packet->par("outPort") = tX < X ? 3 : 1; // implicit knowledge
+    	rcInfo->setPortIdx(targetX < parent->getNodeX() ? 3 : 1); // implicit knowledge
     } else {
         // Move in Y direction
-        packet->par("outPort") = tY < Y ? 0 : 2;
+        rcInfo->setPortIdx(targetY < parent->getNodeY() ? 0 : 2);
     }
-    send(packet,"out");
+    packet->setControlInfo(rcInfo);
+    send(packet, "out");
 }
 
 } //namespace

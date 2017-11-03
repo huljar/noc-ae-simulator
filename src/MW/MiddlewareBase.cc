@@ -81,10 +81,10 @@ void MiddlewareBase::receiveSignal(cComponent* source, simsignal_t signalID, uns
     }
 }
 
-cMessage* MiddlewareBase::createMessage(const char* name) {
-    cMessage *msg = new cMessage(name);
-    take(msg);
-    return msg;
+cPacket* MiddlewareBase::createPacket(const char* name) {
+    cPacket* packet = new cPacket(name);
+    take(packet);
+    return packet;
 }
 
 } /* namespace HaecComm */

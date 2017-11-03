@@ -24,10 +24,20 @@ namespace HaecComm {
 
 class RoutingControlInfo : public cObject {
 public:
+	RoutingControlInfo();
 	RoutingControlInfo(int portIdx);
 	virtual ~RoutingControlInfo();
 
+	/**
+	 * Return the port index to be used for routing. Index of -1 means that
+	 * the message shall be sent to the local node output gate.
+	 */
 	int getPortIdx() const;
+
+	/**
+	 * Set the port index to be used for routing. Index of -1 means that
+	 * the message shall be sent to the local node output gate.
+	 */
 	void setPortIdx(int portIdx);
 
 private:
