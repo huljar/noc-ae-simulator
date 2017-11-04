@@ -55,10 +55,10 @@ void RouterXY::handleMessage(cMessage* msg) {
 	// Since it is definitely not this node (see above) the following is sufficient
 	if(targetX != myX) {
 		// Move in X direction
-		send(packet, "port", targetX < myX ? 3 : 1); // implicit knowledge
+		send(packet, "port$o", targetX < myX ? 3 : 1); // implicit knowledge
 	} else {
 		// Move in Y direction
-		send(packet, "port", targetY < myY ? 0 : 2);
+		send(packet, "port$o", targetY < myY ? 0 : 2);
 	}
 }
 
