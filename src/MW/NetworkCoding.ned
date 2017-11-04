@@ -17,11 +17,8 @@ package HaecComm.MW;
 
 simple NetworkCoding like IMiddlewareBase {
     parameters:
-        bool locallyClocked;
-        int queueLength;
         int generationSize = default(2);
         int combinations = default(3);
-        bool inputClocked = default(false);
     gates:
         input  in;
         output out;

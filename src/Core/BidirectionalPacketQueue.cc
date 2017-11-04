@@ -37,6 +37,9 @@ void BidirectionalPacketQueue::initialize() {
 		getSimulation()->getSystemModule()->subscribe("clock", this);
 	}
     maxLength = par("maxLength");
+
+    queueLeftToRight = new cPacketQueue;
+    queueRightToLeft = new cPacketQueue;
 }
 
 void BidirectionalPacketQueue::handleMessage(cMessage* msg) {
@@ -51,7 +54,7 @@ void BidirectionalPacketQueue::handleMessage(cMessage* msg) {
 
 	if(strcmp(packet->getArrivalGate()->getName(), "left$i") == 0) {
 		if(getAncestorPar("isClocked")) {
-			if(queueLeftToRight->getLength() < maxLength) {
+			if(maxLength == 0 || queueLeftToRight->getLength() < maxLength) {
 				queueLeftToRight->insert(packet);
 			}
 			else {
@@ -66,7 +69,7 @@ void BidirectionalPacketQueue::handleMessage(cMessage* msg) {
 	}
 	else { // arrival gate: "right$i"
 		if(getAncestorPar("isClocked")) {
-			if(queueRightToLeft->getLength() < maxLength) {
+			if(maxLength == 0 || queueRightToLeft->getLength() < maxLength) {
 				queueRightToLeft->insert(packet);
 			}
 			else {
@@ -83,8 +86,16 @@ void BidirectionalPacketQueue::handleMessage(cMessage* msg) {
 
 void BidirectionalPacketQueue::receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) {
 	if(signalID == registerSignal("clock")) {
-		if(queueLeftToRight->getLength() > 0) send(queueLeftToRight->pop(), "right$o");
-		if(queueRightToLeft->getLength() > 0) send(queueRightToLeft->pop(), "left$o");
+		if(queueLeftToRight->getLength() > 0) {
+			cPacket* packet = queueLeftToRight->pop();
+			take(packet);
+			send(packet, "right$o");
+		}
+		if(queueRightToLeft->getLength() > 0) {
+			cPacket* packet = queueRightToLeft->pop();
+			take(packet);
+			send(packet, "left$o");
+		}
 	}
 	else
 		EV_WARN << "Received unexpected signal with ID " << signalID << ", expected clock signal" << std::endl;

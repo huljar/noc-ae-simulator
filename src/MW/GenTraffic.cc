@@ -66,7 +66,7 @@ void GenTraffic::receiveSignal(cComponent* source, simsignal_t signalID, unsigne
 		}
 
 		std::ostringstream packetName;
-		packetName << "packet-" << myId << "-" << targetNodeId;
+		packetName << "packet-" << myId << "-" << targetNodeId << "-" << l;
 
 		cPacket* newPacket = createPacket(packetName.str().c_str()); // TODO: use custom packet class with targetId parameter
 		newPacket->addPar("targetId") = targetNodeId;

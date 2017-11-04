@@ -17,8 +17,6 @@ package HaecComm.MW;
 
 simple ReportArrival like IMiddlewareBase {
     parameters:
-        bool locallyClocked;
-        int queueLength;
         @display("i=block/arrival");
     gates:
         input  in;

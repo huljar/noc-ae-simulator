@@ -17,13 +17,10 @@ package HaecComm.MW;
 
 simple NetworkCodingAuthGen like IMiddlewareBase {
     parameters:
-        bool locallyClocked;
-        int queueLength = default(100);
         int generationSize = default(2);
         int combinations   = default(3);
         int cryptoUnits    = default(4);
         int cryptoCycles   = default(23);
-        bool inputClocked  = default(false);
     gates:
         input  in;
         output out;

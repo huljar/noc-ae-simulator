@@ -35,6 +35,8 @@ void PacketQueue::initialize() {
 		getSimulation()->getSystemModule()->subscribe("clock", this);
 	}
     maxLength = par("maxLength");
+
+    queue = new cPacketQueue;
 }
 
 void PacketQueue::handleMessage(cMessage* msg) {
@@ -48,7 +50,7 @@ void PacketQueue::handleMessage(cMessage* msg) {
 	cPacket* packet = static_cast<cPacket*>(msg); // No need for dynamic_cast or check_and_cast here
 
 	if(getAncestorPar("isClocked")) {
-		if(queue->getLength() < maxLength) {
+		if(maxLength == 0 || queue->getLength() < maxLength) {
 			queue->insert(packet);
 		}
 		else {
@@ -63,8 +65,11 @@ void PacketQueue::handleMessage(cMessage* msg) {
 
 void PacketQueue::receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) {
 	if(signalID == registerSignal("clock")) {
-		if(queue->getLength() > 0)
-			send(queue->pop(), "out");
+		if(queue->getLength() > 0) {
+			cPacket* packet = queue->pop();
+			take(packet);
+			send(packet, "out");
+		}
 	}
 	else
 		EV_WARN << "Received unexpected signal with ID " << signalID << ", expected clock signal" << std::endl;

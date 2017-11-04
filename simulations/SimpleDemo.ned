@@ -16,23 +16,30 @@
 package HaecComm.simulations;
 
 import HaecComm.Core.Clock;
-import HaecComm.Core.App;
+import HaecComm.MW.GenTraffic;
+import HaecComm.MW.ReportArrival;
+import HaecComm.Core.PacketQueue;
 
 network SimpleDemo
 {
     parameters:
         bool isClocked = true;
+        int id = 0;
     submodules:
         clock: Clock {
             @display("p=40,40");
         }
-        node1: App {
+        source: GenTraffic {
             @display("p=200,40");
         }
-        node2: App {
-            @display("p=200,140");
+        queue: PacketQueue {
+            @display("p=200,120");
+        }
+        sink: ReportArrival {
+            @display("p=200,200");
         }
 
-    connections allowunconnected:
-        node1.net <--> node2.net;
+    connections:
+        source.out --> queue.in;
+        queue.out --> sink.in;
 }
