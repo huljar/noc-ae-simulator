@@ -44,7 +44,7 @@ module HaecNode like IHaecNode {
             gates: port[sizeof(port)];
         }
         routerQueue[sizeof(port)]: BidirectionalPacketQueue {
-            @display("p=310,180,row,40");
+            @display("p=310,180,row,100");
         }
     connections:
         app.net <--> appQueue.left;
