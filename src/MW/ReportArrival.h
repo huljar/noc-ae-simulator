@@ -17,15 +17,15 @@
 #define REPORTARRIVAL_H_
 
 #include <omnetpp.h>
-#include <MW/cMiddlewareBase.h>
+#include <MW/MiddlewareBase.h>
 
 using namespace omnetpp;
 
 namespace HaecComm {
 
-class ReportArrival: public cMiddlewareBase {
+class ReportArrival: public MiddlewareBase {
 protected:
-    virtual void handleMessageInternal(cMessage *msg);
+    virtual void handleMessage(cMessage* msg) override;
 };
 
 } /* namespace HaecComm */

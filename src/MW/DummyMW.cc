@@ -13,17 +13,14 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include <MW/DummyMW.h>
+#include "DummyMW.h"
 
 namespace HaecComm {
 
 Define_Module(DummyMW);
 
-void DummyMW::handleMessageInternal(cMessage *msg)
-{
-
-    msg->par("outPort") = ((int)msg->par("inPort") + 1) % 2;
-    send(msg,"out");
+void DummyMW::handleMessage(cMessage* msg) {
+	send(msg, "out");
 }
 
 } /* namespace HaecComm */

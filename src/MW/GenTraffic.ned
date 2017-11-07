@@ -15,9 +15,11 @@
 
 package HaecComm.MW;
 
-simple GenTraffic
-{
+simple GenTraffic like IMiddlewareBase {
     parameters:
-        int  parentId = default(0);
-        double injectionRate = default(0.5);
+        double injectionProb = default(0.5);
+        @display("i=block/departure");
+    gates:
+        input  in @loose;
+        output out;
 }

@@ -15,8 +15,10 @@
 
 package HaecComm.MW;
 
-simple ReportArrival
-{
+simple ReportArrival like IMiddlewareBase {
     parameters:
-        int  parentId = default(0);
+        @display("i=block/arrival");
+    gates:
+        input  in;
+        output out @loose;
 }

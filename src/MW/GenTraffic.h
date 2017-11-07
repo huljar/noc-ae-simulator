@@ -17,15 +17,17 @@
 #define __HAECCOMM_GENTRAFFIC_H_
 
 #include <omnetpp.h>
-#include <MW/cMiddlewareBase.h>
+#include <MW/MiddlewareBase.h>
 
 using namespace omnetpp;
 
 namespace HaecComm {
 
-class GenTraffic: public cMiddlewareBase {
+class GenTraffic: public MiddlewareBase, cListener {
 protected:
-    virtual void handleCycle(cMessage *msg);
+    virtual void initialize() override;
+    virtual void handleMessage(cMessage* msg) override;
+    virtual void receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) override;
 };
 
 } //namespace

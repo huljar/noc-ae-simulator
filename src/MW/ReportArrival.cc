@@ -13,15 +13,15 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include <MW/ReportArrival.h>
+#include "ReportArrival.h"
 
 namespace HaecComm {
 
 Define_Module(ReportArrival);
 
-void ReportArrival::handleMessageInternal (cMessage *msg) {
-    EV << this->getFullName() << "+++++ recv msg: " << msg->str() << " at cycle " << this->currentCycle << std::endl;
-    delete (msg);
+void ReportArrival::handleMessage(cMessage* msg) {
+    EV << this->getFullName() << "+++++ recv msg: " << msg->getName() << std::endl;
+    delete msg;
 }
 
 } /* namespace HaecComm */

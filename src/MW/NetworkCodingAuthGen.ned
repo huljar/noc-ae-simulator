@@ -15,14 +15,13 @@
 
 package HaecComm.MW;
 
-simple NetworkCodingAuthGen
-{
+simple NetworkCodingAuthGen like IMiddlewareBase {
     parameters:
-        int parentId       = default(0);
         int generationSize = default(2);
         int combinations   = default(3);
-        int queueLength    = default(100);
         int cryptoUnits    = default(4);
         int cryptoCycles   = default(23);
-        bool inputClocked  = default(false);
+    gates:
+        input  in;
+        output out;
 }

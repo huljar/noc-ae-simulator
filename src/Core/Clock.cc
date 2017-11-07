@@ -13,7 +13,7 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include <Core/Clock.h>
+#include "Clock.h"
 
 namespace HaecComm {
 
@@ -36,9 +36,15 @@ void Clock::initialize(){
     scheduleAt(simTime(), timerMessage);
 }
 
+unsigned long Clock::getCurrentCycle() const {
+	// Subtract 1 because the counter always contains the next cycle
+	return cycleCounter - 1;
+}
+
 void Clock::handleMessage(cMessage *msg){
     ASSERT(msg == timerMessage);
 
+    bubble(cycleCounter % 2 == 0 ? "tick" : "tock");
     emit(clockSignal, cycleCounter++);
     scheduleAt(simTime() + par("inter"), timerMessage);
 }

@@ -13,36 +13,17 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef CLOCK_H_
-#define CLOCK_H_
-
-#include <omnetpp.h>
-#include <Core/Signals.h>
-
-using namespace omnetpp;
+#include "RouterBase.h"
 
 namespace HaecComm {
 
-/**
- * Generates cycle ticks
- */
-class Clock: public cSimpleModule {
-private:
-    cMessage *timerMessage;
-    simsignal_t clockSignal;
-    unsigned long cycleCounter;
+RouterBase::RouterBase() {
+	// TODO Auto-generated constructor stub
 
-public:
-    Clock();
-    virtual ~Clock();
+}
 
-    unsigned long getCurrentCycle() const;
+RouterBase::~RouterBase() {
+	// TODO Auto-generated destructor stub
+}
 
-protected:
-    virtual void initialize();
-    virtual void handleMessage(cMessage *msg);
-};
-
-}; /* namespace HaecComm */
-
-#endif /* CLOCK_H_ */
+} /* namespace HaecComm */

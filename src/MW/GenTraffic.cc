@@ -13,54 +13,67 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include <MW/GenTraffic.h>
+#include "GenTraffic.h"
+#include <sstream>
 
 namespace HaecComm {
 
 Define_Module(GenTraffic);
 
-void GenTraffic::handleCycle(cMessage *msg) {
-    // we ignore the msg var, because we just generate traffic
+void GenTraffic::initialize() {
+	MiddlewareBase::initialize();
 
-    // TODO create parameter for injection prob
-    double rate = par("injectionRate");
-    EV << " gt hast par " << rate << std::endl;
-    int r = (int) uniform(0,16);
-    if(r != 4)
-        return;
+	if(getAncestorPar("isClocked")) {
+		// subscribe to clock signal
+		getSimulation()->getSystemModule()->subscribe("clock", this);
+	}
+}
 
-    int mWidth = 0, mHeight = 0;
-    int trg;
+void GenTraffic::handleMessage(cMessage* msg) {
+	EV_WARN << "Received a message in GenTraffic, where nothing should arrive. Discarding it." << std::endl;
+	delete msg;
+}
 
-    try {
-        mWidth = getAncestorPar("rows");
-        mHeight = getAncestorPar("columns");
-    } catch (const cRuntimeError ex) {
-        EV << " ancestors don't have width/height parameters!" << std::endl;
+void GenTraffic::receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) {
+    // Decide if we should generate a packet based on injection probability parameter
+    double prob = par("injectionProb");
+    if(prob == 0.0) // Explicit zero check because uniform(0.0, 1.0) can return 0
+    	return;
+
+    int myId = getAncestorPar("id");
+    if(uniform(0.0, 1.0) < prob) {
+    	// Generate a packet
+    	// We assume that we are operating in a 2-dimensional grid topology
+    	int gridWidth = 0, gridHeight = 0;
+		int targetNodeId;
+
+		try {
+			gridWidth = getAncestorPar("rows");
+			gridHeight = getAncestorPar("columns");
+		}
+		catch(const cRuntimeError& ex) {
+			EV_WARN << " ancestors don't have width/height parameters!" << std::endl;
+		}
+
+		if(gridWidth == 0 && gridHeight == 0) {
+			targetNodeId = 0;
+		} else {
+			// TODO create paramterized target selection class
+			// Uniform target selection
+			do {
+				targetNodeId = static_cast<int>(intrand(gridWidth * gridHeight));
+			} while(targetNodeId == myId);
+		}
+
+		std::ostringstream packetName;
+		packetName << "packet-" << myId << "-" << targetNodeId << "-" << l;
+
+		cPacket* newPacket = createPacket(packetName.str().c_str()); // TODO: use custom packet class with targetId parameter
+		newPacket->addPar("targetId") = targetNodeId;
+
+		EV << this->getFullPath() << " sending packet " << newPacket << std::endl;
+		send(newPacket, "out");
     }
-
-    if(mWidth == 0 && mHeight == 0) {
-        trg = 0;
-    } else {
-        // TODO create paramterized target selection class
-        // Uniform target selection
-        do {
-            trg = (int) uniform(0, (double) mWidth*mHeight);
-        } while (trg == parentId);
-
-    }
-
-    char msgName[128] = {0};
-    sprintf(msgName, "msg-%02d-%02d-%05lu", parentId, trg, currentCycle);
-
-    cMessage *m = createMessage(msgName);
-    m->addPar("targetId");
-    m->par("targetId") = trg;
-    m->par("outPort")  = 0;
-
-    EV << this->getFullPath() << " sending msg " << m << " at cycle " << currentCycle << std::endl;
-    send(m, "out");
-
 }
 
 } //namespace

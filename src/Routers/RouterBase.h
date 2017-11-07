@@ -13,8 +13,8 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __HAECCOMM_HAECMOD_H
-#define __HAECCOMM_HAECMOD_H
+#ifndef ROUTERS_ROUTERBASE_H_
+#define ROUTERS_ROUTERBASE_H_
 
 #include <omnetpp.h>
 
@@ -22,37 +22,12 @@ using namespace omnetpp;
 
 namespace HaecComm {
 
-/**
- * Base class for all network components
- */
-class HaecModule: public cSimpleModule, public cListener {
-private:
-    bool isClocked;
-    int tickCount;
-    int nextIn;
-    int id, X, Y;
-
-    cGate *middlewareEntryGate;
-    cArray inQueues;
-    cArray outQueues;
-    cArray localBuffer;
-
-
+class RouterBase : public cSimpleModule {
 public:
-    HaecModule();
-    virtual ~HaecModule();
-    void receiveSignal(cComponent *, simsignal_t signalID, unsigned long l,
-            cObject *d);
-    int getX() { return X; };
-    int getY() { return Y; };
-
-protected:
-    virtual void initialize();
-    virtual void handleMessage(cMessage *msg);
-
-    void initMiddleware();
+	RouterBase();
+	virtual ~RouterBase();
 };
 
-}; // namespace
+} /* namespace HaecComm */
 
-#endif
+#endif /* ROUTERS_ROUTERBASE_H_ */

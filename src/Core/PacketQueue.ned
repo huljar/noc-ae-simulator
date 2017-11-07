@@ -13,22 +13,16 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __HAECCOMM_ROUTERXY_H_
-#define __HAECCOMM_ROUTERXY_H_
+package HaecComm.Core;
 
-#include <omnetpp.h>
-#include <MW/cMiddlewareBase.h>
-
-using namespace omnetpp;
-
-namespace HaecComm {
-
-class RouterXY : public cMiddlewareBase
-{
-  protected:
-    virtual void handleMessageInternal(cMessage *msg);
-};
-
-} //namespace
-
-#endif
+//
+// TODO auto-generated module
+//
+simple PacketQueue {
+    parameters:
+        int maxLength = default(0); // default: no limit in queue size
+        @display("i=block/queue");
+    gates:
+        input  in;
+        output out;
+}

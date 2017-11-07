@@ -17,7 +17,7 @@
 #define __HAECCOMM_NETWORKCODINGAUTHGEN_H_
 
 #include <omnetpp.h>
-#include <MW/cMiddlewareBase.h>
+#include <MW/MiddlewareBase.h>
 #include <Util/NetworkCodingManager.h>
 #include <Util/CryptoManager.h>
 #include <Messages/NcCombination_m.h>
@@ -26,11 +26,11 @@ using namespace omnetpp;
 
 namespace HaecComm {
 
-class NetworkCodingAuthGen: public cMiddlewareBase {
+class NetworkCodingAuthGen: public MiddlewareBase {
 protected:
-    virtual void initialize();
-    virtual void handleCycle(cMessage *msg);
-    virtual void handleMessageInternal(cMessage *msg);
+    virtual void initialize() override;
+    virtual void handleCycle(cPacket* packet);
+    virtual void handleMessage(cMessage* msg) override;
 
 private:
     cQueue *inQueue;

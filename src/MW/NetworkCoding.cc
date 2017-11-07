@@ -13,19 +13,19 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include <MW/NetworkCoding.h>
+#include "NetworkCoding.h"
 
 namespace HaecComm {
 
 Define_Module(NetworkCoding);
 
 void NetworkCoding::initialize() {
-    cMiddlewareBase::initialize();
+    MiddlewareBase::initialize();
 
-    NC = new NetworkCodingManager(par("generationSize"), par("combinations"));
+    NC = new NetworkCodingManager(par("generationSize"), par("combinations")); // TODO: this is never deleted
 }
 
-void NetworkCoding::handleMessageInternal(cMessage *msg){
+void NetworkCoding::handleMessage(cMessage* msg){
     if((int)msg->par("inPort") == 0) {        // Message from router
         NcCombination *msgNc = check_and_cast<NcCombination *>(msg);
         NcGen *g = NC->getOrCreateGeneration(msgNc->getGenerationId());

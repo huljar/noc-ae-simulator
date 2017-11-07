@@ -13,36 +13,23 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef CLOCK_H_
-#define CLOCK_H_
+package HaecComm.Core;
 
-#include <omnetpp.h>
-#include <Core/Signals.h>
+import HaecComm.MW.*;
 
-using namespace omnetpp;
-
-namespace HaecComm {
-
-/**
- * Generates cycle ticks
- */
-class Clock: public cSimpleModule {
-private:
-    cMessage *timerMessage;
-    simsignal_t clockSignal;
-    unsigned long cycleCounter;
-
-public:
-    Clock();
-    virtual ~Clock();
-
-    unsigned long getCurrentCycle() const;
-
-protected:
-    virtual void initialize();
-    virtual void handleMessage(cMessage *msg);
-};
-
-}; /* namespace HaecComm */
-
-#endif /* CLOCK_H_ */
+module App like IApp {
+    parameters:
+        @display("i=block/app2");
+    gates:
+        inout net;
+    submodules:
+        producer: GenTraffic {
+            @display("p=160,60");
+        }
+        consumer: ReportArrival {
+            @display("p=60,60");
+        }
+    connections:
+        producer.out --> net$o;
+        consumer.in <-- net$i; // TODO: add conditional queues in between (-> locallyClocked)
+}

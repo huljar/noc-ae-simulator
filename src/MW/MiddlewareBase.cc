@@ -13,14 +13,26 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package HaecComm.Core;
+#include "MiddlewareBase.h"
 
-simple HaecModule {
-    parameters:
-        int id = default(9999);
-        int portNumber;
-        string middleware;
-    gates:
-         input  inPorts[portNumber] @loose;
-        output outPorts[portNumber] @loose;
+namespace HaecComm {
+
+MiddlewareBase::MiddlewareBase() {
 }
+
+MiddlewareBase::~MiddlewareBase() {
+}
+
+void MiddlewareBase::initialize() {
+}
+
+void MiddlewareBase::handleMessage(cMessage* msg) {
+}
+
+cPacket* MiddlewareBase::createPacket(const char* name) {
+    cPacket* packet = new cPacket(name);
+    take(packet);
+    return packet;
+}
+
+} /* namespace HaecComm */

@@ -17,7 +17,7 @@
 #define __HAECCOMM_NETWORKCODING_H_
 
 #include <omnetpp.h>
-#include <MW/cMiddlewareBase.h>
+#include <MW/MiddlewareBase.h>
 #include <Util/NetworkCodingManager.h>
 #include <Messages/NcCombination_m.h>
 
@@ -29,10 +29,10 @@ namespace HaecComm {
  * FIXME We currently do not consider the local queue and its size!
  */
 
-class NetworkCoding: public cMiddlewareBase {
+class NetworkCoding: public MiddlewareBase {
 protected:
-    virtual void initialize();
-    virtual void handleMessageInternal(cMessage *msg);
+    virtual void initialize() override;
+    virtual void handleMessage(cMessage* msg) override;
 
 private:
     NetworkCodingManager *NC;

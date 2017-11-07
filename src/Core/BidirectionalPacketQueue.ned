@@ -13,36 +13,16 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef CLOCK_H_
-#define CLOCK_H_
+package HaecComm.Core;
 
-#include <omnetpp.h>
-#include <Core/Signals.h>
-
-using namespace omnetpp;
-
-namespace HaecComm {
-
-/**
- * Generates cycle ticks
- */
-class Clock: public cSimpleModule {
-private:
-    cMessage *timerMessage;
-    simsignal_t clockSignal;
-    unsigned long cycleCounter;
-
-public:
-    Clock();
-    virtual ~Clock();
-
-    unsigned long getCurrentCycle() const;
-
-protected:
-    virtual void initialize();
-    virtual void handleMessage(cMessage *msg);
-};
-
-}; /* namespace HaecComm */
-
-#endif /* CLOCK_H_ */
+//
+// TODO auto-generated module
+//
+simple BidirectionalPacketQueue {
+    parameters:
+        int maxLength = default(0); // default: no limit in queue size
+        @display("i=block/queue");
+    gates:
+        inout left;
+        inout right;
+}

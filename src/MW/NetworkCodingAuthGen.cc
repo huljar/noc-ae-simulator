@@ -13,30 +13,31 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include <MW/NetworkCodingAuthGen.h>
+#include "NetworkCodingAuthGen.h"
 
 namespace HaecComm {
 
 Define_Module(NetworkCodingAuthGen);
 
 void NetworkCodingAuthGen::initialize() {
-    cMiddlewareBase::initialize();
+    MiddlewareBase::initialize();
 
     outQueue = new cQueue();
     inQueue = new cQueue();
 
     NC = new NetworkCodingManager(par("generationSize"), par("combinations"));
     CU = new CryptoManager(par("cryptoUnits"), par("cryptoCycles"), outQueue);
+    // TODO: instead of creating a crypto manager, inherit from it. this would also allow for separate enc/dec modules
 
 }
 
-void NetworkCodingAuthGen::handleCycle(cMessage *msg) {
+void NetworkCodingAuthGen::handleCycle(cPacket* packet) {
     CU->tick();
 
     // processed messages will now be pushed into the local queue
 }
 
-void NetworkCodingAuthGen::handleMessageInternal(cMessage *msg) {
+void NetworkCodingAuthGen::handleMessage(cMessage* msg) {
     if ((int) msg->par("inPort") == 0) {        // Message from router
         NcCombination *msgNc = check_and_cast<NcCombination *>(msg);
         NcGen *g = NC->getOrCreateGeneration(msgNc->getGenerationId());

@@ -13,11 +13,12 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package HaecComm.MW;
+package HaecComm.Routers;
 
-simple RouterXY
-{
+simple RouterXY like IRouter {
     parameters:
-        int  parentId = default(0);
-        bool inputClocked = default(false);
+        @display("i=block/routing");
+    gates:
+        inout local;
+        inout port[];
 }

@@ -15,9 +15,9 @@
 
 package HaecComm.Core;
 
-simple Clock
-{
+simple Clock {
     parameters:
         @signal[clock](type=unsigned long);
+        @display("i=device/clock");
         double inter @unit(s) = 1s;
 }

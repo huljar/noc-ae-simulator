@@ -13,36 +13,32 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef CLOCK_H_
-#define CLOCK_H_
+#ifndef __HAECCOMM_PACKETQUEUE_H_
+#define __HAECCOMM_PACKETQUEUE_H_
 
 #include <omnetpp.h>
-#include <Core/Signals.h>
 
 using namespace omnetpp;
 
 namespace HaecComm {
 
 /**
- * Generates cycle ticks
+ * TODO - Generated class
  */
-class Clock: public cSimpleModule {
-private:
-    cMessage *timerMessage;
-    simsignal_t clockSignal;
-    unsigned long cycleCounter;
-
+class PacketQueue : public cSimpleModule, public cListener {
 public:
-    Clock();
-    virtual ~Clock();
-
-    unsigned long getCurrentCycle() const;
+	PacketQueue();
+	virtual ~PacketQueue();
 
 protected:
-    virtual void initialize();
-    virtual void handleMessage(cMessage *msg);
+    virtual void initialize() override;
+    virtual void handleMessage(cMessage* msg) override;
+    virtual void receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) override;
+
+    int maxLength;
+    cPacketQueue* queue;
 };
 
-}; /* namespace HaecComm */
+} //namespace
 
-#endif /* CLOCK_H_ */
+#endif

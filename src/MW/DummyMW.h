@@ -17,16 +17,15 @@
 #define DUMMYMW_H_
 
 #include <omnetpp.h>
-#include <MW/cMiddlewareBase.h>
+#include <MW/MiddlewareBase.h>
 
 using namespace omnetpp;
 
 namespace HaecComm {
 
-class DummyMW: public cMiddlewareBase {
-
+class DummyMW: public MiddlewareBase {
 protected:
-    virtual void handleMessageInternal(cMessage *msg);
+    virtual void handleMessage(cMessage* msg) override;
 };
 
 } /* namespace HaecComm */

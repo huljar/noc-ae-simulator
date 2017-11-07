@@ -16,29 +16,30 @@
 package HaecComm.simulations;
 
 import HaecComm.Core.Clock;
-import HaecComm.Core.HaecModule;
+import HaecComm.MW.GenTraffic;
+import HaecComm.MW.ReportArrival;
+import HaecComm.Core.PacketQueue;
 
 network SimpleDemo
 {
     parameters:
         bool isClocked = true;
+        int id = 0;
     submodules:
         clock: Clock {
             @display("p=40,40");
         }
-        source: HaecModule {
-            parameters:
-                portNumber = 1;
-                middleware = "HaecComm.MW.GenTraffic";
-                @display("p=200,40");
+        source: GenTraffic {
+            @display("p=200,40");
         }
-        sink: HaecModule {
-            parameters:
-                portNumber = 1;
-                middleware = "HaecComm.MW.ReportArrival";
-                @display("p=200,140");
+        queue: PacketQueue {
+            @display("p=200,120");
+        }
+        sink: ReportArrival {
+            @display("p=200,200");
         }
 
-    connections allowunconnected:
-        source.outPorts[0] --> sink.inPorts[0];
+    connections:
+        source.out --> queue.in;
+        queue.out --> sink.in;
 }
