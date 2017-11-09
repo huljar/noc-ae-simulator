@@ -22,20 +22,29 @@ import HaecComm.Core.IHaecNode;
 import HaecComm.Core.IHaecChannel;
 
 //
-// A generated network with grid topology.
+// A network with a 2D grid layout of nodes. In addition, a global clock
+// is present which emits a clock signal in regular intervals.
 //
 network Mesh2D
 {
     parameters:
-        bool isClocked = default(true);
-        int columns = default(4);
-        int rows = default(4);
-        string nodeType;
-        string channelType;
+        bool isClocked = default(true); // should all communication be synced with the global clock module?
+        int columns = default(4);       // number of grid columns
+        int rows = default(4);          // number of grid rows
+        string nodeType;                // NED type of the nodes (must implement IHaecNode)
+        string channelType;             // NED type of the channels between nodes (must implement IHaecChannel)
     submodules:
+        //
+        // The global clock module. It is used by nodes to synchronize message
+        // transmissions. The clock emits a "clock" signal in regular intervals.
+        //
         clock: Clock {
             @display("p=30,40");
         }
+        //
+        // The nodes of the network. They must implement the IHaecNode interface.
+        // To set the actual type, use the nodeType string parameter.
+        //
         node[columns*rows]: <nodeType> like IHaecNode {
             @display("p=100,40,matrix,$columns,100,100");
             id = index;
