@@ -15,6 +15,11 @@
 
 package HaecComm.Routers;
 
+//
+// Implementation of XY routing scheme from the HAEC project.
+// It provides a simple XY router with no additional processing performed
+// on the packets.
+//
 simple RouterXY like IRouter {
     parameters:
         @display("i=block/routing");

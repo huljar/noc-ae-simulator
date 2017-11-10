@@ -23,7 +23,12 @@ using namespace omnetpp;
 namespace HaecComm {
 
 /**
- * TODO - Generated class
+ * Bidirectional packet queue class for synchronizing packets with the global clock
+ *
+ * The bidirectional packet queue can queue up packets in both directions. On each clock
+ * tick, one packet is sent out in both directions from their respective queues (if there
+ * is a packet enqueued). If the simulation is not clocked, the packets are redirected
+ * immediately, and no queueing is performed.
  */
 class BidirectionalPacketQueue : public cSimpleModule, public cListener {
 public:

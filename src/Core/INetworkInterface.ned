@@ -15,6 +15,10 @@
 
 package HaecComm.Core;
 
+//
+// Module interface for Network Interface modules.
+// Network Interfaces used in the HaecNode compound module must implement this interface.
+//
 moduleinterface INetworkInterface {
     gates:
         inout app;

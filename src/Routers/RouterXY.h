@@ -23,6 +23,15 @@ using namespace omnetpp;
 
 namespace HaecComm {
 
+/**
+ * Router with an XY routing scheme.
+ *
+ * This router implementation should be used with a two-dimensional
+ * grid network topology. It routes the packet horizontally (in X
+ * direction) until the column of the destination node is reached.
+ * Then, it is routed vertically (Y direction) until the destination
+ * node is reached.
+ */
 class RouterXY : public RouterBase {
 protected:
 	virtual void initialize();

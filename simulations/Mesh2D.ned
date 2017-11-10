@@ -53,7 +53,7 @@ network Mesh2D
     connections allowunconnected:
         // port indices: top=0, right=1, bottom=2, left=3
         for i=0..rows-1, for j=0..columns-1 {
-            node[i*columns+j].port[2] <--> <channelType> like IHaecChannel <--> node[(i+1)*columns+j].port[0] if i!=rows-1;
-            node[i*columns+j].port[1] <--> <channelType> like IHaecChannel <--> node[i*columns+j+1].port[3] if j!=columns-1;
+            node[i*columns+j].port[2] <--> <channelType> like IHaecChannel <--> node[(i+1)*columns+j].port[0] if i!=rows-1;  // top-bottom connections
+            node[i*columns+j].port[1] <--> <channelType> like IHaecChannel <--> node[i*columns+j+1].port[3] if j!=columns-1; // left-right connections
         }
 }

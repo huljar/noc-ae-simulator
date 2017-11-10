@@ -15,6 +15,10 @@
 
 package HaecComm.Core;
 
+//
+// Module interface for App modules (aka. Processing Units).
+// Apps used in the HaecNode compound module must implement this interface.
+//
 moduleinterface IApp {
     gates:
         inout net;

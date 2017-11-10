@@ -20,6 +20,10 @@ import HaecComm.MW.GenTraffic;
 import HaecComm.MW.ReportArrival;
 import HaecComm.Core.PacketQueue;
 
+//
+// Simple demo network with a source and a sink, and a queue in between.
+// A global clock is also present, which the modules use for synchronization.
+//
 network SimpleDemo
 {
     parameters:

@@ -17,6 +17,10 @@ package HaecComm.Core;
 
 import HaecComm.MW.*;
 
+//
+// Default implementation of the Processing Unit from the HAEC project (called "App" here).
+// It contains a packet generator (source) and a packet consumer (sink).
+//
 module App like IApp {
     parameters:
         @display("i=block/app2");

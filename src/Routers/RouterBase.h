@@ -22,6 +22,9 @@ using namespace omnetpp;
 
 namespace HaecComm {
 
+/**
+ * Base class for all router modules
+ */
 class RouterBase : public cSimpleModule {
 public:
 	RouterBase();

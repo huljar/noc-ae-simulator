@@ -17,6 +17,12 @@ package HaecComm.Core;
 
 import HaecComm.Routers.IRouter;
 
+//
+// Default definition of the HAEC network nodes. It consists of an App (aka.
+// Processing Unit), a Network Interface, and a Router. Between the submodules
+// and in front of the outgoing connections, there are packet queues handling
+// clock synchronization if clocking is enabled.
+//
 module HaecNode like IHaecNode {
     parameters:
         int id;

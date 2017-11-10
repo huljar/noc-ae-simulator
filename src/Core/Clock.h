@@ -24,7 +24,10 @@ using namespace omnetpp;
 namespace HaecComm {
 
 /**
- * Generates cycle ticks
+ * Clock class to generate a global clock signal
+ *
+ * The clock class generates a clock signal in a configurable, regular
+ * interval. Other modules can subscribe to this signal for synchronization.
  */
 class Clock: public cSimpleModule {
 private:

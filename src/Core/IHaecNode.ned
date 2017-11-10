@@ -16,7 +16,8 @@
 package HaecComm.Core;
 
 //
-// TODO auto-generated type
+// Module interface for all HAEC nodes.
+// Nodes used in the mesh networks must implement this interface.
 //
 moduleinterface IHaecNode {
     parameters:

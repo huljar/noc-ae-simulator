@@ -16,7 +16,7 @@
 package HaecComm.Core;
 
 //
-// TODO auto-generated type
+// Default implementation of the channel used to connect two HAEC nodes together.
 //
 channel HaecChannel extends ned.DatarateChannel like IHaecChannel {
     datarate = default(0bps);

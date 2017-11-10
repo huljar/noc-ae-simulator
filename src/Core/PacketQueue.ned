@@ -16,11 +16,14 @@
 package HaecComm.Core;
 
 //
-// TODO auto-generated module
+// Packet queue for synchronization with the global clock module.
+// If the simulation is not clocked, no queueing is performed, and packets are
+// redirected immediately.
 //
 simple PacketQueue {
     parameters:
-        int maxLength = default(0); // default: no limit in queue size
+        // Maximum length of the queue. A value of 0 means no limit.
+        int maxLength = default(0);
         @display("i=block/queue");
     gates:
         input  in;

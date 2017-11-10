@@ -15,9 +15,13 @@
 
 package HaecComm.Core;
 
+//
+// Clock module which emits a clock signal in regular intervals.
+// Other modules can subscribe to this signal for synchronization.
+//
 simple Clock {
     parameters:
         @signal[clock](type=unsigned long);
         @display("i=device/clock");
-        double inter @unit(s) = 1s;
+        double inter @unit(s) = 1s; // The interval between two clock signal emissions
 }

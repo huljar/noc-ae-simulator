@@ -16,11 +16,15 @@
 package HaecComm.Core;
 
 //
-// TODO auto-generated module
+// Bidirectional packet queue for synchronization with the global clock module.
+// If the simulation is not clocked, no queueing is performed, and packets are
+// redirected immediately.
 //
 simple BidirectionalPacketQueue {
     parameters:
-        int maxLength = default(0); // default: no limit in queue size
+        // Maximum length of the queues (for each direction).
+        // A value of 0 means no limit.
+        int maxLength = default(0);
         @display("i=block/queue");
     gates:
         inout left;

@@ -16,7 +16,8 @@
 package HaecComm.Core;
 
 //
-// TODO auto-generated type
+// Channel interface for HAEC channels which connect HaecNodes with each other.
+// Channels used in the mesh networks must implement this interface.
 //
 channelinterface IHaecChannel {
     
