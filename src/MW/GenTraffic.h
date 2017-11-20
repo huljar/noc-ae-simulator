@@ -24,10 +24,16 @@ using namespace omnetpp;
 namespace HaecComm {
 
 class GenTraffic: public MiddlewareBase, cListener {
+public:
+	GenTraffic();
+	virtual ~GenTraffic();
+
 protected:
     virtual void initialize() override;
     virtual void handleMessage(cMessage* msg) override;
     virtual void receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) override;
+
+    double injectionProb;
 };
 
 } //namespace

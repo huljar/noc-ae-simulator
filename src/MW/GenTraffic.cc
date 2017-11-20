@@ -20,6 +20,14 @@ namespace HaecComm {
 
 Define_Module(GenTraffic);
 
+GenTraffic::GenTraffic()
+	: injectionProb(0.0)
+{
+}
+
+GenTraffic::~GenTraffic() {
+}
+
 void GenTraffic::initialize() {
 	MiddlewareBase::initialize();
 
@@ -27,6 +35,10 @@ void GenTraffic::initialize() {
 		// subscribe to clock signal
 		getSimulation()->getSystemModule()->subscribe("clock", this);
 	}
+
+	injectionProb = par("injectionProb");
+	if(injectionProb < 0.0 || injectionProb > 1.0)
+		throw cRuntimeError(this, "Injection probability must be between 0 and 1, but is %f", injectionProb);
 }
 
 void GenTraffic::handleMessage(cMessage* msg) {
@@ -35,45 +47,46 @@ void GenTraffic::handleMessage(cMessage* msg) {
 }
 
 void GenTraffic::receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) {
-    // Decide if we should generate a packet based on injection probability parameter
-    double prob = par("injectionProb");
-    if(prob == 0.0) // Explicit zero check because uniform(0.0, 1.0) can return 0
-    	return;
+	if(signalID == registerSignal("clock")) {
+		// Decide if we should generate a packet based on injection probability parameter
+		if(injectionProb == 0.0) // Explicit zero check because uniform(0.0, 1.0) can return 0
+			return;
 
-    int myId = getAncestorPar("id");
-    if(uniform(0.0, 1.0) < prob) {
-    	// Generate a packet
-    	// We assume that we are operating in a 2-dimensional grid topology
-    	int gridWidth = 0, gridHeight = 0;
-		int targetNodeId;
+		int myId = getAncestorPar("id");
+		if(uniform(0.0, 1.0) < injectionProb) {
+			// Generate a packet
+			// We assume that we are operating in a 2-dimensional grid topology
+			int gridWidth = 0, gridHeight = 0;
+			int targetNodeId;
 
-		try {
-			gridWidth = getAncestorPar("rows");
-			gridHeight = getAncestorPar("columns");
+			try {
+				gridWidth = getAncestorPar("rows");
+				gridHeight = getAncestorPar("columns");
+			}
+			catch(const cRuntimeError& ex) {
+				EV_WARN << " ancestors don't have width/height parameters!" << std::endl;
+			}
+
+			if(gridWidth == 0 && gridHeight == 0) {
+				targetNodeId = 0;
+			} else {
+				// TODO create paramterized target selection class
+				// Uniform target selection
+				do {
+					targetNodeId = static_cast<int>(intrand(gridWidth * gridHeight));
+				} while(targetNodeId == myId);
+			}
+
+			std::ostringstream packetName;
+			packetName << "packet-" << myId << "-" << targetNodeId << "-" << l;
+
+			cPacket* newPacket = createPacket(packetName.str().c_str()); // TODO: use custom packet class with targetId parameter
+			newPacket->addPar("targetId") = targetNodeId;
+
+			EV << this->getFullPath() << " sending packet " << newPacket << std::endl;
+			send(newPacket, "out");
 		}
-		catch(const cRuntimeError& ex) {
-			EV_WARN << " ancestors don't have width/height parameters!" << std::endl;
-		}
-
-		if(gridWidth == 0 && gridHeight == 0) {
-			targetNodeId = 0;
-		} else {
-			// TODO create paramterized target selection class
-			// Uniform target selection
-			do {
-				targetNodeId = static_cast<int>(intrand(gridWidth * gridHeight));
-			} while(targetNodeId == myId);
-		}
-
-		std::ostringstream packetName;
-		packetName << "packet-" << myId << "-" << targetNodeId << "-" << l;
-
-		cPacket* newPacket = createPacket(packetName.str().c_str()); // TODO: use custom packet class with targetId parameter
-		newPacket->addPar("targetId") = targetNodeId;
-
-		EV << this->getFullPath() << " sending packet " << newPacket << std::endl;
-		send(newPacket, "out");
-    }
+	}
 }
 
 } //namespace
