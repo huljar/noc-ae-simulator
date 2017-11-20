@@ -35,6 +35,7 @@ void RouterXY::handleMessage(cMessage* msg) {
 	if(!packet->hasPar("targetId")) {
 		EV << " got message without target - drop it like it's hot! " << packet->getName() << std::endl;
 		delete packet;
+		return;
 	}
 
 	int myId = static_cast<int>(getAncestorPar("id"));
