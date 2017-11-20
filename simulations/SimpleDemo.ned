@@ -18,6 +18,7 @@ package HaecComm.simulations;
 import HaecComm.Core.Clock;
 import HaecComm.MW.GenTraffic;
 import HaecComm.MW.ReportArrival;
+import HaecComm.MW.Delay;
 import HaecComm.Core.PacketQueue;
 
 //
@@ -29,6 +30,8 @@ network SimpleDemo
     parameters:
         bool isClocked = true;
         int id = 0;
+        int columns = 0;
+        int rows = 0;
     submodules:
         clock: Clock {
             @display("p=40,40");
@@ -36,14 +39,18 @@ network SimpleDemo
         source: GenTraffic {
             @display("p=200,40");
         }
-        queue: PacketQueue {
+        delay: Delay {
             @display("p=200,120");
         }
-        sink: ReportArrival {
+        queue: PacketQueue {
             @display("p=200,200");
+        }
+        sink: ReportArrival {
+            @display("p=200,280");
         }
 
     connections:
-        source.out --> queue.in;
+        source.out --> delay.in;
+        delay.out --> queue.in;
         queue.out --> sink.in;
 }
