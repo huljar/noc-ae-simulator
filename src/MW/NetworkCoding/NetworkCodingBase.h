@@ -23,7 +23,7 @@
 
 using namespace omnetpp;
 
-namespace HaecComm {
+namespace HaecComm { namespace MW {
 
 /*
  * FIXME We currently do not consider the local queue and its size!
@@ -35,9 +35,9 @@ protected:
     virtual void handleMessage(cMessage* msg) override;
 
 private:
-    NetworkCodingManager *NC;
+    Util::NetworkCodingManager *NC;
 };
 
-} //namespace
+}} //namespace
 
 #endif

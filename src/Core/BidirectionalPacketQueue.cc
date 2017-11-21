@@ -15,7 +15,7 @@
 
 #include "BidirectionalPacketQueue.h"
 
-namespace HaecComm {
+namespace HaecComm { namespace Core {
 
 Define_Module(BidirectionalPacketQueue);
 
@@ -101,4 +101,4 @@ void BidirectionalPacketQueue::receiveSignal(cComponent* source, simsignal_t sig
 		EV_WARN << "Received unexpected signal with ID " << signalID << ", expected clock signal" << std::endl;
 }
 
-} //namespace
+}} //namespace

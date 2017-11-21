@@ -23,7 +23,7 @@
 
 using namespace omnetpp;
 
-namespace HaecComm {
+namespace HaecComm { namespace Util {
 
 struct CryptoUnit {
     int remainingCycles;
@@ -49,6 +49,6 @@ public:
     void tick();
 };
 
-} /* namespace HaecComm */
+}} //namespace
 
 #endif /* UTIL_CRYPTOMANAGER_H_ */

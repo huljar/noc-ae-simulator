@@ -13,15 +13,6 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include "ReportArrival.h"
+package HaecComm.MW;
 
-namespace HaecComm { namespace MW {
-
-Define_Module(ReportArrival);
-
-void ReportArrival::handleMessage(cMessage* msg) {
-    EV << this->getFullName() << "+++++ recv msg: " << msg->getName() << std::endl;
-    delete msg;
-}
-
-}} //namespace
+@namespace(HaecComm::MW);

@@ -15,7 +15,7 @@
 
 #include "RouterXY.h"
 
-namespace HaecComm {
+namespace HaecComm { namespace Routers {
 
 Define_Module(RouterXY);
 
@@ -63,4 +63,4 @@ void RouterXY::handleMessage(cMessage* msg) {
 	}
 }
 
-} //namespace
+}} //namespace

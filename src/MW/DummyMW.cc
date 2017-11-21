@@ -15,7 +15,7 @@
 
 #include "DummyMW.h"
 
-namespace HaecComm {
+namespace HaecComm { namespace MW {
 
 Define_Module(DummyMW);
 
@@ -23,4 +23,4 @@ void DummyMW::handleMessage(cMessage* msg) {
 	send(msg, "out");
 }
 
-} /* namespace HaecComm */
+}} //namespace

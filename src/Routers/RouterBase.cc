@@ -15,7 +15,7 @@
 
 #include "RouterBase.h"
 
-namespace HaecComm {
+namespace HaecComm { namespace Routers {
 
 RouterBase::RouterBase() {
 	// TODO Auto-generated constructor stub
@@ -26,4 +26,4 @@ RouterBase::~RouterBase() {
 	// TODO Auto-generated destructor stub
 }
 
-} /* namespace HaecComm */
+}} //namespace

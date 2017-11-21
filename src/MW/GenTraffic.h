@@ -21,7 +21,7 @@
 
 using namespace omnetpp;
 
-namespace HaecComm {
+namespace HaecComm { namespace MW {
 
 class GenTraffic: public MiddlewareBase, cListener {
 public:
@@ -36,6 +36,6 @@ protected:
     double injectionProb;
 };
 
-} //namespace
+}} //namespace
 
 #endif

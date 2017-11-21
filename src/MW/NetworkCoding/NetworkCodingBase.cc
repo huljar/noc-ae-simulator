@@ -15,7 +15,10 @@
 
 #include "NetworkCodingBase.h"
 
-namespace HaecComm {
+using namespace HaecComm::Messages;
+using namespace HaecComm::Util;
+
+namespace HaecComm { namespace MW {
 
 void NetworkCodingBase::initialize() {
     MiddlewareBase::initialize();
@@ -55,4 +58,4 @@ void NetworkCodingBase::handleMessage(cMessage* msg){
     }
 }
 
-} //namespace
+}} //namespace

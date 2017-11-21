@@ -15,7 +15,9 @@
 
 #include "NcGen.h"
 
-namespace HaecComm {
+using namespace HaecComm::Messages;
+
+namespace HaecComm { namespace Util {
 
 void NcGen::addCombination(NcCombination *msg) {
     combinations->add(msg);
@@ -60,4 +62,4 @@ bool NcGen::decode() {
     }
 }
 
-} /* namespace HaecComm */
+}} //namespace

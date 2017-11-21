@@ -17,11 +17,10 @@
 #define CLOCK_H_
 
 #include <omnetpp.h>
-#include <Core/Signals.h>
 
 using namespace omnetpp;
 
-namespace HaecComm {
+namespace HaecComm { namespace Core {
 
 /**
  * Clock class to generate a global clock signal
@@ -46,6 +45,6 @@ protected:
     virtual void handleMessage(cMessage *msg);
 };
 
-}; /* namespace HaecComm */
+}} //namespace
 
 #endif /* CLOCK_H_ */

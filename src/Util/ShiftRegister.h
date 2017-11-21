@@ -14,7 +14,7 @@
 
 using namespace omnetpp;
 
-namespace HaecComm {
+namespace HaecComm { namespace Util {
 
 template <typename T>
 class ShiftRegister {
@@ -67,6 +67,6 @@ private:
 	std::vector<T> values;
 };
 
-} /* namespace HaecComm */
+}} //namespace
 
 #endif /* UTIL_SHIFTREGISTER_H_ */

@@ -15,7 +15,7 @@
 
 #include "CryptoManager.h"
 
-namespace HaecComm {
+namespace HaecComm { namespace Util {
 
 CryptoManager::CryptoManager(int units, int cycles, cQueue *out){
     cus = (CryptoUnit *) malloc(units * sizeof(CryptoUnit));
@@ -74,4 +74,4 @@ void CryptoManager::tick(){
 }
 
 
-} /* namespace HaecComm */
+}} //namespace
