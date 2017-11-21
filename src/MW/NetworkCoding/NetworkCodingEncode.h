@@ -20,7 +20,7 @@
 
 using namespace omnetpp;
 
-namespace HaecComm {
+namespace HaecComm { namespace MW { namespace NetworkCoding {
 
 /**
  * TODO - Generated class
@@ -32,6 +32,6 @@ class NetworkCodingEncode : public cSimpleModule
     virtual void handleMessage(cMessage *msg);
 };
 
-} //namespace
+}}} //namespace
 
 #endif

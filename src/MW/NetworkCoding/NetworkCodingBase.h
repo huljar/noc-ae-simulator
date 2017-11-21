@@ -23,7 +23,7 @@
 
 using namespace omnetpp;
 
-namespace HaecComm { namespace MW {
+namespace HaecComm { namespace MW { namespace NetworkCoding {
 
 /*
  * FIXME We currently do not consider the local queue and its size!
@@ -38,6 +38,6 @@ private:
     Util::NetworkCodingManager *NC;
 };
 
-}} //namespace
+}}} //namespace
 
 #endif

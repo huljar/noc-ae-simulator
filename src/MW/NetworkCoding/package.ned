@@ -13,20 +13,6 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include "NetworkCodingEncode.h"
+package HaecComm.MW.NetworkCoding;
 
-namespace HaecComm { namespace MW { namespace NetworkCoding {
-
-Define_Module(NetworkCodingEncode);
-
-void NetworkCodingEncode::initialize()
-{
-    // TODO - Generated method body
-}
-
-void NetworkCodingEncode::handleMessage(cMessage *msg)
-{
-    // TODO - Generated method body
-}
-
-}}} //namespace
+@namespace(HaecComm::MW::NetworkCoding);

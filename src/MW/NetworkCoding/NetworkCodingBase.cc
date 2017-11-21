@@ -18,7 +18,7 @@
 using namespace HaecComm::Messages;
 using namespace HaecComm::Util;
 
-namespace HaecComm { namespace MW {
+namespace HaecComm { namespace MW { namespace NetworkCoding {
 
 void NetworkCodingBase::initialize() {
     MiddlewareBase::initialize();
@@ -58,4 +58,4 @@ void NetworkCodingBase::handleMessage(cMessage* msg){
     }
 }
 
-}} //namespace
+}}} //namespace
