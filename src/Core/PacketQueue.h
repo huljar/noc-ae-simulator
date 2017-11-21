@@ -20,7 +20,7 @@
 
 using namespace omnetpp;
 
-namespace HaecComm {
+namespace HaecComm { namespace Core {
 
 /**
  * Packet queue class for synchronizing packets with the global clock
@@ -43,6 +43,6 @@ protected:
     cPacketQueue* queue;
 };
 
-} //namespace
+}} //namespace
 
 #endif

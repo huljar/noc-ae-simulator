@@ -24,7 +24,7 @@
 
 using namespace omnetpp;
 
-namespace HaecComm {
+namespace HaecComm { namespace MW {
 
 class NetworkCodingAuthGen: public MiddlewareBase {
 protected:
@@ -35,10 +35,10 @@ protected:
 private:
     cQueue *inQueue;
     cQueue *outQueue;
-    NetworkCodingManager *NC;
-    CryptoManager *CU;
+    Util::NetworkCodingManager *NC;
+    Util::CryptoManager *CU;
 };
 
-} //namespace
+}} //namespace
 
 #endif

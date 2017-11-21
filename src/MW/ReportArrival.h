@@ -21,13 +21,13 @@
 
 using namespace omnetpp;
 
-namespace HaecComm {
+namespace HaecComm { namespace MW {
 
 class ReportArrival: public MiddlewareBase {
 protected:
     virtual void handleMessage(cMessage* msg) override;
 };
 
-} /* namespace HaecComm */
+}} //namespace
 
 #endif /* REPORTARRIVAL_H_ */

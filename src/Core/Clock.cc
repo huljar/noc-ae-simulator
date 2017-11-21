@@ -15,7 +15,7 @@
 
 #include "Clock.h"
 
-namespace HaecComm {
+namespace HaecComm { namespace Core {
 
 Define_Module(Clock);
 
@@ -49,4 +49,4 @@ void Clock::handleMessage(cMessage *msg){
     scheduleAt(simTime() + par("inter"), timerMessage);
 }
 
-} /* namespace HaecComm */
+}} //namespace

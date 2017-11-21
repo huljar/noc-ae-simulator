@@ -22,7 +22,7 @@
 
 using namespace omnetpp;
 
-namespace HaecComm {
+namespace HaecComm { namespace Util {
 
 class NetworkCodingManager {
 private:
@@ -41,6 +41,6 @@ public:
     void deleteGeneration(int id);
 };
 
-} /* namespace HaecComm */
+}} //namespace
 
 #endif /* CORE_NETWORKCODINGMANAGER_H_ */

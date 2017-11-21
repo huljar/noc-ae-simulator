@@ -15,7 +15,7 @@
 
 #include "MiddlewareBase.h"
 
-namespace HaecComm {
+namespace HaecComm { namespace MW {
 
 MiddlewareBase::MiddlewareBase() {
 }
@@ -35,4 +35,4 @@ cPacket* MiddlewareBase::createPacket(const char* name) {
     return packet;
 }
 
-} /* namespace HaecComm */
+}} //namespace

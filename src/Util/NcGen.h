@@ -22,7 +22,7 @@
 
 using namespace omnetpp;
 
-namespace HaecComm {
+namespace HaecComm { namespace Util {
 
 class NcGen {
 private:
@@ -47,13 +47,13 @@ public:
     bool isDecodeable() { return cSize == combinations->size(); };
     bool isCodeable() { return mSize == messages->size(); };
 
-    void addCombination(NcCombination *msg);
+    void addCombination(Messages::NcCombination *msg);
     void addMessage(cMessage *msg);
     bool code();
     bool decode();
 
 };
 
-} /* namespace HaecComm */
+}} //namespace
 
 #endif /* UTIL_NCGEN_H_ */

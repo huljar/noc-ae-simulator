@@ -13,7 +13,7 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-namespace HaecComm;
+namespace HaecComm::Messages;
 
 message NcCombination {
     int generationId;

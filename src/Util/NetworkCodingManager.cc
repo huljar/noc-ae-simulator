@@ -15,7 +15,7 @@
 
 #include "NetworkCodingManager.h"
 
-namespace HaecComm {
+namespace HaecComm { namespace Util {
 
 int NetworkCodingManager::getNextGenerationId() {
     return 42;
@@ -42,4 +42,4 @@ void NetworkCodingManager::deleteGeneration(int id){
     knownGen.erase(id);
 }
 
-} /* namespace HaecComm */
+}} //namespace

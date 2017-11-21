@@ -15,7 +15,10 @@
 
 #include "NetworkCoding.h"
 
-namespace HaecComm {
+using namespace HaecComm::Messages;
+using namespace HaecComm::Util;
+
+namespace HaecComm { namespace MW {
 
 Define_Module(NetworkCoding);
 
@@ -57,4 +60,4 @@ void NetworkCoding::handleMessage(cMessage* msg){
     }
 }
 
-} //namespace
+}} //namespace

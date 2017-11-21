@@ -20,7 +20,7 @@
 
 using namespace omnetpp;
 
-namespace HaecComm {
+namespace HaecComm { namespace MW {
 
 class MiddlewareBase: public cSimpleModule {
 public:
@@ -36,6 +36,6 @@ protected:
     cPacket* createPacket(const char* name);
 };
 
-} /* namespace HaecComm */
+}} //namespace
 
 #endif /* MW_MIDDLEWAREBASE_H_ */

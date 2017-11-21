@@ -20,7 +20,7 @@
 
 using namespace omnetpp;
 
-namespace HaecComm {
+namespace HaecComm { namespace Routers {
 
 /**
  * Base class for all router modules
@@ -31,6 +31,6 @@ public:
 	virtual ~RouterBase();
 };
 
-} /* namespace HaecComm */
+}} //namespace
 
 #endif /* ROUTERS_ROUTERBASE_H_ */

@@ -15,7 +15,7 @@
 
 #include "PacketQueue.h"
 
-namespace HaecComm {
+namespace HaecComm { namespace Core {
 
 Define_Module(PacketQueue);
 
@@ -75,4 +75,4 @@ void PacketQueue::receiveSignal(cComponent* source, simsignal_t signalID, unsign
 		EV_WARN << "Received unexpected signal with ID " << signalID << ", expected clock signal" << std::endl;
 }
 
-} //namespace
+}} //namespace

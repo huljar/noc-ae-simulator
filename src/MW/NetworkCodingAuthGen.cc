@@ -15,7 +15,10 @@
 
 #include "NetworkCodingAuthGen.h"
 
-namespace HaecComm {
+using namespace HaecComm::Messages;
+using namespace HaecComm::Util;
+
+namespace HaecComm { namespace MW {
 
 Define_Module(NetworkCodingAuthGen);
 
@@ -70,4 +73,4 @@ void NetworkCodingAuthGen::handleMessage(cMessage* msg) {
     }
 }
 
-} //namespace
+}} //namespace

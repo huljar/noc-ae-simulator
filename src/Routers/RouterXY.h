@@ -21,7 +21,7 @@
 
 using namespace omnetpp;
 
-namespace HaecComm {
+namespace HaecComm { namespace Routers {
 
 /**
  * Router with an XY routing scheme.
@@ -38,6 +38,6 @@ protected:
 	virtual void handleMessage(cMessage* msg);
 };
 
-} //namespace
+}} //namespace
 
 #endif

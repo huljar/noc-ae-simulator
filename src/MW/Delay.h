@@ -23,7 +23,7 @@
 
 using namespace omnetpp;
 
-namespace HaecComm {
+namespace HaecComm { namespace MW {
 
 /**
  * TODO - Generated class
@@ -45,10 +45,10 @@ private:
     int waitCycles;
     double waitTime;
 
-    ShiftRegister<cArray*> shiftRegister;
+    Util::ShiftRegister<cArray*> shiftRegister;
     std::set<cMessage*> registry;
 };
 
-} //namespace
+}} //namespace
 
 #endif

@@ -16,7 +16,7 @@
 #include "GenTraffic.h"
 #include <sstream>
 
-namespace HaecComm {
+namespace HaecComm { namespace MW {
 
 Define_Module(GenTraffic);
 
@@ -89,4 +89,4 @@ void GenTraffic::receiveSignal(cComponent* source, simsignal_t signalID, unsigne
 	}
 }
 
-} //namespace
+}} //namespace

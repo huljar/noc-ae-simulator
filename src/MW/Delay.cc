@@ -15,7 +15,9 @@
 
 #include "Delay.h"
 
-namespace HaecComm {
+using namespace HaecComm::Util;
+
+namespace HaecComm { namespace MW {
 
 Define_Module(Delay);
 
@@ -116,4 +118,4 @@ void Delay::receiveSignal(cComponent* source, simsignal_t signalID, unsigned lon
 
 
 
-} //namespace
+}} //namespace
