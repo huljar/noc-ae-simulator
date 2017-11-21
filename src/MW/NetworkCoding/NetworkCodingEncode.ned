@@ -13,14 +13,17 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package HaecComm.MW;
+package HaecComm.MW.NetworkCoding;
 
-simple NetworkCodingAuthGen like IMiddlewareBase {
+import HaecComm.MW.IMiddlewareBase;
+
+//
+// TODO auto-generated module
+//
+simple NetworkCodingEncode like INetworkCodingBase {
     parameters:
-        int generationSize = default(2);
-        int combinations   = default(3);
-        int cryptoUnits    = default(4);
-        int cryptoCycles   = default(23);
+        int generationSize;
+        int combinations;
     gates:
         input  in;
         output out;

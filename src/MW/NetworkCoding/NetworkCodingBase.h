@@ -29,7 +29,7 @@ namespace HaecComm {
  * FIXME We currently do not consider the local queue and its size!
  */
 
-class NetworkCoding: public MiddlewareBase {
+class NetworkCodingBase: public MiddlewareBase {
 protected:
     virtual void initialize() override;
     virtual void handleMessage(cMessage* msg) override;
