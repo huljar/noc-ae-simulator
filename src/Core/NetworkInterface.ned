@@ -16,6 +16,7 @@
 package HaecComm.Core;
 
 import HaecComm.MW.*;
+import HaecComm.MW.NetworkCoding.*;
 
 //
 // Default implementation of the Network Interface from the HAEC project.
@@ -28,17 +29,16 @@ module NetworkInterface like INetworkInterface {
         inout app;
         inout router;
     submodules:
-//#        ncEnc: NetworkCoding {
-//#            @display("p=60,60;i=block/encrypt");
-//#        }
-//#        ncDec: NetworkCoding {
-//#            @display("p=160,60;i=block/decrypt");
-//#        }
+        ncEnc: Encoder {
+            @display("p=60,60");
+        }
+        ncDec: Decoder {
+            @display("p=160,60");
+        }
     connections:
-//#        ncEnc.in <-- app$i;
-//#        ncEnc.out --> router$o;
-//#        
-//#        ncDec.in <-- router$i;
-//#        ncDec.out --> app$o; // TODO: add conditional queues in between (-> locallyClocked)
-        app <--> router;
+        ncEnc.in <-- app$i;
+        ncEnc.out --> router$o;
+        
+        ncDec.in <-- router$i;
+        ncDec.out --> app$o; // TODO: add conditional queues in between (-> locallyClocked)
 }

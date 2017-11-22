@@ -13,12 +13,32 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package HaecComm.MW.NetworkCoding;
+#ifndef __HAECCOMM_NETWORKCODINGENCODER_H_
+#define __HAECCOMM_NETWORKCODINGENCODER_H_
 
-import HaecComm.MW.IMiddlewareBase;
+#include <omnetpp.h>
+#include <MW/NetworkCoding/NetworkCodingBase.h>
 
-moduleinterface INetworkCodingBase extends IMiddlewareBase {
-    parameters:
-        int generationSize;
-        int numCombinations;
-}
+using namespace omnetpp;
+
+namespace HaecComm { namespace MW { namespace NetworkCoding {
+
+/**
+ * TODO - Generated class
+ */
+class Encoder : public NetworkCodingBase {
+public:
+	Encoder();
+	virtual ~Encoder();
+
+protected:
+    virtual void initialize() override;
+    virtual void handleMessage(cMessage* msg) override;
+
+private:
+    cArray* packetCache;
+};
+
+}}} //namespace
+
+#endif

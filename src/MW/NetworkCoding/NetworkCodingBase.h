@@ -13,8 +13,8 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __HAECCOMM_NETWORKCODING_H_
-#define __HAECCOMM_NETWORKCODING_H_
+#ifndef __HAECCOMM_NETWORKCODINGBASE_H_
+#define __HAECCOMM_NETWORKCODINGBASE_H_
 
 #include <omnetpp.h>
 #include <MW/MiddlewareBase.h>
@@ -30,12 +30,16 @@ namespace HaecComm { namespace MW { namespace NetworkCoding {
  */
 
 class NetworkCodingBase: public MiddlewareBase {
+public:
+	NetworkCodingBase();
+	virtual ~NetworkCodingBase();
+
 protected:
     virtual void initialize() override;
-    virtual void handleMessage(cMessage* msg) override;
+    virtual void handleMessage(cMessage* msg) override = 0;
 
-private:
-    Util::NetworkCodingManager *NC;
+    int generationSize;
+    int numCombinations;
 };
 
 }}} //namespace
