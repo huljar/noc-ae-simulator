@@ -23,6 +23,17 @@ using namespace omnetpp;
 
 namespace HaecComm { namespace MW {
 
+/**
+ * \brief Special middleware which generates traffic
+ *
+ * On each clock tick, this middleware generates a packet an
+ * sends it out with a probability defined by the <em>injectionProb</em>
+ * parameter. In an unclocked simulation, it currently does nothing.
+ *
+ * \note This module will discard any incoming packets. Its input gate
+ * is supposed to stay unconnected, since this module creates its own
+ * packets.
+ */
 class GenTraffic: public MiddlewareBase, cListener {
 public:
 	GenTraffic();

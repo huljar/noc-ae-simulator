@@ -22,15 +22,22 @@ using namespace omnetpp;
 
 namespace HaecComm { namespace MW {
 
+/**
+ * \brief Base class for all middleware modules
+ *
+ * This class provides a base abstract class that all middleware
+ * modules should inherit (i.e. if the NED module description
+ * implements the <em>IMiddlewareBase</em> interface, its C++ class
+ * should inherit this class).
+ */
 class MiddlewareBase: public cSimpleModule {
 public:
     MiddlewareBase();
     virtual ~MiddlewareBase();
 
 protected:
-    // If you override one of these, call the parent method as first operation!
-    virtual void initialize();
-    virtual void handleMessage(cMessage *msg);
+    virtual void initialize() override;
+    virtual void handleMessage(cMessage* msg) override = 0;
 
     // Convenience stuff
     cPacket* createPacket(const char* name);

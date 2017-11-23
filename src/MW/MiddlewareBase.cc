@@ -26,9 +26,6 @@ MiddlewareBase::~MiddlewareBase() {
 void MiddlewareBase::initialize() {
 }
 
-void MiddlewareBase::handleMessage(cMessage* msg) {
-}
-
 cPacket* MiddlewareBase::createPacket(const char* name) {
     cPacket* packet = new cPacket(name);
     take(packet);

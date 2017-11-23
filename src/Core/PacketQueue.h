@@ -23,7 +23,7 @@ using namespace omnetpp;
 namespace HaecComm { namespace Core {
 
 /**
- * Packet queue class for synchronizing packets with the global clock
+ * \brief Packet queue class for synchronizing packets with the global clock
  *
  * The packet queue can queue up packets in both directions. On each clock tick, one
  * packet is sent out (if there is a packet enqueued). If the simulation is not clocked,

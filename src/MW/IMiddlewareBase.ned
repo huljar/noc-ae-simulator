@@ -16,7 +16,10 @@
 package HaecComm.MW;
 
 //
-// TODO auto-generated type
+// Module interface that all middleware modules must implement
+//
+// Note: For any modules implementing this interface, its corresponding
+// C++ class should inherit from the MiddlewareBase class.
 //
 moduleinterface IMiddlewareBase {
     gates:

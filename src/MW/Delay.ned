@@ -22,8 +22,14 @@ package HaecComm.MW;
 // This can e.g. be used to simulate encryption algorithms
 // which take a predefined number of clock cycles to execute.
 //
-// waitCycles is used if the network is clocked (i.e. it has an
-// "isClocked" parameter to set true), otherwise waitTime is used.
+// In a clocked simulation (determined by the <em>isClocked</em>
+// parameter of the network), the delay is measured in clock cycles
+// and determined by the <em>waitCycles</em> parameter. In an
+// unclocked simulation, it is measured in (milli)seconds and determined
+// by the <em>waitTime</em> parameter.
+//
+// The Delay middleware does not enforce any restrictions on how many
+// messages can be held back at the same time.
 //
 simple Delay like IMiddlewareBase {
     parameters:

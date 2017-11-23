@@ -23,6 +23,12 @@ using namespace omnetpp;
 
 namespace HaecComm { namespace MW {
 
+/**
+ * \brief Middleware that does absolutely nothing
+ *
+ * This middleware does absolutely nothing. It simply sends out incoming
+ * packets immediately and unmodified.
+ */
 class DummyMW: public MiddlewareBase {
 protected:
     virtual void handleMessage(cMessage* msg) override;

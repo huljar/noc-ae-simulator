@@ -15,6 +15,10 @@
 
 package HaecComm.MW;
 
+//
+// Middleware that does nothing. It simply sends out incoming
+// packets immediately and unmodified.
+//
 simple DummyMW like IMiddlewareBase {
     gates:
         input  in;

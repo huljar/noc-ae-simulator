@@ -26,7 +26,20 @@ using namespace omnetpp;
 namespace HaecComm { namespace MW {
 
 /**
- * TODO - Generated class
+ * \brief Middleware to simulate computation delays
+ *
+ * The Delay middleware can be added to a middleware pipeline to
+ * simulate computation delays. Essentially, it holds back incoming
+ * messages for a certain amount of time before sending them out.
+ *
+ * In a clocked simulation (determined by the <em>isClocked</em> NED
+ * parameter of the network), the delay is measured in clock cycles
+ * and determined by the <em>waitCycles</em> NED parameter. In an
+ * unclocked simulation, it is measured in (milli)seconds and determined
+ * by the <em>waitTime</em> NED parameter.
+ *
+ * The Delay middleware does not enforce any restrictions on how many
+ * messages can be held back at the same time.
  */
 class Delay : public MiddlewareBase, public cListener {
 public:

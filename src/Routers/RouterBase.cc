@@ -18,12 +18,12 @@
 namespace HaecComm { namespace Routers {
 
 RouterBase::RouterBase() {
-	// TODO Auto-generated constructor stub
-
 }
 
 RouterBase::~RouterBase() {
-	// TODO Auto-generated destructor stub
+}
+
+void RouterBase::initialize() {
 }
 
 }} //namespace

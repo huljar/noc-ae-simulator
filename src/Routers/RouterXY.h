@@ -24,7 +24,7 @@ using namespace omnetpp;
 namespace HaecComm { namespace Routers {
 
 /**
- * Router with an XY routing scheme.
+ * \brief Router with an XY routing scheme.
  *
  * This router implementation should be used with a two-dimensional
  * grid network topology. It routes the packet horizontally (in X

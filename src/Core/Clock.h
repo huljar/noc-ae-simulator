@@ -23,7 +23,7 @@ using namespace omnetpp;
 namespace HaecComm { namespace Core {
 
 /**
- * Clock class to generate a global clock signal
+ * \brief Clock class to generate a global clock signal
  *
  * The clock class generates a clock signal in a configurable, regular
  * interval. Other modules can subscribe to this signal for synchronization.

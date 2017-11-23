@@ -23,12 +23,16 @@ using namespace omnetpp;
 namespace HaecComm { namespace Routers {
 
 /**
- * Base class for all router modules
+ * \brief Base class for all router modules
  */
 class RouterBase : public cSimpleModule {
 public:
 	RouterBase();
 	virtual ~RouterBase();
+
+protected:
+	virtual void initialize() override;
+	virtual void handleMessage(cMessage* msg) override = 0;
 };
 
 }} //namespace

@@ -15,6 +15,16 @@
 
 package HaecComm.MW;
 
+//
+// Special middleware which reports message arrivals
+//
+// This middleware logs information about incoming messages. Afterwards,
+// the messages are deleted.
+//
+// Note: This module will not send out any messages. Its output gate
+// is supposed to stay unconnected, since this module consumes all
+// incoming traffic.
+//
 simple ReportArrival like IMiddlewareBase {
     parameters:
         @display("i=block/arrival");

@@ -13,8 +13,8 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef REPORTARRIVAL_H_
-#define REPORTARRIVAL_H_
+#ifndef __HAECCOMM_REPORTARRIVAL_H_
+#define __HAECCOMM_REPORTARRIVAL_H_
 
 #include <omnetpp.h>
 #include <MW/MiddlewareBase.h>
@@ -23,6 +23,16 @@ using namespace omnetpp;
 
 namespace HaecComm { namespace MW {
 
+/**
+ * \brief Special middleware which reports message arrivals
+ *
+ * This middleware logs information about incoming messages. Afterwards,
+ * the messages are deleted.
+ *
+ * \note This module will not send out any messages. Its output gate
+ * is supposed to stay unconnected, since this module consumes all
+ * incoming traffic.
+ */
 class ReportArrival: public MiddlewareBase {
 protected:
     virtual void handleMessage(cMessage* msg) override;
@@ -30,4 +40,4 @@ protected:
 
 }} //namespace
 
-#endif /* REPORTARRIVAL_H_ */
+#endif /* __HAECCOMM_REPORTARRIVAL_H_ */

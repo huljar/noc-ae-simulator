@@ -23,7 +23,7 @@ using namespace omnetpp;
 namespace HaecComm { namespace Core {
 
 /**
- * Bidirectional packet queue class for synchronizing packets with the global clock
+ * \brief Bidirectional packet queue class for synchronizing packets with the global clock
  *
  * The bidirectional packet queue can queue up packets in both directions. On each clock
  * tick, one packet is sent out in both directions from their respective queues (if there

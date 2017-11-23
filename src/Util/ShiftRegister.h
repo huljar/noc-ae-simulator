@@ -16,6 +16,14 @@ using namespace omnetpp;
 
 namespace HaecComm { namespace Util {
 
+/**
+ * \brief Container template class acting like a shift register
+ *
+ * This generic container template implements a simple shift register using
+ * an std::vector for the underlying storage.
+ *
+ * \tparam T The type of the contained objects
+ */
 template <typename T>
 class ShiftRegister {
 public:
