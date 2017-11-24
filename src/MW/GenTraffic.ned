@@ -18,6 +18,7 @@ package HaecComm.MW;
 simple GenTraffic like IMiddlewareBase {
     parameters:
         double injectionProb = default(0.5);
+        bool makeLargeFlits;
         @display("i=block/departure");
     gates:
         input  in @loose;

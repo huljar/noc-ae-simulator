@@ -34,6 +34,7 @@ protected:
     virtual void receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) override;
 
     double injectionProb;
+    bool makeLargeFlits;
 };
 
 }} //namespace
