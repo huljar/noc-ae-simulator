@@ -14,48 +14,59 @@
 // 
 
 #include "Encoder.h"
+#include <Messages/Flit_m.h>
+#include <utility>
+
+using namespace HaecComm::Messages;
 
 namespace HaecComm { namespace MW { namespace NetworkCoding {
 
 Define_Module(Encoder);
 
 Encoder::Encoder()
-	: packetCache(nullptr)
+	: gidCounter(0)
 {
 }
 
 Encoder::~Encoder() {
-	delete packetCache;
+	for(auto it = flitCache.begin(); it != flitCache.end(); ++it)
+		delete it->second;
 }
 
 void Encoder::initialize() {
     NetworkCodingBase::initialize();
-
-    packetCache = new cArray;
 }
 
 void Encoder::handleMessage(cMessage* msg) {
-	// Confirm that this is a packet
-	if(!msg->isPacket()) {
-		EV_WARN << "Received a message that is not a packet. Discarding it." << std::endl;
+	// Confirm that this is a flit
+	Flit* flit = dynamic_cast<Flit*>(msg);
+	if(!flit) {
+		EV_WARN << "Received a message that is not a flit. Discarding it." << std::endl;
 		delete msg;
 		return;
 	}
 
-	cPacket* packet = static_cast<cPacket*>(msg); // No need for dynamic_cast or check_and_cast here
+	// Insert flit into cache (indexed by target address)
+	Address2D target = flit->getTarget();
+	cArray*& generation = flitCache[target];
+	if(!generation)
+		generation = new cArray;
+	generation->add(flit);
 
-	packetCache->add(packet);
-
-	if(packetCache->size() == generationSize) {
+	if(generation->size() == generationSize) {
 		// TODO: do actual network coding
-		// TODO: target ID selection?
-		int targetNodeId = static_cast<cPacket*>(packetCache->get(0))->par("targetId");
-		packetCache->clear();
+
+		// right now we just copy the first flit a few times because
+		// there is no payload yet
 		for(int i = 0; i < numCombinations; ++i) {
-			cPacket* newPacket = createPacket("encoded-packet");
-			newPacket->addPar("targetId") = targetNodeId;
-			send(newPacket, "out");
+			Flit* combination = static_cast<Flit*>(generation->get(0))->dup();
+			combination->setGid(gidCounter);
+			combination->setGev(42); // TODO: set to something meaningful when NC is implemented
+			send(combination, "out");
 		}
+		delete generation;
+		flitCache.erase(target);
+		++gidCounter;
 	}
 }
 

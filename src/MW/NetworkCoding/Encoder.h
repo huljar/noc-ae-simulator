@@ -17,7 +17,10 @@
 #define __HAECCOMM_NETWORKCODINGENCODER_H_
 
 #include <omnetpp.h>
+#include <Messages/fieldtypes.h>
 #include <MW/NetworkCoding/NetworkCodingBase.h>
+#include <cinttypes>
+#include <map>
 
 using namespace omnetpp;
 
@@ -36,7 +39,8 @@ protected:
     virtual void handleMessage(cMessage* msg) override;
 
 private:
-    cArray* packetCache;
+    std::map<Messages::Address2D, cArray*> flitCache;
+    uint32_t gidCounter;
 };
 
 }}} //namespace

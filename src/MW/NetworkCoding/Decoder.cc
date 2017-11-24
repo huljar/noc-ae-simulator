@@ -14,45 +14,55 @@
 // 
 
 #include "Decoder.h"
+#include <Messages/Flit_m.h>
+
+using namespace HaecComm::Messages;
 
 namespace HaecComm { namespace MW { namespace NetworkCoding {
 
 Define_Module(Decoder);
 
-Decoder::Decoder()
-	: packetCache(nullptr)
-{
+Decoder::Decoder() {
 }
 
 Decoder::~Decoder() {
-	delete packetCache;
+	for(auto it = flitCache.begin(); it != flitCache.end(); ++it)
+		delete it->second;
 }
 
 void Decoder::initialize() {
     NetworkCodingBase::initialize();
-
-    packetCache = new cArray;
 }
 
 void Decoder::handleMessage(cMessage* msg) {
-	// Confirm that this is a packet
-	if(!msg->isPacket()) {
-		EV_WARN << "Received a message that is not a packet. Discarding it." << std::endl;
+	// Confirm that this is a flit
+	Flit* flit = dynamic_cast<Flit*>(msg);
+	if(!flit) {
+		EV_WARN << "Received a message that is not a flit. Discarding it." << std::endl;
 		delete msg;
 		return;
 	}
 
-	cPacket* packet = static_cast<cPacket*>(msg); // No need for dynamic_cast or check_and_cast here
+	// Insert flit into cache (indexed by source address and generation ID)
+	auto key = std::make_pair(flit->getSource(), flit->getGid());
+	cArray*& combinations = flitCache[key];
+	if(!combinations)
+		combinations = new cArray;
+	combinations->add(flit);
 
-	packetCache->add(packet);
-
-	if(packetCache->size() == numCombinations) {
+	if(combinations->size() == numCombinations) {
 		// TODO: do actual network decoding
-		packetCache->clear();
+
+		// right now we just copy the first flit a few times because
+		// there is no payload yet
 		for(int i = 0; i < generationSize; ++i) {
-			cPacket* newPacket = createPacket("decoded-packet");
-			send(newPacket, "out");
+			Flit* decoded = static_cast<Flit*>(combinations->get(0))->dup();
+			decoded->setGid(0);
+			decoded->setGev(0);
+			send(decoded, "out");
 		}
+		delete combinations;
+		flitCache.erase(key);
 	}
 }
 

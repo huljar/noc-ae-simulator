@@ -13,36 +13,24 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __HAECCOMM_DECODER_H_
-#define __HAECCOMM_DECODER_H_
+cplusplus {{
+#include "fieldtypes.h"
+}};
 
-#include <omnetpp.h>
-#include <Messages/fieldtypes.h>
-#include <MW/NetworkCoding/NetworkCodingBase.h>
-#include <cinttypes>
-#include <map>
-#include <utility>
+namespace HaecComm::Messages;
 
-using namespace omnetpp;
+class noncobject Address2D;
 
-namespace HaecComm { namespace MW { namespace NetworkCoding {
-
-/**
- * TODO - Generated class
- */
-class Decoder : public NetworkCodingBase {
-public:
-	Decoder();
-	virtual ~Decoder();
-
-protected:
-    virtual void initialize() override;
-    virtual void handleMessage(cMessage* msg) override;
-
-private:
-    std::map<std::pair<Messages::Address2D, uint32_t>, cArray*> flitCache;
-};
-
-}}} //namespace
-
-#endif
+//
+// TODO generated message class
+//
+packet Flit {
+    bool burst;
+    Address2D source;
+    Address2D target;
+    uint8_t mode; //# TODO: make this an enum? or at least assert 4 bit size
+    uint32_t memAddress; //# TODO: how exactly is this supposed to be used?
+    
+    uint32_t gid; //# TODO: assert 24 bit size
+    uint16_t gev; //# TODO: assert 12 bit size
+}
