@@ -13,12 +13,18 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package HaecComm.MW;
+package HaecComm.MW.NetworkCoding;
 
-simple NetworkCoding like IMiddlewareBase {
+import HaecComm.MW.IMiddlewareBase;
+
+//
+// TODO auto-generated module
+//
+simple Encoder like INetworkCodingBase {
     parameters:
-        int generationSize = default(2);
-        int combinations = default(3);
+        int generationSize;
+        int numCombinations;
+        @display("i=block/fork");
     gates:
         input  in;
         output out;

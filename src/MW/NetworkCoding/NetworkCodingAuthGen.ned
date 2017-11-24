@@ -13,25 +13,17 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package HaecComm.MW;
+package HaecComm.MW.NetworkCoding;
 
-//
-// Special middleware which generates traffic
-//
-// On each clock tick, this middleware generates a packet an
-// sends it out with a probability defined by the <em>injectionProb</em>
-// parameter. In an unclocked simulation, it currently does nothing.
-//
-// Note: This module will discard any incoming packets. Its input gate
-// is supposed to stay unconnected, since this module creates its own
-// packets.
-//
-simple GenTraffic like IMiddlewareBase {
+import HaecComm.MW.IMiddlewareBase;
+
+simple NetworkCodingAuthGen like IMiddlewareBase {
     parameters:
-        double injectionProb = default(0.5);
-        bool makeLargeFlits;
-        @display("i=block/departure");
+        int generationSize = default(2);
+        int combinations   = default(3);
+        int cryptoUnits    = default(4);
+        int cryptoCycles   = default(23);
     gates:
-        input  in @loose;
+        input  in;
         output out;
 }

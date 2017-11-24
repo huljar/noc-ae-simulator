@@ -13,41 +13,36 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __HAECCOMM_GENTRAFFIC_H_
-#define __HAECCOMM_GENTRAFFIC_H_
+#ifndef __HAECCOMM_NETWORKCODINGENCODER_H_
+#define __HAECCOMM_NETWORKCODINGENCODER_H_
 
 #include <omnetpp.h>
-#include <MW/MiddlewareBase.h>
+#include <Messages/fieldtypes.h>
+#include <MW/NetworkCoding/NetworkCodingBase.h>
+#include <cinttypes>
+#include <map>
 
 using namespace omnetpp;
 
-namespace HaecComm { namespace MW {
+namespace HaecComm { namespace MW { namespace NetworkCoding {
 
 /**
- * \brief Special middleware which generates traffic
- *
- * On each clock tick, this middleware generates a packet an
- * sends it out with a probability defined by the <em>injectionProb</em>
- * parameter. In an unclocked simulation, it currently does nothing.
- *
- * \note This module will discard any incoming packets. Its input gate
- * is supposed to stay unconnected, since this module creates its own
- * packets.
+ * TODO - Generated class
  */
-class GenTraffic: public MiddlewareBase, cListener {
+class Encoder : public NetworkCodingBase {
 public:
-	GenTraffic();
-	virtual ~GenTraffic();
+	Encoder();
+	virtual ~Encoder();
 
 protected:
     virtual void initialize() override;
     virtual void handleMessage(cMessage* msg) override;
-    virtual void receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) override;
 
-    double injectionProb;
-    bool makeLargeFlits;
+private:
+    std::map<Messages::Address2D, cArray*> flitCache;
+    uint32_t gidCounter;
 };
 
-}} //namespace
+}}} //namespace
 
 #endif

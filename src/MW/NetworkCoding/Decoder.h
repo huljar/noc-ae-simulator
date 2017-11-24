@@ -13,32 +13,36 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __HAECCOMM_NETWORKCODINGAUTHGEN_H_
-#define __HAECCOMM_NETWORKCODINGAUTHGEN_H_
+#ifndef __HAECCOMM_DECODER_H_
+#define __HAECCOMM_DECODER_H_
 
 #include <omnetpp.h>
-#include <MW/MiddlewareBase.h>
-#include <Util/NetworkCodingManager.h>
-#include <Util/CryptoManager.h>
-#include <Messages/NcCombination_m.h>
+#include <Messages/fieldtypes.h>
+#include <MW/NetworkCoding/NetworkCodingBase.h>
+#include <cinttypes>
+#include <map>
+#include <utility>
 
 using namespace omnetpp;
 
-namespace HaecComm { namespace MW {
+namespace HaecComm { namespace MW { namespace NetworkCoding {
 
-class NetworkCodingAuthGen: public MiddlewareBase {
+/**
+ * TODO - Generated class
+ */
+class Decoder : public NetworkCodingBase {
+public:
+	Decoder();
+	virtual ~Decoder();
+
 protected:
     virtual void initialize() override;
-    virtual void handleCycle(cPacket* packet);
     virtual void handleMessage(cMessage* msg) override;
 
 private:
-    cQueue *inQueue;
-    cQueue *outQueue;
-    Util::NetworkCodingManager *NC;
-    Util::CryptoManager *CU;
+    std::map<std::pair<Messages::Address2D, uint32_t>, cArray*> flitCache;
 };
 
-}} //namespace
+}}} //namespace
 
 #endif

@@ -13,25 +13,17 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package HaecComm.MW;
+cplusplus {{
+#include "Flit_m.h"
+}}
+
+namespace HaecComm::Messages;
+
+packet Flit;
 
 //
-// Special middleware which generates traffic
+// TODO generated message class
 //
-// On each clock tick, this middleware generates a packet an
-// sends it out with a probability defined by the <em>injectionProb</em>
-// parameter. In an unclocked simulation, it currently does nothing.
-//
-// Note: This module will discard any incoming packets. Its input gate
-// is supposed to stay unconnected, since this module creates its own
-// packets.
-//
-simple GenTraffic like IMiddlewareBase {
-    parameters:
-        double injectionProb = default(0.5);
-        bool makeLargeFlits;
-        @display("i=block/departure");
-    gates:
-        input  in @loose;
-        output out;
+packet FlitLarge extends Flit {
+    bitLength = 217;
 }
