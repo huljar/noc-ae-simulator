@@ -52,8 +52,6 @@ protected:
     virtual void receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) override;
 
 private:
-    cArray* shift(); // moves everything in the vector down by 1 index. First element is popped and returned. vector is as large as waitCycles.
-
     bool isClocked;
     int waitCycles;
     double waitTime;
