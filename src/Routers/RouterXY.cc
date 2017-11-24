@@ -14,6 +14,9 @@
 // 
 
 #include "RouterXY.h"
+#include <Messages/Flit_m.h>
+
+using namespace HaecComm::Messages;
 
 namespace HaecComm { namespace Routers {
 
@@ -23,43 +26,36 @@ void RouterXY::initialize() {
 }
 
 void RouterXY::handleMessage(cMessage* msg) {
-	// Confirm that this is a packet
-	if(!msg->isPacket()) {
-		EV_WARN << "Received a message that is not a packet. Discarding it." << std::endl;
+	// Confirm that this is a flit
+	Flit* flit = dynamic_cast<Flit*>(msg);
+	if(!flit) {
+		EV_WARN << "Received a message that is not a flit. Discarding it." << std::endl;
 		delete msg;
 		return;
 	}
 
-	cPacket* packet = static_cast<cPacket*>(msg); // No need for dynamic_cast or check_and_cast here
-
-	if(!packet->hasPar("targetId")) {
-		EV << " got message without target - drop it like it's hot! " << packet->getName() << std::endl;
-		delete packet;
-		return;
-	}
+	// Get node information
+	int gridCols = static_cast<int>(getAncestorPar("columns")); // TODO: put this in initialize()
 
 	int myId = static_cast<int>(getAncestorPar("id"));
-	int targetId = static_cast<int>(packet->par("targetId"));
-
-	if(targetId == myId) {
-		send(packet, "local$o");
-		return;
-	}
-
-	// Decide on next port based on id
-	int gridCols = static_cast<int>(getAncestorPar("columns"));
-	int targetX = targetId % gridCols;
-	int targetY = targetId / gridCols;
 	int myX = myId % gridCols;
 	int myY = myId / gridCols;
 
-	// Since it is definitely not this node (see above) the following is sufficient
+	int targetX = flit->getTarget().x();
+	int targetY = flit->getTarget().y();
+
+	// Route the flit
 	if(targetX != myX) {
 		// Move in X direction
-		send(packet, "port$o", targetX < myX ? 3 : 1); // implicit knowledge
-	} else {
+		send(flit, "port$o", targetX < myX ? 3 : 1); // implicit knowledge
+	}
+	else if(targetY != myY) {
 		// Move in Y direction
-		send(packet, "port$o", targetY < myY ? 0 : 2);
+		send(flit, "port$o", targetY < myY ? 0 : 2);
+	}
+	else {
+		// This node is the destination
+		send(flit, "local$o");
 	}
 }
 
