@@ -13,5 +13,5 @@ simulations/.qtenvrc
 src/Makefile
 src/HaecComm
 src/HaecComm_dbg
-src/Messages/*.h
-src/Messages/*.cc
+src/Messages/*_m.h
+src/Messages/*_m.cc
