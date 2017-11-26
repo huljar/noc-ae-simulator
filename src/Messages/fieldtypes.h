@@ -1,5 +1,5 @@
 /*
- * types.h
+ * fieldtypes.h
  *
  *  Created on: Nov 24, 2017
  *      Author: julian
@@ -27,22 +27,24 @@ namespace HaecComm { namespace Messages {
  */
 class Address2D {
 public:
-	Address2D() : storage(0) { }
+	Address2D() : address(0) { }
 	Address2D(uint8_t x, uint8_t y) {
 		ASSERT(x < 16);
 		ASSERT(y < 16);
-		storage = (x << 4) + y;
+		address = (x << 4) + y;
 	}
-	Address2D(const Address2D& other) : storage(other.storage) { }
-	Address2D& operator=(const Address2D& other) { storage = other.storage; return *this; }
+	Address2D(const Address2D& other) : address(other.address) { }
+	Address2D& operator=(const Address2D& other) { address = other.address; return *this; }
 
-	uint8_t x() const { return storage >> 4; }
-	uint8_t y() const { return storage & 0x0F; }
-	void setX(uint8_t x) { ASSERT(x < 16); storage = (x << 4) + (storage & 0x0F); }
-	void setY(uint8_t y) { ASSERT(y < 16); storage = (storage & 0xF0) + y; }
+	uint8_t x() const { return address >> 4; }
+	uint8_t y() const { return address & 0x0F; }
+	void setX(uint8_t x) { ASSERT(x < 16); address = (x << 4) + (address & 0x0F); }
+	void setY(uint8_t y) { ASSERT(y < 16); address = (address & 0xF0) + y; }
 
 private:
-	uint8_t storage;
+	/// The X coordinate is stored in the most significant 4 bit and the
+	/// Y coordinate in the least significant 4 bit.
+	uint8_t address;
 };
 
 inline bool operator<(const Address2D& lhs, const Address2D& rhs) {
