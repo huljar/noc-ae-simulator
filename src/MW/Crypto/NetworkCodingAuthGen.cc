@@ -18,7 +18,7 @@
 using namespace HaecComm::Messages;
 using namespace HaecComm::Util;
 
-namespace HaecComm { namespace MW { namespace NetworkCoding {
+namespace HaecComm { namespace MW { namespace Crypto {
 
 Define_Module(NetworkCodingAuthGen);
 

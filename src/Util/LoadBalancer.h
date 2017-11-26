@@ -13,32 +13,31 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __HAECCOMM_NETWORKCODINGAUTHGEN_H_
-#define __HAECCOMM_NETWORKCODINGAUTHGEN_H_
+#ifndef __HAECCOMM_LOADBALANCER_H_
+#define __HAECCOMM_LOADBALANCER_H_
 
 #include <omnetpp.h>
-#include <MW/MiddlewareBase.h>
-#include <Util/NetworkCodingManager.h>
-#include <Util/CryptoManager.h>
-#include <Messages/NcCombination_m.h>
+#include <queue>
+#include <map>
 
 using namespace omnetpp;
 
-namespace HaecComm { namespace MW { namespace NetworkCoding {
+namespace HaecComm { namespace Util {
 
-class NetworkCodingAuthGen: public MiddlewareBase {
+/**
+ * TODO - Generated class
+ */
+class LoadBalancer : public cSimpleModule, public cListener {
 protected:
     virtual void initialize() override;
-    virtual void handleCycle(cPacket* packet);
     virtual void handleMessage(cMessage* msg) override;
+    virtual void receiveSignal(cComponent* source, simsignal_t signalID, bool b, cObject* details) override;
 
 private:
-    cQueue *inQueue;
-    cQueue *outQueue;
-    Util::NetworkCodingManager *NC;
-    Util::CryptoManager *CU;
+    std::map<cModule*, std::pair<bool, bool>> connectedModules;
+    std::queue<cModule*> moduleQueue;
 };
 
-}}} //namespace
+}} //namespace
 
 #endif
