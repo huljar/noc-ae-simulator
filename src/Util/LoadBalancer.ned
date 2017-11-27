@@ -20,7 +20,8 @@ package HaecComm.Util;
 //
 simple LoadBalancer {
     parameters:
-        @display("i=block/fork");
+        int busyCycles = default(10);
+        @display("i=block/dispatch");
     gates:
         input  in;
         output out[];

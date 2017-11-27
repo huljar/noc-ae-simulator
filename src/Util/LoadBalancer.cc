@@ -20,33 +20,39 @@ namespace HaecComm { namespace Util {
 Define_Module(LoadBalancer);
 
 void LoadBalancer::initialize() {
-	// subscribe to the busy signals of the connected modules
-	for(int i = 0; i < gateSize("out"); ++i) {
-		cModule* connectedUnit = gate("out", i)->getNextGate()->getOwnerModule();
-		connectedUnit->subscribe("busy", this);
-		connectedModules.insert(std::make_pair(connectedUnit, std::make_pair(false, true)));
-		moduleQueue.push(connectedUnit);
+	if(getAncestorPar("isClocked")) {
+		// subscribe to clock signal
+		getSimulation()->getSystemModule()->subscribe("clock", this);
 	}
+
+	size_t busyCycles = static_cast<size_t>(par("busyCycles"));
+	if(busyCycles < 1)
+		throw cRuntimeError(this, "busyCycles must be greater than 0");
+
+	for(int i = 0; i < gateSize("out"); ++i)
+		availableUnits.push(i);
+	busyUnits = ShiftRegister<std::vector<int>>(busyCycles);
 }
 
 void LoadBalancer::handleMessage(cMessage* msg) {
-    // TODO - Generated method body
+    if(availableUnits.empty()) {
+    	EV_WARN << "Received a message, but all units are busy. Discarding it." << std::endl;
+    	delete msg;
+    	return;
+    }
+
+    int idx = availableUnits.front();
+    send(msg, "out", idx);
+
+    availableUnits.pop();
+    busyUnits.back().push_back(idx);
 }
 
-void LoadBalancer::receiveSignal(cComponent* source, simsignal_t signalID, bool b, cObject* details) {
-	if(signalID == registerSignal("busy")) {
-		cModule* sender = check_and_cast<cModule*>(source);
-		auto element = connectedModules.find(sender);
-		if(element != connectedModules.end()) {
-			element->second.first = b;
-			if(!b && !element->second.second) {
-				moduleQueue.push(sender);
-				element->second.second = true;
-			}
-		}
-		else {
-			EV_WARN << "Received busy signal from unexpected source: " << sender->getFullName() << std::endl;
-		}
+void LoadBalancer::receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) {
+	if(signalID == registerSignal("clock")) {
+		std::vector<int> finishedUnits = busyUnits.shift();
+		for(auto it = finishedUnits.begin(); it != finishedUnits.end(); ++it)
+			availableUnits.push(*it);
 	}
 }
 

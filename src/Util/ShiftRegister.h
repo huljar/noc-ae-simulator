@@ -27,11 +27,11 @@ namespace HaecComm { namespace Util {
 template <typename T>
 class ShiftRegister {
 public:
-	ShiftRegister() { construct(1); }
-	ShiftRegister(size_t size) {
+	ShiftRegister() { construct(1, T()); }
+	ShiftRegister(size_t size, const T& init = T()) {
 		if(size < 1)
 			throw cRuntimeError("ShiftRegister: size must be greater than 0");
-		construct(size);
+		construct(size, init);
 	}
 	virtual ~ShiftRegister() { };
 
@@ -49,7 +49,7 @@ public:
 	typename std::vector<T>::iterator begin() { return values.begin(); }
 	typename std::vector<T>::iterator end() { return values.end(); }
 
-	T shift(const T& newElement) {
+	T shift(const T& newElement = T()) {
 		// get first element
 		T front = values.front();
 
@@ -66,10 +66,8 @@ public:
 	}
 
 private:
-	void construct(size_t size) {
-		for(size_t i = 0; i < size; ++i) {
-			values.push_back(T());
-		}
+	void construct(size_t size, const T& init) {
+		values = std::vector<T>(size, init);
 	}
 
 	std::vector<T> values;

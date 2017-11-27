@@ -17,25 +17,26 @@
 #define __HAECCOMM_LOADBALANCER_H_
 
 #include <omnetpp.h>
+#include <Util/ShiftRegister.h>
 #include <queue>
-#include <map>
+#include <vector>
 
 using namespace omnetpp;
 
 namespace HaecComm { namespace Util {
 
 /**
- * TODO - Generated class
+ * TODO - implement load balancing for unclocked simulations
  */
 class LoadBalancer : public cSimpleModule, public cListener {
 protected:
     virtual void initialize() override;
     virtual void handleMessage(cMessage* msg) override;
-    virtual void receiveSignal(cComponent* source, simsignal_t signalID, bool b, cObject* details) override;
+    virtual void receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) override;
 
 private:
-    std::map<cModule*, std::pair<bool, bool>> connectedModules;
-    std::queue<cModule*> moduleQueue;
+    std::queue<int> availableUnits;
+    ShiftRegister<std::vector<int>> busyUnits;
 };
 
 }} //namespace
