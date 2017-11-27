@@ -25,7 +25,7 @@ namespace HaecComm { namespace Util {
 /**
  * \brief Packet queue class for synchronizing packets with the global clock
  *
- * The packet queue can queue up packets in both directions. On each clock tick, one
+ * The packet queue can queue up packets in a single direction. On each clock tick, one
  * packet is sent out (if there is a packet enqueued). If the simulation is not clocked,
  * the packets are redirected immediately, and no queueing is performed.
  */
