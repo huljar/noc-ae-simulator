@@ -19,7 +19,7 @@ import HaecComm.Core.Clock;
 import HaecComm.MW.GenTraffic;
 import HaecComm.MW.ReportArrival;
 import HaecComm.MW.Delay;
-import HaecComm.Core.PacketQueue;
+import HaecComm.Util.PacketQueue;
 
 //
 // Simple demo network with a source and a sink, and a queue in between.
