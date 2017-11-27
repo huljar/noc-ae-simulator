@@ -15,7 +15,7 @@
 
 #include "PacketQueue.h"
 
-namespace HaecComm { namespace Core {
+namespace HaecComm { namespace Util {
 
 Define_Module(PacketQueue);
 

@@ -15,7 +15,7 @@
 
 #include "BidirectionalPacketQueue.h"
 
-namespace HaecComm { namespace Core {
+namespace HaecComm { namespace Util {
 
 Define_Module(BidirectionalPacketQueue);
 
