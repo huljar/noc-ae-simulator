@@ -18,8 +18,7 @@ package HaecComm.Core;
 import HaecComm.MW.*;
 import HaecComm.MW.Crypto.*;
 import HaecComm.MW.NetworkCoding.*;
-import HaecComm.Util.LoadBalancer;
-import HaecComm.Util.LoadMerger;
+import HaecComm.Util.*;
 
 //
 // Default implementation of the Network Interface from the HAEC project.
@@ -27,7 +26,7 @@ import HaecComm.Util.LoadMerger;
 //
 module NetworkInterface like INetworkInterface {
     parameters:
-        int encCryptoUnits;
+        int authCryptoUnits;
         @display("i=block/control");
     gates:
         inout app;
@@ -36,29 +35,37 @@ module NetworkInterface like INetworkInterface {
         ncEncode: Encoder {
             @display("p=60,100");
         }
-        authLoadBalancer: LoadBalancer {
+        ncEncodeQueue: PacketQueue {
             @display("p=160,100");
-            gates: out[encCryptoUnits];
         }
-        authDelay[encCryptoUnits]: Delay {
-            @display("p=260,40,column,80");
+        authLoadBalancer: LoadBalancer {
+            @display("p=260,100");
+            gates: out[authCryptoUnits];
+        }
+        authDelay[authCryptoUnits]: Delay {
+            @display("p=360,40,column,80");
         }
         authLoadMerger: LoadMerger {
-            @display("p=360,100");
-            gates: in[encCryptoUnits];
+            @display("p=460,100");
+            gates: in[authCryptoUnits];
         }
         ncDecode: Decoder {
             @display("p=60,400");
         }
+        ncDecodeQueue: PacketQueue {
+            @display("p=160,400");
+        }
     connections:
         ncEncode.in <-- app$i;
-        ncEncode.out --> authLoadBalancer.in;
-        for i=0..encCryptoUnits-1 {
+        ncEncode.out --> ncEncodeQueue.in;
+        ncEncodeQueue.out --> authLoadBalancer.in;
+        for i=0..authCryptoUnits-1 {
             authDelay[i].in <-- authLoadBalancer.out[i];
             authDelay[i].out --> authLoadMerger.in[i];
         }
         authLoadMerger.out --> router$o;
         
         ncDecode.in <-- router$i;
-        ncDecode.out --> app$o; // TODO: add conditional queues in between (-> locallyClocked)
+        ncDecode.out --> ncDecodeQueue.in;
+        ncDecodeQueue.out --> app$o; // TODO: add conditional queues in between? (-> locallyClocked)
 }

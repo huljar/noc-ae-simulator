@@ -13,31 +13,10 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __HAECCOMM_NETWORKCODINGBASE_H_
-#define __HAECCOMM_NETWORKCODINGBASE_H_
+package HaecComm.MW.Crypto;
 
-#include <omnetpp.h>
-#include <MW/MiddlewareBase.h>
-#include <Util/NetworkCodingManager.h>
-#include <Messages/NcCombination_m.h>
+import HaecComm.MW.IMiddlewareBase;
 
-using namespace omnetpp;
-
-namespace HaecComm { namespace MW { namespace NetworkCoding {
-
-class NetworkCodingBase: public MiddlewareBase {
-public:
-	NetworkCodingBase();
-	virtual ~NetworkCodingBase();
-
-protected:
-    virtual void initialize() override;
-    virtual void handleMessage(cMessage* msg) override = 0;
-
-    int generationSize;
-    int numCombinations;
-};
-
-}}} //namespace
-
-#endif
+moduleinterface IComputeMacBase extends IMiddlewareBase {
+    
+}

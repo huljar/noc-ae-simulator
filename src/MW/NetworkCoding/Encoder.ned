@@ -24,7 +24,7 @@ simple Encoder like INetworkCodingBase {
     parameters:
         int generationSize;
         int numCombinations;
-        @display("i=block/fork");
+        @display("i=block/switch");
     gates:
         input  in;
         output out;

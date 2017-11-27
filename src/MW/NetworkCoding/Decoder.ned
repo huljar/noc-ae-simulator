@@ -24,7 +24,7 @@ simple Decoder like INetworkCodingBase {
     parameters:
         int generationSize;
         int numCombinations;
-        @display("i=block/join");
+        @display("i=block/switch");
     gates:
         input  in;
         output out;

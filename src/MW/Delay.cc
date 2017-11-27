@@ -112,7 +112,6 @@ void Delay::receiveSignal(cComponent* source, simsignal_t signalID, unsigned lon
 			}
 			delete front;
 		}
-		else EV << "nullptr received from shifting" << std::endl;
 	}
 }
 

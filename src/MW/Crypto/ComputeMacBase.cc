@@ -13,9 +13,18 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package HaecComm.MW.Crypto;
+#include "ComputeMacBase.h"
 
-moduleinterface ICryptoUnit {
-    parameters:
-        @signal[busy](type=bool);
+namespace HaecComm { namespace MW { namespace Crypto {
+
+ComputeMacBase::ComputeMacBase() {
 }
+
+ComputeMacBase::~ComputeMacBase() {
+}
+
+void ComputeMacBase::initialize() {
+	MiddlewareBase::initialize();
+}
+
+}}} //namespace
