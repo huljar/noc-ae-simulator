@@ -16,13 +16,12 @@
 package HaecComm.Util;
 
 //
-// TODO auto-generated module
+// TODO implement for unclocked simulations?
 //
-simple LoadBalancer {
+simple LoadMerger {
     parameters:
-        int busyCycles = default(10);
-        @display("i=block/fork");
+        @display("i=block/join");
     gates:
-        input  in;
-        output out[];
+        input  in[];
+        output out;
 }

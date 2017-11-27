@@ -13,16 +13,32 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package HaecComm.Util;
+#ifndef __HAECCOMM_LOADMERGER_H_
+#define __HAECCOMM_LOADMERGER_H_
 
-//
-// TODO auto-generated module
-//
-simple LoadBalancer {
-    parameters:
-        int busyCycles = default(10);
-        @display("i=block/fork");
-    gates:
-        input  in;
-        output out[];
-}
+#include <omnetpp.h>
+
+using namespace omnetpp;
+
+namespace HaecComm { namespace Util {
+
+/**
+ * TODO - Generated class
+ */
+class LoadMerger : public cSimpleModule, public cListener {
+public:
+	LoadMerger();
+	virtual ~LoadMerger();
+
+protected:
+    virtual void initialize() override;
+    virtual void handleMessage(cMessage* msg) override;
+    virtual void receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) override;
+
+private:
+    bool cycleFree;
+};
+
+}} //namespace
+
+#endif

@@ -16,7 +16,10 @@
 package HaecComm.Core;
 
 import HaecComm.MW.*;
+import HaecComm.MW.Crypto.*;
 import HaecComm.MW.NetworkCoding.*;
+import HaecComm.Util.LoadBalancer;
+import HaecComm.Util.LoadMerger;
 
 //
 // Default implementation of the Network Interface from the HAEC project.
@@ -24,21 +27,38 @@ import HaecComm.MW.NetworkCoding.*;
 //
 module NetworkInterface like INetworkInterface {
     parameters:
+        int encCryptoUnits;
         @display("i=block/control");
     gates:
         inout app;
         inout router;
     submodules:
-        ncEnc: Encoder {
-            @display("p=60,60");
+        ncEncode: Encoder {
+            @display("p=60,100");
         }
-        ncDec: Decoder {
-            @display("p=160,60");
+        authLoadBalancer: LoadBalancer {
+            @display("p=160,100");
+            gates: out[encCryptoUnits];
+        }
+        authDelay[encCryptoUnits]: Delay {
+            @display("p=260,40,column,80");
+        }
+        authLoadMerger: LoadMerger {
+            @display("p=360,100");
+            gates: in[encCryptoUnits];
+        }
+        ncDecode: Decoder {
+            @display("p=60,400");
         }
     connections:
-        ncEnc.in <-- app$i;
-        ncEnc.out --> router$o;
+        ncEncode.in <-- app$i;
+        ncEncode.out --> authLoadBalancer.in;
+        for i=0..encCryptoUnits-1 {
+            authDelay[i].in <-- authLoadBalancer.out[i];
+            authDelay[i].out --> authLoadMerger.in[i];
+        }
+        authLoadMerger.out --> router$o;
         
-        ncDec.in <-- router$i;
-        ncDec.out --> app$o; // TODO: add conditional queues in between (-> locallyClocked)
+        ncDecode.in <-- router$i;
+        ncDecode.out --> app$o; // TODO: add conditional queues in between (-> locallyClocked)
 }
