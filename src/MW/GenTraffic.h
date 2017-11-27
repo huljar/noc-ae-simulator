@@ -34,7 +34,7 @@ namespace HaecComm { namespace MW {
  * is supposed to stay unconnected, since this module creates its own
  * packets.
  */
-class GenTraffic: public MiddlewareBase, cListener {
+class GenTraffic: public MiddlewareBase, public cListener {
 public:
 	GenTraffic();
 	virtual ~GenTraffic();
