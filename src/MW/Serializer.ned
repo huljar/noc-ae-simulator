@@ -18,6 +18,8 @@ package HaecComm.MW;
 //
 // TODO auto-generated module
 //
+//# TODO: replace all Serializers by PacketQueues; give PacketQueue the option to
+//# send first packet through immediately
 simple Serializer like IMiddlewareBase {
     parameters:
         @display("i=block/transport");

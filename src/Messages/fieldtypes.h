@@ -62,6 +62,7 @@ enum Mode { // not using "enum class" (scoped enumeration) here, because the OMN
 	MODE_DATA_MAC = 2, //!< MODE_DATA_MAC Flit where the payload consists of half data and half MAC.
 	MODE_ARQ = 3       //!< MODE_ARQ Flit containing an <b>A</b>utomatic <b>R</b>e-transmission re<b>Q</b>uest.
 };
+// TODO: make Mode a flag enum (bitwise-or allowed)?
 
 }} //namespace
 

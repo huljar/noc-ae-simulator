@@ -25,18 +25,10 @@ namespace HaecComm { namespace Util {
 /**
  * TODO - Generated class
  */
-class LoadMerger : public cSimpleModule, public cListener {
-public:
-	LoadMerger();
-	virtual ~LoadMerger();
-
+class LoadMerger : public cSimpleModule {
 protected:
     virtual void initialize() override;
     virtual void handleMessage(cMessage* msg) override;
-    virtual void receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) override;
-
-private:
-    bool cycleFree;
 };
 
 }} //namespace

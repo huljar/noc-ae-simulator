@@ -34,13 +34,13 @@ module NetworkInterface like INetworkInterface {
         inout router;
     submodules:
         ncEncode: Encoder {
-            @display("p=60,100");
+            @display("p=60,120");
         }
         ncEncodeQueue: PacketQueue {
-            @display("p=160,100");
+            @display("p=160,120");
         }
         authLoadBalancer: LoadBalancer {
-            @display("p=260,100");
+            @display("p=260,120");
             busyCycles = authCycles;
             gates: out[authCryptoUnits];
         }
@@ -49,14 +49,17 @@ module NetworkInterface like INetworkInterface {
             computeCycles = authCycles;
         }
         authLoadMerger: LoadMerger {
-            @display("p=460,100");
+            @display("p=460,120");
             gates: in[authCryptoUnits];
         }
+        authSerializer: Serializer {
+            @display("p=560,120");
+        }
         ncDecode: Decoder {
-            @display("p=60,400");
+            @display("p=60,420");
         }
         ncDecodeQueue: PacketQueue {
-            @display("p=160,400");
+            @display("p=160,420");
         }
     connections:
         ncEncode.in <-- app$i;
@@ -66,7 +69,8 @@ module NetworkInterface like INetworkInterface {
             authUnit[i].in <-- authLoadBalancer.out[i];
             authUnit[i].out --> authLoadMerger.in[i];
         }
-        authLoadMerger.out --> router$o;
+        authLoadMerger.out --> authSerializer.in;
+        authSerializer.out --> router$o;
         
         ncDecode.in <-- router$i;
         ncDecode.out --> ncDecodeQueue.in;

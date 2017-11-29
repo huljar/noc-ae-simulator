@@ -19,36 +19,11 @@ namespace HaecComm { namespace Util {
 
 Define_Module(LoadMerger);
 
-LoadMerger::LoadMerger()
-	: cycleFree(true)
-{
-}
-
-LoadMerger::~LoadMerger() {
-}
-
 void LoadMerger::initialize() {
-	if(getAncestorPar("isClocked")) {
-		// subscribe to clock signal
-		getSimulation()->getSystemModule()->subscribe("clock", this);
-	}
 }
 
 void LoadMerger::handleMessage(cMessage* msg) {
-	if(!cycleFree) {
-		EV_WARN << "Received a message, but another message already arrived in the same clock tick. Discarding it." << std::endl;
-		delete msg;
-		return;
-	}
-
 	send(msg, "out");
-	cycleFree = false;
-}
-
-void LoadMerger::receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) {
-	if(signalID == registerSignal("clock")) {
-		cycleFree = true;
-	}
 }
 
 }} //namespace
