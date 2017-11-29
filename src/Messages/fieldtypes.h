@@ -9,6 +9,7 @@
 #define MESSAGES_FIELDTYPES_H_
 
 #include <omnetpp.h>
+#include <array>
 #include <cinttypes>
 
 using namespace omnetpp;
@@ -50,6 +51,17 @@ private:
 inline bool operator<(const Address2D& lhs, const Address2D& rhs) {
 	return lhs.x() == rhs.x() ? lhs.y() < rhs.y() : lhs.x() < rhs.x();
 }
+
+/**
+ * Enumerator which contains the possible values for the <em>mode</em>
+ * field in flits.
+ */
+enum Mode { // not using "enum class" (scoped enumeration) here, because the OMNeT++ msg compiler doesn't do it either
+	MODE_DATA = 0,     //!< MODE_DATA Normal data flit. This is the default value.
+	MODE_MAC = 1,      //!< MODE_MAC Flit containing a Message Authentication Code (MAC) for another flit.
+	MODE_DATA_MAC = 2, //!< MODE_DATA_MAC Flit where the payload consists of half data and half MAC.
+	MODE_ARQ = 3       //!< MODE_ARQ Flit containing an <b>A</b>utomatic <b>R</b>e-transmission re<b>Q</b>uest.
+};
 
 }} //namespace
 

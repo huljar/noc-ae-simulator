@@ -14,7 +14,7 @@
 // 
 
 cplusplus {{
-#include "Flit_m.h"
+#include <Messages/Flit_m.h>
 }}
 
 namespace HaecComm::Messages;
@@ -25,5 +25,6 @@ packet Flit;
 // TODO generated message class
 //
 packet FlitLarge extends Flit {
+    uint8_t payload[16];
     bitLength = 217;
 }

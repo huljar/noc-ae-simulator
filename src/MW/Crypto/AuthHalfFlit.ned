@@ -13,16 +13,31 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package HaecComm.MW;
+package HaecComm.MW.Crypto;
 
-//
-// Module interface that all middleware modules must implement
-//
-// Note: For any simple modules implementing this interface, its
-// corresponding C++ class should inherit from the MiddlewareBase class.
-//
-moduleinterface IMiddlewareBase {
+import HaecComm.MW.*;
+
+module AuthHalfFlit like IMiddlewareBase {
+    parameters:
+        int computeCycles;
+        @display("i=block/encrypt");
     gates:
         input  in;
         output out;
+    submodules:
+        auth: AuthHalfFlitImpl {
+            @display("p=60,60");
+        }
+        delay: Delay {
+            @display("p=160,60");
+            waitCycles = computeCycles;
+        }
+        serializer: Serializer {
+            @display("p=260,60");
+        }
+    connections:
+        in --> auth.in;
+        auth.out --> delay.in;
+        delay.out --> serializer.in;
+        serializer.out --> out;
 }

@@ -13,16 +13,25 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package HaecComm.MW;
+#ifndef __HAECCOMM_AUTHHALFFLIT_H_
+#define __HAECCOMM_AUTHHALFFLIT_H_
 
-//
-// Module interface that all middleware modules must implement
-//
-// Note: For any simple modules implementing this interface, its
-// corresponding C++ class should inherit from the MiddlewareBase class.
-//
-moduleinterface IMiddlewareBase {
-    gates:
-        input  in;
-        output out;
-}
+#include <omnetpp.h>
+#include <MW/Crypto/AuthBase.h>
+
+using namespace omnetpp;
+
+namespace HaecComm { namespace MW { namespace Crypto {
+
+/**
+ * TODO - Generated class
+ */
+class AuthHalfFlitImpl : public AuthBase {
+protected:
+    virtual void initialize() override;
+    virtual void handleMessage(cMessage* msg) override;
+};
+
+}}} //namespace
+
+#endif

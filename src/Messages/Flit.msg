@@ -14,12 +14,13 @@
 // 
 
 cplusplus {{
-#include "fieldtypes.h"
+#include <Messages/fieldtypes.h>
 }};
 
 namespace HaecComm::Messages;
 
 class noncobject Address2D;
+enum Mode;
 
 //
 // TODO generated message class
@@ -28,7 +29,7 @@ packet Flit {
     bool burst;
     Address2D source;
     Address2D target;
-    uint8_t mode; //# TODO: make this an enum? or at least assert 4 bit size
+    uint8_t mode @enum(Mode);
     uint32_t memAddress; //# TODO: how exactly is this supposed to be used?
     
     uint32_t gid; //# TODO: assert 24 bit size

@@ -13,30 +13,33 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __HAECCOMM_NETWORKCODINGAUTHGEN_H_
-#define __HAECCOMM_NETWORKCODINGAUTHGEN_H_
+#ifndef __HAECCOMM_AUTHGENERATION_H_
+#define __HAECCOMM_AUTHGENERATION_H_
 
 #include <omnetpp.h>
-#include <MW/MiddlewareBase.h>
-#include <Util/NetworkCodingManager.h>
-#include <Util/CryptoManager.h>
-#include <Messages/NcCombination_m.h>
+#include <Messages/fieldtypes.h>
+#include <MW/Crypto/AuthBase.h>
+#include <map>
 
 using namespace omnetpp;
 
 namespace HaecComm { namespace MW { namespace Crypto {
 
-class NetworkCodingAuthGen: public MiddlewareBase {
+/**
+ * TODO - Generated class
+ */
+class AuthGenerationImpl : public AuthBase {
+public:
+	AuthGenerationImpl();
+	virtual ~AuthGenerationImpl();
+
 protected:
     virtual void initialize() override;
-    virtual void handleCycle(cPacket* packet);
     virtual void handleMessage(cMessage* msg) override;
 
 private:
-    cQueue *inQueue;
-    cQueue *outQueue;
-    Util::NetworkCodingManager *NC;
-    Util::CryptoManager *CU;
+    int generationSize;
+    std::map<Messages::Address2D, cArray*> flitCache;
 };
 
 }}} //namespace

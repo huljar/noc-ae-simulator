@@ -27,6 +27,7 @@ import HaecComm.Util.*;
 module NetworkInterface like INetworkInterface {
     parameters:
         int authCryptoUnits;
+        int authCycles;
         @display("i=block/control");
     gates:
         inout app;
@@ -40,10 +41,12 @@ module NetworkInterface like INetworkInterface {
         }
         authLoadBalancer: LoadBalancer {
             @display("p=260,100");
+            busyCycles = authCycles;
             gates: out[authCryptoUnits];
         }
-        authDelay[authCryptoUnits]: Delay {
+        authUnit[authCryptoUnits]: AuthFlit {
             @display("p=360,40,column,80");
+            computeCycles = authCycles;
         }
         authLoadMerger: LoadMerger {
             @display("p=460,100");
@@ -60,8 +63,8 @@ module NetworkInterface like INetworkInterface {
         ncEncode.out --> ncEncodeQueue.in;
         ncEncodeQueue.out --> authLoadBalancer.in;
         for i=0..authCryptoUnits-1 {
-            authDelay[i].in <-- authLoadBalancer.out[i];
-            authDelay[i].out --> authLoadMerger.in[i];
+            authUnit[i].in <-- authLoadBalancer.out[i];
+            authUnit[i].out --> authLoadMerger.in[i];
         }
         authLoadMerger.out --> router$o;
         

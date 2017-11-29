@@ -15,8 +15,29 @@
 
 package HaecComm.MW.Crypto;
 
-import HaecComm.MW.IMiddlewareBase;
+import HaecComm.MW.*;
 
-moduleinterface IComputeMacBase extends IMiddlewareBase {
-    
+module AuthFlit like IMiddlewareBase {
+    parameters:
+        int computeCycles;
+        @display("i=block/encrypt");
+    gates:
+        input  in;
+        output out;
+    submodules:
+        auth: AuthFlitImpl {
+            @display("p=60,60");
+        }
+        delay: Delay {
+            @display("p=160,60");
+            waitCycles = computeCycles - 1; //# -1 because the data flit can already be sent one cycle earlier
+        }
+        serializer: Serializer {
+            @display("p=260,60");
+        }
+    connections:
+        in --> auth.in;
+        auth.out --> delay.in;
+        delay.out --> serializer.in;
+        serializer.out --> out;
 }

@@ -13,18 +13,26 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include "ComputeMacBase.h"
+#ifndef MW_CRYPTO_AUTHBASE_H_
+#define MW_CRYPTO_AUTHBASE_H_
+
+#include <omnetpp.h>
+#include <MW/MiddlewareBase.h>
+
+using namespace omnetpp;
 
 namespace HaecComm { namespace MW { namespace Crypto {
 
-ComputeMacBase::ComputeMacBase() {
-}
+class AuthBase: public MiddlewareBase {
+public:
+	AuthBase();
+	virtual ~AuthBase();
 
-ComputeMacBase::~ComputeMacBase() {
-}
-
-void ComputeMacBase::initialize() {
-	MiddlewareBase::initialize();
-}
+protected:
+    virtual void initialize() override;
+    virtual void handleMessage(cMessage* msg) override = 0;
+};
 
 }}} //namespace
+
+#endif /* MW_CRYPTO_AUTHBASE_H_ */

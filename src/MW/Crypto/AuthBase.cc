@@ -13,17 +13,18 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package HaecComm.MW.Crypto;
+#include "AuthBase.h"
 
-import HaecComm.MW.IMiddlewareBase;
+namespace HaecComm { namespace MW { namespace Crypto {
 
-simple NetworkCodingAuthGen like IMiddlewareBase {
-    parameters:
-        int generationSize = default(2);
-        int combinations   = default(3);
-        int cryptoUnits    = default(4);
-        int cryptoCycles   = default(23);
-    gates:
-        input  in;
-        output out;
+AuthBase::AuthBase() {
 }
+
+AuthBase::~AuthBase() {
+}
+
+void AuthBase::initialize() {
+	MiddlewareBase::initialize();
+}
+
+}}} //namespace

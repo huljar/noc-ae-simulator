@@ -46,27 +46,36 @@ void Encoder::handleMessage(cMessage* msg) {
 		return;
 	}
 
-	// Insert flit into cache (indexed by target address)
-	Address2D target = flit->getTarget();
-	cArray*& generation = flitCache[target];
-	if(!generation)
-		generation = new cArray;
-	generation->add(flit);
+	if(flit->getMode() == MODE_DATA) {
+		// Insert flit into cache (indexed by target address)
+		Address2D target = flit->getTarget();
+		cArray*& generation = flitCache[target];
+		if(!generation)
+			generation = new cArray;
+		generation->add(flit);
 
-	if(generation->size() == generationSize) {
-		// TODO: do actual network coding
+		if(generation->size() == generationSize) {
+			// TODO: do actual network coding
 
-		// right now we just copy the first flit a few times because
-		// there is no payload yet
-		for(int i = 0; i < numCombinations; ++i) {
-			Flit* combination = static_cast<Flit*>(generation->get(0))->dup();
-			combination->setGid(gidCounter);
-			combination->setGev(42); // TODO: set to something meaningful when NC is implemented
-			send(combination, "out");
+			// right now we just copy the first flit a few times because
+			// there is no payload yet
+			for(int i = 0; i < numCombinations; ++i) {
+				Flit* combination = static_cast<Flit*>(generation->get(0))->dup();
+				combination->setGid(gidCounter);
+				combination->setGev(42); // TODO: set to something meaningful when NC is implemented
+				send(combination, "out");
+			}
+			delete generation;
+			flitCache.erase(target);
+			++gidCounter;
 		}
-		delete generation;
-		flitCache.erase(target);
-		++gidCounter;
+	}
+	else if(flit->getMode() == MODE_MAC) {
+		flit->setGid(gidCounter - 1); // -1 because the counter contains the ID of the next generation
+		send(flit, "out");
+	}
+	else {
+		send(flit, "out");
 	}
 }
 

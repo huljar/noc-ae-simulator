@@ -13,15 +13,14 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package HaecComm.MW;
+package HaecComm.MW.Crypto;
 
 //
-// Module interface that all middleware modules must implement
+// TODO auto-generated module
 //
-// Note: For any simple modules implementing this interface, its
-// corresponding C++ class should inherit from the MiddlewareBase class.
-//
-moduleinterface IMiddlewareBase {
+simple AuthGenerationImpl like IAuthBase {
+    parameters:
+        @display("i=block/cogwheel");
     gates:
         input  in;
         output out;
