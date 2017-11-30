@@ -13,29 +13,29 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include "PacketQueue.h"
+#include "MultiInputPacketQueue.h"
 
 namespace HaecComm { namespace Clocking {
 
-Define_Module(PacketQueue);
+Define_Module(MultiInputPacketQueue);
 
-PacketQueue::PacketQueue()
+MultiInputPacketQueue::MultiInputPacketQueue()
 	: cycleFree(true)
 	, queue(nullptr)
 {
 }
 
-PacketQueue::~PacketQueue() {
+MultiInputPacketQueue::~MultiInputPacketQueue() {
 	delete queue;
 }
 
-void PacketQueue::initialize() {
+void MultiInputPacketQueue::initialize() {
 	PacketQueueBase::initialize();
 
     queue = new cPacketQueue;
 }
 
-void PacketQueue::handleMessage(cMessage* msg) {
+void MultiInputPacketQueue::handleMessage(cMessage* msg) {
 	// Confirm that this is a packet
 	if(!msg->isPacket()) {
 		EV_WARN << "Received a message that is not a packet. Discarding it." << std::endl;
@@ -65,7 +65,7 @@ void PacketQueue::handleMessage(cMessage* msg) {
 	}
 }
 
-void PacketQueue::receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) {
+void MultiInputPacketQueue::receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) {
 	if(signalID == registerSignal("clock")) {
 		if(queue->isEmpty()) {
 			cycleFree = true;

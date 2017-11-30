@@ -13,35 +13,31 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __HAECCOMM_PACKETQUEUE_H_
-#define __HAECCOMM_PACKETQUEUE_H_
+#ifndef __HAECCOMM_PACKETQUEUEBASE_H_
+#define __HAECCOMM_PACKETQUEUEBASE_H_
 
 #include <omnetpp.h>
-#include <Clocking/PacketQueueBase.h>
 
 using namespace omnetpp;
 
 namespace HaecComm { namespace Clocking {
 
 /**
- * \brief Packet queue class for synchronizing packets with the global clock
- *
- * The packet queue can queue up packets in a single direction. On each clock tick, one
- * packet is sent out (if there is a packet enqueued). If the simulation is not clocked,
- * the packets are redirected immediately, and no queueing is performed.
+ * TODO - Generated class
  */
-class PacketQueue : public PacketQueueBase {
+class PacketQueueBase : public cSimpleModule, public cListener {
 public:
-	PacketQueue();
-	virtual ~PacketQueue();
+	PacketQueueBase();
+	virtual ~PacketQueueBase();
 
 protected:
     virtual void initialize() override;
-    virtual void handleMessage(cMessage* msg) override;
-    virtual void receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) override;
+    virtual void handleMessage(cMessage* msg) override = 0;
+    virtual void receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) override = 0;
 
-    bool cycleFree;
-    cPacketQueue* queue;
+    bool isClocked;
+    bool syncFirstPacket;
+    int maxLength;
 };
 
 }} //namespace

@@ -20,8 +20,9 @@ package HaecComm.Clocking;
 // If the simulation is not clocked, no queueing is performed, and packets are
 // redirected immediately.
 //
-simple PacketQueue {
+simple PacketQueue like IPacketQueueBase {
     parameters:
+        bool syncFirstPacket = default(true);
         // Maximum length of the queue. A value of 0 means no limit.
         int maxLength = default(0);
         @display("i=block/queue");

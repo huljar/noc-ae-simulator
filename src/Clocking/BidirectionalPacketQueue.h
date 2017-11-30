@@ -17,6 +17,7 @@
 #define __HAECCOMM_BIDIRECTIONALPACKETQUEUE_H_
 
 #include <omnetpp.h>
+#include <Clocking/PacketQueueBase.h>
 
 using namespace omnetpp;
 
@@ -30,7 +31,7 @@ namespace HaecComm { namespace Clocking {
  * is a packet enqueued). If the simulation is not clocked, the packets are redirected
  * immediately, and no queueing is performed.
  */
-class BidirectionalPacketQueue : public cSimpleModule, public cListener {
+class BidirectionalPacketQueue : public PacketQueueBase {
 public:
 	BidirectionalPacketQueue();
 	virtual ~BidirectionalPacketQueue();
@@ -40,7 +41,8 @@ protected:
 	virtual void handleMessage(cMessage* msg) override;
 	virtual void receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) override;
 
-	int maxLength;
+	bool cycleFreeLeftToRight;
+	bool cycleFreeRightToLeft;
 	cPacketQueue* queueLeftToRight;
 	cPacketQueue* queueRightToLeft;
 };

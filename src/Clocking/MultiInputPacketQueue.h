@@ -13,8 +13,8 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __HAECCOMM_PACKETQUEUE_H_
-#define __HAECCOMM_PACKETQUEUE_H_
+#ifndef __HAECCOMM_MULTIINPUTPACKETQUEUE_H_
+#define __HAECCOMM_MULTIINPUTPACKETQUEUE_H_
 
 #include <omnetpp.h>
 #include <Clocking/PacketQueueBase.h>
@@ -24,16 +24,12 @@ using namespace omnetpp;
 namespace HaecComm { namespace Clocking {
 
 /**
- * \brief Packet queue class for synchronizing packets with the global clock
- *
- * The packet queue can queue up packets in a single direction. On each clock tick, one
- * packet is sent out (if there is a packet enqueued). If the simulation is not clocked,
- * the packets are redirected immediately, and no queueing is performed.
+ * TODO - Generated class
  */
-class PacketQueue : public PacketQueueBase {
+class MultiInputPacketQueue : public PacketQueueBase {
 public:
-	PacketQueue();
-	virtual ~PacketQueue();
+	MultiInputPacketQueue();
+	virtual ~MultiInputPacketQueue();
 
 protected:
     virtual void initialize() override;
