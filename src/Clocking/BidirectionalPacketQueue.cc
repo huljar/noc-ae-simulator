@@ -15,7 +15,7 @@
 
 #include "BidirectionalPacketQueue.h"
 
-namespace HaecComm { namespace Util {
+namespace HaecComm { namespace Clocking {
 
 Define_Module(BidirectionalPacketQueue);
 

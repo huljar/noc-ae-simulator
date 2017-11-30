@@ -17,7 +17,7 @@
 
 package HaecComm.simulations;
 
-import HaecComm.Core.Clock;
+import HaecComm.Clocking.Clock;
 import HaecComm.Core.IHaecNode;
 import HaecComm.Core.IHaecChannel;
 
@@ -25,8 +25,7 @@ import HaecComm.Core.IHaecChannel;
 // A network with a 2D grid layout of nodes. In addition, a global clock
 // is present which emits a clock signal in regular intervals.
 //
-network Mesh2D
-{
+network Mesh2D {
     parameters:
         bool isClocked = default(true); // should all communication be synced with the global clock module?
         int columns = default(4);       // number of grid columns
