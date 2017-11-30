@@ -15,6 +15,7 @@
 
 package HaecComm.MW.Crypto;
 
+import HaecComm.Clocking.PacketQueue;
 import HaecComm.MW.*;
 
 module AuthFlit like IMiddlewareBase {
@@ -32,8 +33,9 @@ module AuthFlit like IMiddlewareBase {
             @display("p=160,60");
             waitCycles = computeCycles - 1; //# -1 because the data flit can already be sent one cycle earlier
         }
-        serializer: Serializer {
+        serializer: PacketQueue {
             @display("p=260,60");
+            syncFirstPacket = false;
         }
     connections:
         in --> auth.in;

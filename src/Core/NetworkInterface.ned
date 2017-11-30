@@ -49,12 +49,10 @@ module NetworkInterface like INetworkInterface {
             @display("p=360,40,column,80");
             computeCycles = authCycles;
         }
-        authLoadMerger: LoadMerger {
-            @display("p=460,120");
+        authLoadMerger: MultiInputPacketQueue {
+            @display("p=460,120;i=block/join");
+            syncFirstPacket = false;
             gates: in[authCryptoUnits];
-        }
-        authSerializer: Serializer {
-            @display("p=560,120");
         }
         ncDecode: Decoder {
             @display("p=60,420");
@@ -70,8 +68,7 @@ module NetworkInterface like INetworkInterface {
             authUnit[i].in <-- authLoadBalancer.out[i];
             authUnit[i].out --> authLoadMerger.in[i];
         }
-        authLoadMerger.out --> authSerializer.in;
-        authSerializer.out --> router$o;
+        authLoadMerger.out --> router$o;
         
         ncDecode.in <-- router$i;
         ncDecode.out --> ncDecodeQueue.in;

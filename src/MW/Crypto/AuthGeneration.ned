@@ -15,6 +15,7 @@
 
 package HaecComm.MW.Crypto;
 
+import HaecComm.Clocking.PacketQueue;
 import HaecComm.MW.*;
 
 module AuthGeneration like IMiddlewareBase {
@@ -33,8 +34,9 @@ module AuthGeneration like IMiddlewareBase {
             @display("p=160,60");
             waitCycles = computeCycles - generationSize; //# -generationSize because the data flits can already be sent while the MAC is being computed
         }
-        serializer: Serializer {
+        serializer: PacketQueue {
             @display("p=260,60");
+            syncFirstPacket = false;
         }
     connections:
         in --> auth.in;
