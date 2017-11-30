@@ -20,7 +20,7 @@
 
 using namespace omnetpp;
 
-namespace HaecComm { namespace Core {
+namespace HaecComm { namespace Clocking {
 
 /**
  * \brief Clock class to generate a global clock signal

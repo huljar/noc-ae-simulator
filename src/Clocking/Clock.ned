@@ -13,7 +13,7 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package HaecComm.Core;
+package HaecComm.Clocking;
 
 //
 // Clock module which emits a clock signal in regular intervals.
@@ -23,5 +23,5 @@ simple Clock {
     parameters:
         @signal[clock](type=unsigned long);
         @display("i=device/clock");
-        double inter @unit(s) = 1s; // The interval between two clock signal emissions
+        double inter @unit(s) = default(1s); // The interval between two clock signal emissions
 }

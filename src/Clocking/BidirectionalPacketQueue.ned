@@ -13,19 +13,20 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package HaecComm.Util;
+package HaecComm.Clocking;
 
 //
-// Packet queue for synchronization with the global clock module.
+// Bidirectional packet queue for synchronization with the global clock module.
 // If the simulation is not clocked, no queueing is performed, and packets are
 // redirected immediately.
 //
-simple PacketQueue {
+simple BidirectionalPacketQueue {
     parameters:
-        // Maximum length of the queue. A value of 0 means no limit.
+        // Maximum length of the queues (for each direction).
+        // A value of 0 means no limit.
         int maxLength = default(0);
         @display("i=block/queue");
     gates:
-        input  in;
-        output out;
+        inout left;
+        inout right;
 }

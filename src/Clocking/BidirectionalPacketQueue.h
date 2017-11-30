@@ -20,7 +20,7 @@
 
 using namespace omnetpp;
 
-namespace HaecComm { namespace Util {
+namespace HaecComm { namespace Clocking {
 
 /**
  * \brief Bidirectional packet queue class for synchronizing packets with the global clock

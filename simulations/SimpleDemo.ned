@@ -15,29 +15,29 @@
 
 package HaecComm.simulations;
 
-import HaecComm.Core.Clock;
+import HaecComm.Clocking.Clock;
+import HaecComm.Clocking.PacketQueue;
 import HaecComm.MW.GenTraffic;
 import HaecComm.MW.ReportArrival;
 import HaecComm.MW.Delay;
-import HaecComm.Util.PacketQueue;
 
 //
 // Simple demo network with a source and a sink, and a queue in between.
 // A global clock is also present, which the modules use for synchronization.
 //
-network SimpleDemo
-{
+network SimpleDemo {
     parameters:
         bool isClocked = true;
         int id = 0;
-        int columns = 0;
-        int rows = 0;
+        int columns = 1;
+        int rows = 1;
     submodules:
         clock: Clock {
             @display("p=40,40");
         }
         source: GenTraffic {
             @display("p=200,40");
+            makeLargeFlits = true;
         }
         delay: Delay {
             @display("p=200,120");
