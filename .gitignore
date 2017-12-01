@@ -15,3 +15,6 @@ src/HaecComm
 src/HaecComm_dbg
 src/Messages/*_m.h
 src/Messages/*_m.cc
+
+# statistics collection directory
+simulations/results/

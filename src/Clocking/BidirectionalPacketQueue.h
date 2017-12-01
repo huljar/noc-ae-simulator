@@ -45,6 +45,11 @@ protected:
 	bool cycleFreeRightToLeft;
 	cPacketQueue* queueLeftToRight;
 	cPacketQueue* queueRightToLeft;
+
+	simsignal_t qlenltrSignal;
+	simsignal_t qlenrtlSignal;
+	simsignal_t pktdropltrSignal;
+	simsignal_t pktdroprtlSignal;
 };
 
 }} //namespace

@@ -33,6 +33,9 @@ void PacketQueue::initialize() {
 	PacketQueueBase::initialize();
 
     queue = new cPacketQueue;
+
+    qlenSignal = registerSignal("qlen");
+    pktdropSignal = registerSignal("pktdrop");
 }
 
 void PacketQueue::handleMessage(cMessage* msg) {
@@ -54,6 +57,7 @@ void PacketQueue::handleMessage(cMessage* msg) {
 			queue->insert(packet);
 		}
 		else {
+			emit(pktdropSignal, packet);
 			EV_WARN << "Received a packet, but max queue length of " << maxLength
 					<< " was already reached. Discarding it." << std::endl;
 			delete packet;
@@ -67,6 +71,9 @@ void PacketQueue::handleMessage(cMessage* msg) {
 
 void PacketQueue::receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) {
 	if(signalID == registerSignal("clock")) {
+		// Emit queue length signal
+		emit(qlenSignal, queue->getLength());
+
 		if(queue->isEmpty()) {
 			cycleFree = true;
 		}

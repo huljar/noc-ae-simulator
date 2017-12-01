@@ -37,6 +37,11 @@ void BidirectionalPacketQueue::initialize() {
 
     queueLeftToRight = new cPacketQueue;
     queueRightToLeft = new cPacketQueue;
+
+    qlenltrSignal = registerSignal("qlenltr");
+    qlenrtlSignal = registerSignal("qlenrtl");
+    pktdropltrSignal = registerSignal("pktdropltr");
+    pktdroprtlSignal = registerSignal("pktdroprtl");
 }
 
 void BidirectionalPacketQueue::handleMessage(cMessage* msg) {
@@ -59,6 +64,7 @@ void BidirectionalPacketQueue::handleMessage(cMessage* msg) {
 				queueLeftToRight->insert(packet);
 			}
 			else {
+				emit(pktdropltrSignal, packet);
 				EV_WARN << "Received a packet on left gate, but max queue length of "
 						<< maxLength << " was already reached. Discarding it." << std::endl;
 				delete packet;
@@ -78,6 +84,7 @@ void BidirectionalPacketQueue::handleMessage(cMessage* msg) {
 				queueRightToLeft->insert(packet);
 			}
 			else {
+				emit(pktdroprtlSignal, packet);
 				EV_WARN << "Received a packet on right gate, but max queue length of "
 						<< maxLength << " was already reached. Discarding it." << std::endl;
 				delete packet;
@@ -91,6 +98,10 @@ void BidirectionalPacketQueue::handleMessage(cMessage* msg) {
 
 void BidirectionalPacketQueue::receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) {
 	if(signalID == registerSignal("clock")) {
+		// Emit queue length signals
+		emit(qlenltrSignal, queueLeftToRight->getLength());
+		emit(qlenrtlSignal, queueRightToLeft->getLength());
+
 		if(queueLeftToRight->isEmpty()) {
 			cycleFreeLeftToRight = true;
 		}

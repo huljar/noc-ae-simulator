@@ -22,11 +22,19 @@ package HaecComm.Clocking;
 //
 simple BidirectionalPacketQueue like IPacketQueueBase {
     parameters:
+        @signal[qlenltr](type=long); // not using unsigned because queues return signed values for length
+        @signal[qlenrtl](type=long);
+        @signal[pktdropltr](type=cPacket);
+        @signal[pktdroprtl](type=cPacket);
+        @statistic[queueLengthLTR](source=qlenltr; record=max,timeavg,vector?; title="Queue Length (-->)");
+        @statistic[queueLengthRTL](source=qlenrtl; record=max,timeavg,vector?; title="Queue Length (<--)");
+        @statistic[dropCountLTR](source=count(pktdropltr); record=last,vector?; title="Packets dropped (-->)");
+        @statistic[dropCountRTL](source=count(pktdroprtl); record=last,vector?; title="Packets dropped (<--)");
+        @display("i=block/queue");
         bool syncFirstPacket = default(true);
         // Maximum length of the queues (for each direction).
         // A value of 0 means no limit.
         int maxLength = default(0);
-        @display("i=block/queue");
     gates:
         inout left;
         inout right;

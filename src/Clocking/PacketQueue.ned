@@ -22,10 +22,14 @@ package HaecComm.Clocking;
 //
 simple PacketQueue like IPacketQueueBase {
     parameters:
+        @signal[qlen](type=long); // not using unsigned because queues return signed values for length
+        @signal[pktdrop](type=cPacket);
+        @statistic[queueLength](source=qlen; record=max,timeavg,vector?; title="Queue Length");
+        @statistic[dropCount](source=count(pktdrop); record=last,vector?; title="Packets dropped");
+        @display("i=block/queue");
         bool syncFirstPacket = default(true);
         // Maximum length of the queue. A value of 0 means no limit.
         int maxLength = default(0);
-        @display("i=block/queue");
     gates:
         input  in;
         output out;
