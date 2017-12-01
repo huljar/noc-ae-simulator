@@ -38,6 +38,9 @@ protected:
 
     bool cycleFree;
     cPacketQueue* queue;
+
+    simsignal_t qlenSignal;
+    simsignal_t pktdropSignal;
 };
 
 }} //namespace

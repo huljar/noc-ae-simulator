@@ -20,9 +20,13 @@ package HaecComm.Clocking;
 //
 simple MultiInputPacketQueue like IPacketQueueBase {
     parameters:
+        @signal[qlen](type=long); // not using unsigned because queues return signed values for length
+        @signal[pktdrop](type=cPacket);
+        @statistic[queueLength](source=qlen; record=max,timeavg,vector?; title="Queue Length");
+        @statistic[dropCount](source=count(pktdrop); record=last,vector?; title="Packets dropped");
+        @display("i=block/queue");
         bool syncFirstPacket = default(true);
         int maxLength = default(0);
-        @display("i=block/queue");
     gates:
         input  in[];
         output out;
