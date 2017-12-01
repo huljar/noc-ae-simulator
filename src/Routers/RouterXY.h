@@ -36,6 +36,10 @@ class RouterXY : public RouterBase {
 protected:
 	virtual void initialize();
 	virtual void handleMessage(cMessage* msg);
+
+	simsignal_t pktsendSignal;
+	simsignal_t pktreceiveSignal;
+	simsignal_t pktrouteSignal;
 };
 
 }} //namespace

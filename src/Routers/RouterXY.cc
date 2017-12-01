@@ -23,6 +23,11 @@ namespace HaecComm { namespace Routers {
 Define_Module(RouterXY);
 
 void RouterXY::initialize() {
+	RouterBase::initialize();
+
+	pktsendSignal = registerSignal("pktsend");
+	pktreceiveSignal = registerSignal("pktreceive");
+	pktrouteSignal = registerSignal("pktroute");
 }
 
 void RouterXY::handleMessage(cMessage* msg) {
@@ -43,6 +48,17 @@ void RouterXY::handleMessage(cMessage* msg) {
 
 	int targetX = flit->getTarget().x();
 	int targetY = flit->getTarget().y();
+
+	bool isSender = strcmp(flit->getArrivalGate()->getName(), "local$i") == 0;
+	bool isReceiver = targetX == myX && targetY == myY;
+
+	// Emit statistics signals
+	if(isSender && !isReceiver)
+		emit(pktsendSignal, flit);
+	if(isReceiver && !isSender)
+		emit(pktreceiveSignal, flit);
+	if(!isSender && !isReceiver)
+		emit(pktrouteSignal, flit);
 
 	// Route the flit
 	if(targetX != myX) {
