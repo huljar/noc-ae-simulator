@@ -16,7 +16,12 @@
 package HaecComm.MW.Crypto;
 
 //
-// TODO auto-generated module
+// Authentication module implementing the half flit authentication scheme
+// as described in the paper. Each incoming flit is split into two flits,
+// with the first flit containing the first half of the payload and the
+// second one containing the second half. For each of these Flits, a short MAC is
+// computed and put into the (now empty) second half of the payload. Then,
+// both flits are sent out.
 //
 simple AuthHalfFlitImpl like IAuthBase {
     parameters:

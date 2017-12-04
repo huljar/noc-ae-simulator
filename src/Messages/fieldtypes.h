@@ -28,18 +28,31 @@ namespace HaecComm { namespace Messages {
  */
 class Address2D {
 public:
+	/// Default constructor. Initializes with (x,y)=(0,0).
 	Address2D() : address(0) { }
+	/**
+	 * Constructor with a specified address.
+	 *
+	 * \param x X coordinate. Must be in [0,15] range (4 bit).
+	 * \param y Y coordinate. Must be in [0,15] range (4 bit).
+	 */
 	Address2D(uint8_t x, uint8_t y) {
 		ASSERT(x < 16);
 		ASSERT(y < 16);
 		address = (x << 4) + y;
 	}
+	/// Copy constructor
 	Address2D(const Address2D& other) : address(other.address) { }
+	/// Copy assignment operator
 	Address2D& operator=(const Address2D& other) { address = other.address; return *this; }
 
+	/// Get X coordinate
 	uint8_t x() const { return address >> 4; }
+	/// Get Y coordinate
 	uint8_t y() const { return address & 0x0F; }
+	/// Set X coordinate. Must be in [0,15] range (4 bit).
 	void setX(uint8_t x) { ASSERT(x < 16); address = (x << 4) + (address & 0x0F); }
+	/// Set Y coordinate. Must be in [0,15] range (4 bit).
 	void setY(uint8_t y) { ASSERT(y < 16); address = (address & 0xF0) + y; }
 
 private:
@@ -48,6 +61,7 @@ private:
 	uint8_t address;
 };
 
+/// Strict weak ordering for Address2D objects
 inline bool operator<(const Address2D& lhs, const Address2D& rhs) {
 	return lhs.x() == rhs.x() ? lhs.y() < rhs.y() : lhs.x() < rhs.x();
 }

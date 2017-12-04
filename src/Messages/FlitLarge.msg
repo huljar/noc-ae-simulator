@@ -22,9 +22,10 @@ namespace HaecComm::Messages;
 packet Flit;
 
 //
-// TODO generated message class
+// Implementation of large Flits. Adds a 128 bit payload to the headers
+// specified in ~Flit.
 //
 packet FlitLarge extends Flit {
-    uint8_t payload[16];
+    uint8_t payload[16]; // 128 bit payload, represented as a byte array.
     bitLength = 217;
 }

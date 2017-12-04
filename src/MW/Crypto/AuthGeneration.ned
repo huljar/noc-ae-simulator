@@ -18,6 +18,11 @@ package HaecComm.MW.Crypto;
 import HaecComm.Clocking.PacketQueue;
 import HaecComm.MW.*;
 
+//
+// Compound module wrapper around the ~AuthGenerationImpl simple module.
+// In addition to the authentication, a computation delay and
+// serialization (one packet per clock cycle) are performed.
+//
 module AuthGeneration like IMiddlewareBase {
     parameters:
         int computeCycles;

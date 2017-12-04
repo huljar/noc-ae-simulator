@@ -17,6 +17,9 @@ package HaecComm.MW.NetworkCoding;
 
 import HaecComm.MW.IMiddlewareBase;
 
+//
+// Interface for network coding modules to implement
+//
 moduleinterface INetworkCodingBase extends IMiddlewareBase {
     parameters:
         int generationSize;
