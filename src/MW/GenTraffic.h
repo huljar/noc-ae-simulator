@@ -46,6 +46,12 @@ protected:
 
     double injectionProb;
     bool makeLargeFlits;
+
+    int gridRows;
+    int gridColumns;
+    int nodeId;
+    int nodeX;
+    int nodeY;
 };
 
 }} //namespace

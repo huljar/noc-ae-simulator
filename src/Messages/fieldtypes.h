@@ -58,7 +58,7 @@ public:
 	void setY(uint8_t y) { ASSERT(y < 16); address = (address & 0xF0) + y; }
 
 	/// Get string representation of the address
-	std::string toString() const {
+	std::string str() const {
 		std::ostringstream s;
 		s << '(' << +x() << ", " << +y() << ')';
 		return s.str();

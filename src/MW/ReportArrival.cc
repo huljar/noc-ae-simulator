@@ -24,8 +24,8 @@ Define_Module(ReportArrival);
 
 void ReportArrival::handleMessage(cMessage* msg) {
 	if(Flit* flit = dynamic_cast<Flit*>(msg)) {
-		EV << "Received flit \"" << flit->getName() << "\" from " << flit->getSource().toString()
-		   << " at " << flit->getTarget().toString() << " with hop count " << +flit->getHopCount() << std::endl;
+		EV << "Received flit \"" << flit->getName() << "\" from " << flit->getSource().str()
+		   << " at " << flit->getTarget().str() << " with hop count " << +flit->getHopCount() << std::endl;
 	}
 	else {
 		EV << "Received message \"" << msg->getName() << "\"" << std::endl;

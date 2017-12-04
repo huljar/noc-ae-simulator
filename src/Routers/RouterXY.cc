@@ -56,7 +56,7 @@ void RouterXY::handleMessage(cMessage* msg) {
 		flit->setHopCount(flit->getHopCount() + 1);
 	}
 
-	EV << "Routing flit: " << flit->getSource().toString() << " -> " << flit->getTarget().toString() << std::endl;
+	EV << "Routing flit: " << flit->getSource().str() << " -> " << flit->getTarget().str() << std::endl;
 
 	// Route the flit
 	if(targetX != nodeX) {
