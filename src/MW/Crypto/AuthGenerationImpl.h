@@ -18,7 +18,7 @@
 
 #include <omnetpp.h>
 #include <Messages/fieldtypes.h>
-#include <MW/Crypto/AuthBase.h>
+#include <MW/MiddlewareBase.h>
 #include <map>
 
 using namespace omnetpp;
@@ -28,7 +28,7 @@ namespace HaecComm { namespace MW { namespace Crypto {
 /**
  * TODO - Generated class
  */
-class AuthGenerationImpl : public AuthBase {
+class AuthGenerationImpl : public MiddlewareBase {
 public:
 	AuthGenerationImpl();
 	virtual ~AuthGenerationImpl();

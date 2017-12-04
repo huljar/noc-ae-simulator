@@ -39,4 +39,9 @@ packet Flit {
     //# TODO: assert 24 bit size
     uint16_t gev; // Global Encoding Vector. Only used in network coding combinations.
     //# TODO: assert 12 bit size
+    
+    //# The following fields are helpers which are not "officially" part of the
+    //# message (and thus should not be considered when setting the bit length
+    //# of the flit).
+    uint8_t hopCount; // Hop count (how many nodes were visited before reaching the destination)
 }

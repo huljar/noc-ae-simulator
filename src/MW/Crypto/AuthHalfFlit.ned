@@ -23,7 +23,7 @@ import HaecComm.MW.*;
 // In addition to the authentication, a computation delay and
 // serialization (one packet per clock cycle) are performed.
 //
-module AuthHalfFlit like IMiddlewareBase {
+module AuthHalfFlit like IAuthBase {
     parameters:
         int computeCycles;
         @display("i=block/encrypt");

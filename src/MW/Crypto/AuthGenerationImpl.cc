@@ -33,7 +33,7 @@ AuthGenerationImpl::~AuthGenerationImpl() {
 }
 
 void AuthGenerationImpl::initialize() {
-    AuthBase::initialize();
+    MiddlewareBase::initialize();
 
     generationSize = par("generationSize");
     if(generationSize < 1)

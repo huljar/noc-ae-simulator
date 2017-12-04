@@ -22,7 +22,20 @@ namespace HaecComm { namespace Routers {
 
 Define_Module(RouterXY);
 
+RouterXY::RouterXY()
+	: nodeX(0)
+	, nodeY(0)
+{
+}
+
+RouterXY::~RouterXY() {
+}
+
 void RouterXY::initialize() {
+	RouterBase::initialize();
+
+	nodeX = nodeId % gridColumns;
+	nodeY = nodeId / gridColumns;
 }
 
 void RouterXY::handleMessage(cMessage* msg) {
@@ -35,23 +48,24 @@ void RouterXY::handleMessage(cMessage* msg) {
 	}
 
 	// Get node information
-	int gridCols = static_cast<int>(getAncestorPar("columns")); // TODO: put this in initialize()
-
-	int myId = static_cast<int>(getAncestorPar("id"));
-	int myX = myId % gridCols;
-	int myY = myId / gridCols;
-
 	int targetX = flit->getTarget().x();
 	int targetY = flit->getTarget().y();
 
-	// Route the flit
-	if(targetX != myX) {
-		// Move in X direction
-		send(flit, "port$o", targetX < myX ? 3 : 1); // implicit knowledge
+	// Increase hop count if we are not the sender node
+	if(strcmp(flit->getArrivalGate()->getName(), "local$i") != 0) {
+		flit->setHopCount(flit->getHopCount() + 1);
 	}
-	else if(targetY != myY) {
+
+	EV << "Routing flit: " << flit->getSource().toString() << " -> " << flit->getTarget().toString() << std::endl;
+
+	// Route the flit
+	if(targetX != nodeX) {
+		// Move in X direction
+		send(flit, "port$o", targetX < nodeX ? 3 : 1); // implicit knowledge
+	}
+	else if(targetY != nodeY) {
 		// Move in Y direction
-		send(flit, "port$o", targetY < myY ? 0 : 2);
+		send(flit, "port$o", targetY < nodeY ? 0 : 2);
 	}
 	else {
 		// This node is the destination

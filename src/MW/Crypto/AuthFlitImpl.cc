@@ -23,7 +23,7 @@ namespace HaecComm { namespace MW { namespace Crypto {
 Define_Module(AuthFlitImpl);
 
 void AuthFlitImpl::initialize() {
-	AuthBase::initialize();
+	MiddlewareBase::initialize();
 }
 
 void AuthFlitImpl::handleMessage(cMessage* msg) {

@@ -11,6 +11,8 @@
 #include <omnetpp.h>
 #include <array>
 #include <cinttypes>
+#include <sstream>
+#include <string>
 
 using namespace omnetpp;
 
@@ -54,6 +56,13 @@ public:
 	void setX(uint8_t x) { ASSERT(x < 16); address = (x << 4) + (address & 0x0F); }
 	/// Set Y coordinate. Must be in [0,15] range (4 bit).
 	void setY(uint8_t y) { ASSERT(y < 16); address = (address & 0xF0) + y; }
+
+	/// Get string representation of the address
+	std::string toString() const {
+		std::ostringstream s;
+		s << '(' << +x() << ", " << +y() << ')';
+		return s.str();
+	}
 
 private:
 	/// The X coordinate is stored in the most significant 4 bit and the

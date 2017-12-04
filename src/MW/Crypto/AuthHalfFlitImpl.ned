@@ -15,6 +15,8 @@
 
 package HaecComm.MW.Crypto;
 
+import HaecComm.MW.IMiddlewareBase;
+
 //
 // Authentication module implementing the half flit authentication scheme
 // as described in the paper. Each incoming flit is split into two flits,
@@ -23,7 +25,7 @@ package HaecComm.MW.Crypto;
 // computed and put into the (now empty) second half of the payload. Then,
 // both flits are sent out.
 //
-simple AuthHalfFlitImpl like IAuthBase {
+simple AuthHalfFlitImpl like IMiddlewareBase {
     parameters:
         @display("i=block/cogwheel");
     gates:

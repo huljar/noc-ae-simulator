@@ -23,7 +23,7 @@ import HaecComm.MW.*;
 // In addition to the authentication, a computation delay and
 // serialization (one packet per clock cycle) are performed.
 //
-module AuthGeneration like IMiddlewareBase {
+module AuthGeneration like IAuthBase {
     parameters:
         int computeCycles;
         int generationSize;
@@ -34,6 +34,7 @@ module AuthGeneration like IMiddlewareBase {
     submodules:
         auth: AuthGenerationImpl {
             @display("p=60,60");
+            generationSize = generationSize;
         }
         delay: Delay {
             @display("p=160,60");

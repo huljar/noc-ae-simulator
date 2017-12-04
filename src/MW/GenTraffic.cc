@@ -90,7 +90,7 @@ void GenTraffic::receiveSignal(cComponent* source, simsignal_t signalID, unsigne
 
 			// Build packet name
 			std::ostringstream packetName;
-			packetName << "flit-" << myId << "-" << targetNodeId << "-" << l;
+			packetName << "flit-s" << myId << "-t" << targetNodeId << "-c" << l;
 
 			// Create the flit
 			// TODO: use a FlitFactory class or factory method?
@@ -101,7 +101,8 @@ void GenTraffic::receiveSignal(cComponent* source, simsignal_t signalID, unsigne
 				flit = new FlitSmall(packetName.str().c_str());
 			take(flit);
 
-			// Set destination node
+			// Set header fields
+			flit->setSource(Address2D(myId % gridCols, myId / gridCols));
 			flit->setTarget(Address2D(targetX, targetY));
 
 			EV << this->getFullPath() << " sending flit " << flit << std::endl;

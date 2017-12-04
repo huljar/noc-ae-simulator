@@ -17,13 +17,18 @@
 
 namespace HaecComm { namespace Routers {
 
-RouterBase::RouterBase() {
+RouterBase::RouterBase()
+	: gridColumns(1)
+	, nodeId(0)
+{
 }
 
 RouterBase::~RouterBase() {
 }
 
 void RouterBase::initialize() {
+	gridColumns = getAncestorPar("columns");
+	nodeId = getAncestorPar("id");
 }
 
 }} //namespace

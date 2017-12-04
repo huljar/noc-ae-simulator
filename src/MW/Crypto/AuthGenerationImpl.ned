@@ -15,6 +15,8 @@
 
 package HaecComm.MW.Crypto;
 
+import HaecComm.MW.IMiddlewareBase;
+
 //
 // Authentication module implementing the whole generation authentication scheme
 // as described in the paper. Flits are collected until enough flits of the same
@@ -22,9 +24,10 @@ package HaecComm.MW.Crypto;
 // put into a separate flit. Afterwards, the data flits of the generation are
 // sent out, followed immediately by the corresponding MAC flit.
 //
-simple AuthGenerationImpl like IAuthBase {
+simple AuthGenerationImpl like IMiddlewareBase {
     parameters:
         @display("i=block/cogwheel");
+        int generationSize;
     gates:
         input  in;
         output out;

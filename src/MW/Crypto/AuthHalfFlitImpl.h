@@ -17,7 +17,7 @@
 #define __HAECCOMM_AUTHHALFFLIT_H_
 
 #include <omnetpp.h>
-#include <MW/Crypto/AuthBase.h>
+#include <MW/MiddlewareBase.h>
 
 using namespace omnetpp;
 
@@ -26,7 +26,7 @@ namespace HaecComm { namespace MW { namespace Crypto {
 /**
  * TODO - Generated class
  */
-class AuthHalfFlitImpl : public AuthBase {
+class AuthHalfFlitImpl : public MiddlewareBase {
 protected:
     virtual void initialize() override;
     virtual void handleMessage(cMessage* msg) override;
