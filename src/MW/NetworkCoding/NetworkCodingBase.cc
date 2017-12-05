@@ -15,9 +15,6 @@
 
 #include "NetworkCodingBase.h"
 
-using namespace HaecComm::Messages;
-using namespace HaecComm::Util;
-
 namespace HaecComm { namespace MW { namespace NetworkCoding {
 
 NetworkCodingBase::NetworkCodingBase()
