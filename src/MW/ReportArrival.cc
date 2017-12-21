@@ -14,13 +14,22 @@
 // 
 
 #include "ReportArrival.h"
+#include <Messages/Flit_m.h>
+
+using namespace HaecComm::Messages;
 
 namespace HaecComm { namespace MW {
 
 Define_Module(ReportArrival);
 
 void ReportArrival::handleMessage(cMessage* msg) {
-    EV << this->getFullName() << "+++++ recv msg: " << msg->getName() << std::endl;
+	if(Flit* flit = dynamic_cast<Flit*>(msg)) {
+		EV << "Received flit \"" << flit->getName() << "\" from " << flit->getSource().str()
+		   << " at " << flit->getTarget().str() << " with hop count " << +flit->getHopCount() << std::endl;
+	}
+	else {
+		EV << "Received message \"" << msg->getName() << "\"" << std::endl;
+	}
     delete msg;
 }
 

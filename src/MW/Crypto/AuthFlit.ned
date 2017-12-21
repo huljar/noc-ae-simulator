@@ -18,9 +18,14 @@ package HaecComm.MW.Crypto;
 import HaecComm.Clocking.PacketQueue;
 import HaecComm.MW.*;
 
-module AuthFlit like IMiddlewareBase {
+//
+// Compound module wrapper around the ~AuthFlitImpl simple module.
+// In addition to the authentication, a computation delay and
+// serialization (one packet per clock cycle) are performed.
+//
+module AuthFlit like IAuthBase {
     parameters:
-        int computeCycles;
+        int computeCycles; // Number of clock cycles to delay outgoing packets
         @display("i=block/encrypt");
     gates:
         input  in;

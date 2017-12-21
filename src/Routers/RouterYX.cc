@@ -13,39 +13,32 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include "RouterXY.h"
+#include "RouterYX.h"
 #include <Messages/Flit_m.h>
 
 using namespace HaecComm::Messages;
 
 namespace HaecComm { namespace Routers {
 
-Define_Module(RouterXY);
+Define_Module(RouterYX);
 
-RouterXY::RouterXY()
+RouterYX::RouterYX()
 	: nodeX(0)
 	, nodeY(0)
-	, pktsendSignal(0)
-	, pktreceiveSignal(0)
-	, pktrouteSignal(0)
 {
 }
 
-RouterXY::~RouterXY() {
+RouterYX::~RouterYX() {
 }
 
-void RouterXY::initialize() {
+void RouterYX::initialize() {
 	RouterBase::initialize();
 
 	nodeX = nodeId % gridColumns;
 	nodeY = nodeId / gridColumns;
-
-	pktsendSignal = registerSignal("pktsend");
-	pktreceiveSignal = registerSignal("pktreceive");
-	pktrouteSignal = registerSignal("pktroute");
 }
 
-void RouterXY::handleMessage(cMessage* msg) {
+void RouterYX::handleMessage(cMessage* msg) {
 	// Confirm that this is a flit
 	Flit* flit = dynamic_cast<Flit*>(msg);
 	if(!flit) {
@@ -58,32 +51,21 @@ void RouterXY::handleMessage(cMessage* msg) {
 	int targetX = flit->getTarget().x();
 	int targetY = flit->getTarget().y();
 
-	bool isSender = strcmp(flit->getArrivalGate()->getName(), "local$i") == 0;
-	bool isReceiver = targetX == nodeX && targetY == nodeY;
-
-	// Emit statistics signals
-	if(isSender && !isReceiver)
-		emit(pktsendSignal, flit);
-	if(isReceiver && !isSender)
-		emit(pktreceiveSignal, flit);
-	if(!isSender && !isReceiver)
-		emit(pktrouteSignal, flit);
-
 	// Increase hop count if we are not the sender node
-	if(!isSender) {
+	if(strcmp(flit->getArrivalGate()->getName(), "local$i") != 0) {
 		flit->setHopCount(flit->getHopCount() + 1);
 	}
 
 	EV << "Routing flit: " << flit->getSource().str() << " -> " << flit->getTarget().str() << std::endl;
 
 	// Route the flit
-	if(targetX != nodeX) {
-		// Move in X direction
-		send(flit, "port$o", targetX < nodeX ? 3 : 1); // implicit knowledge
-	}
-	else if(targetY != nodeY) {
+	if(targetY != nodeY) {
 		// Move in Y direction
-		send(flit, "port$o", targetY < nodeY ? 0 : 2);
+		send(flit, "port$o", targetY < nodeY ? 0 : 2); // implicit knowledge
+	}
+	else if(targetX != nodeX) {
+		// Move in X direction
+		send(flit, "port$o", targetX < nodeX ? 3 : 1);
 	}
 	else {
 		// This node is the destination

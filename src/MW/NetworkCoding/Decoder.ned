@@ -18,7 +18,11 @@ package HaecComm.MW.NetworkCoding;
 import HaecComm.MW.IMiddlewareBase;
 
 //
-// TODO auto-generated module
+// Simple module implementing network decoding. Flits with the same generation
+// ID (combinations) are collected until enough flits are present. These flits
+// are decoded using the <i>gev</i> header field and sent out afterwards. On
+// the sender side, an ~Encoder module is required create the linear combinations
+// of the original flits.
 //
 simple Decoder like INetworkCodingBase {
     parameters:

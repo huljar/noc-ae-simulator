@@ -13,26 +13,38 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef MW_CRYPTO_AUTHBASE_H_
-#define MW_CRYPTO_AUTHBASE_H_
+#ifndef __HAECCOMM_ROUTERYX_H_
+#define __HAECCOMM_ROUTERYX_H_
 
 #include <omnetpp.h>
-#include <MW/MiddlewareBase.h>
+#include <Routers/RouterBase.h>
 
 using namespace omnetpp;
 
-namespace HaecComm { namespace MW { namespace Crypto {
+namespace HaecComm { namespace Routers {
 
-class AuthBase: public MiddlewareBase {
+/**
+ * \brief Router with a YX routing scheme.
+ *
+ * This router implementation should be used with a two-dimensional
+ * grid network topology. It routes the packet vertically (in Y
+ * direction) until the row of the destination node is reached.
+ * Then, it is routed horizontally (X direction) until the destination
+ * node is reached.
+ */
+class RouterYX : public RouterBase {
 public:
-	AuthBase();
-	virtual ~AuthBase();
+	RouterYX();
+	virtual ~RouterYX();
 
 protected:
     virtual void initialize() override;
-    virtual void handleMessage(cMessage* msg) override = 0;
+    virtual void handleMessage(cMessage* msg) override;
+
+	int nodeX;
+	int nodeY;
 };
 
-}}} //namespace
+}} //namespace
 
-#endif /* MW_CRYPTO_AUTHBASE_H_ */
+#endif

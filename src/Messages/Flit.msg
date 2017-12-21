@@ -23,15 +23,25 @@ class noncobject Address2D;
 enum Mode;
 
 //
-// TODO generated message class
+// Base class representing a HAEC flit. This class contains only the headers
+// that are specified in the paper. Use subclasses like ~FlitLarge and ~FlitSmall
+// for actual messages.
 //
 packet Flit {
-    bool burst;
-    Address2D source;
-    Address2D target;
-    uint8_t mode @enum(Mode);
-    uint32_t memAddress; //# TODO: how exactly is this supposed to be used?
+    bool burst; // Burst bit. Marks this flit as part of a burst of several flits.
+    Address2D source; // Address of the sender of this flit.
+    Address2D target; // Address of the destination of this flit.
+    uint8_t mode @enum(Mode); // Flags which specify the type of flit and how memAddress is used.
+    uint32_t memAddress; // 32 bit memory address marking a region to be read from/written to, depending on mode.
+    //# TODO: how exactly is this field used?
     
-    uint32_t gid; //# TODO: assert 24 bit size
-    uint16_t gev; //# TODO: assert 12 bit size
+    uint32_t gid; // Generation ID. Specifies the generation that this flit belongs to.
+    //# TODO: assert 24 bit size
+    uint16_t gev; // Global Encoding Vector. Only used in network coding combinations.
+    //# TODO: assert 12 bit size
+    
+    //# The following fields are helpers which are not "officially" part of the
+    //# message (and thus should not be considered when setting the bit length
+    //# of the flit).
+    uint8_t hopCount; // Hop count (how many nodes were visited before reaching the destination)
 }

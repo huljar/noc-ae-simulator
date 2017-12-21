@@ -15,10 +15,15 @@
 
 package HaecComm.MW.Crypto;
 
+import HaecComm.MW.IMiddlewareBase;
+
 //
-// TODO auto-generated module
+// Authentication module implementing the single flit authentication scheme
+// as described in the paper. For each incoming flit, a MAC is computed and put
+// into a separate flit. The original flit is always sent out first, followed
+// immediately by the corresponding MAC flit.
 //
-simple AuthFlitImpl like IAuthBase {
+simple AuthFlitImpl like IMiddlewareBase {
     parameters:
         @display("i=block/cogwheel");
     gates:

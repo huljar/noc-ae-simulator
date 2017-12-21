@@ -18,7 +18,12 @@ package HaecComm.MW.Crypto;
 import HaecComm.Clocking.PacketQueue;
 import HaecComm.MW.*;
 
-module AuthHalfFlit like IMiddlewareBase {
+//
+// Compound module wrapper around the ~AuthHalfFlitImpl simple module.
+// In addition to the authentication, a computation delay and
+// serialization (one packet per clock cycle) are performed.
+//
+module AuthHalfFlit like IAuthBase {
     parameters:
         int computeCycles;
         @display("i=block/encrypt");

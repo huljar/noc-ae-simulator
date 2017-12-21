@@ -27,6 +27,11 @@ Define_Module(GenTraffic);
 GenTraffic::GenTraffic()
 	: injectionProb(0.0)
 	, makeLargeFlits(false)
+	, gridRows(1)
+	, gridColumns(1)
+	, nodeId(0)
+	, nodeX(0)
+	, nodeY(0)
 {
 }
 
@@ -46,6 +51,13 @@ void GenTraffic::initialize() {
 		throw cRuntimeError(this, "Injection probability must be between 0 and 1, but is %f", injectionProb);
 
 	makeLargeFlits = par("makeLargeFlits");
+
+	gridRows = getAncestorPar("rows");
+	gridColumns = getAncestorPar("columns");
+	nodeId = getAncestorPar("id");
+
+	nodeX = nodeId % gridColumns;
+	nodeY = nodeId / gridColumns;
 }
 
 void GenTraffic::handleMessage(cMessage* msg) {
@@ -59,38 +71,23 @@ void GenTraffic::receiveSignal(cComponent* source, simsignal_t signalID, unsigne
 		if(injectionProb == 0.0) // Explicit zero check because uniform(0.0, 1.0) can return 0
 			return;
 
-		int myId = getAncestorPar("id");
 		if(uniform(0.0, 1.0) < injectionProb) {
 			// Generate a flit
-			// We assume that we are operating in a 2-dimensional grid topology
-			int gridRows = 1, gridCols = 1;
 			int targetNodeId;
 
-			try {
-				gridRows = getAncestorPar("rows");
-				gridCols = getAncestorPar("columns");
-			}
-			catch(const cRuntimeError& ex) {
-				EV_WARN << " ancestors don't have width/height parameters!" << std::endl;
-			}
-
-			if(gridRows == 1 && gridCols == 1) {
-				targetNodeId = 0;
-			} else {
-				// TODO create paramterized target selection class
-				// Uniform target selection
-				do {
-					targetNodeId = static_cast<int>(intrand(gridRows * gridCols));
-				} while(targetNodeId == myId);
-			}
+			// TODO create paramterized target selection class
+			// Uniform target selection
+			do {
+				targetNodeId = static_cast<int>(intrand(gridRows * gridColumns));
+			} while(targetNodeId == nodeId);
 
 			// Get target X and Y
-			int targetX = targetNodeId % gridCols;
-			int targetY = targetNodeId / gridCols;
+			int targetX = targetNodeId % gridColumns;
+			int targetY = targetNodeId / gridColumns;
 
 			// Build packet name
 			std::ostringstream packetName;
-			packetName << "flit-" << myId << "-" << targetNodeId << "-" << l;
+			packetName << "flit-s" << nodeId << "-t" << targetNodeId << "-c" << l;
 
 			// Create the flit
 			// TODO: use a FlitFactory class or factory method?
@@ -101,10 +98,12 @@ void GenTraffic::receiveSignal(cComponent* source, simsignal_t signalID, unsigne
 				flit = new FlitSmall(packetName.str().c_str());
 			take(flit);
 
-			// Set destination node
+			// Set header fields
+			flit->setSource(Address2D(nodeX, nodeY));
 			flit->setTarget(Address2D(targetX, targetY));
 
-			EV << this->getFullPath() << " sending flit " << flit << std::endl;
+			EV << "Sending flit \"" << flit->getName() << "\" from " << flit->getSource().str()
+			   << " to " << flit->getTarget().str() << std::endl;
 			send(flit, "out");
 		}
 	}

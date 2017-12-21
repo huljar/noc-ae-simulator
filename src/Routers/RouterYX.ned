@@ -13,18 +13,17 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include "AuthBase.h"
+package HaecComm.Routers;
 
-namespace HaecComm { namespace MW { namespace Crypto {
-
-AuthBase::AuthBase() {
+//
+// Implementation of YX routing scheme from the HAEC project.
+// It provides a simple YX router with no additional processing performed
+// on the packets.
+//
+simple RouterYX like IRouter {
+    parameters:
+        @display("i=block/routing");
+    gates:
+        inout local;
+        inout port[];
 }
-
-AuthBase::~AuthBase() {
-}
-
-void AuthBase::initialize() {
-	MiddlewareBase::initialize();
-}
-
-}}} //namespace
