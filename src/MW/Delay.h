@@ -19,7 +19,6 @@
 #include <omnetpp.h>
 #include <MW/MiddlewareBase.h>
 #include <Util/ShiftRegister.h>
-#include <set>
 
 using namespace omnetpp;
 
@@ -32,11 +31,8 @@ namespace HaecComm { namespace MW {
  * simulate computation delays. Essentially, it holds back incoming
  * messages for a certain amount of time before sending them out.
  *
- * In a clocked simulation (determined by the <em>isClocked</em> NED
- * parameter of the network), the delay is measured in clock cycles
- * and determined by the <em>waitCycles</em> NED parameter. In an
- * unclocked simulation, it is measured in (milli)seconds and determined
- * by the <em>waitTime</em> NED parameter.
+ * The delay is measured in clock cycles and determined by the
+ * <em>waitCycles</em> NED parameter.
  *
  * The Delay middleware does not enforce any restrictions on how many
  * messages can be held back at the same time.
@@ -52,12 +48,9 @@ protected:
     virtual void receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) override;
 
 private:
-    bool isClocked;
     int waitCycles;
-    double waitTime;
 
     Util::ShiftRegister<cArray*> shiftRegister;
-    std::set<cMessage*> registry;
 };
 
 }} //namespace

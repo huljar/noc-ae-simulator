@@ -16,7 +16,7 @@
 package HaecComm.Core;
 
 import HaecComm.Routers.IRouter;
-import HaecComm.Clocking.BidirectionalPacketQueue;
+import HaecComm.Clocking.PacketQueue;
 
 //
 // Default definition of the HAEC network nodes. It consists of an App (aka.
@@ -35,33 +35,48 @@ module HaecNode like IHaecNode {
         inout port[];
     submodules:
         app: <appType> like IApp {
-            @display("p=60,60");
+            @display("p=100,255");
         }
-        appQueue: BidirectionalPacketQueue {
-            @display("p=160,60");
+        appNiQueue: PacketQueue {
+            @display("p=300,205");
+        }
+        niAppQueue: PacketQueue {
+            @display("p=200,305");
         }
         ni: <niType> like INetworkInterface {
-            @display("p=260,60");
+            @display("p=400,255");
         }
-        niQueue: BidirectionalPacketQueue {
-            @display("p=360,60");
+        niRouterQueue: PacketQueue {
+            @display("p=600,205");
+            waitForSignal = true;
+        }
+        routerNiQueue: PacketQueue {
+            @display("p=500,305");
         }
         router: <routerType> like IRouter {
-            @display("p=460,60");
+            @display("p=700,255");
             gates: port[sizeof(port)];
         }
-        routerQueue[sizeof(port)]: BidirectionalPacketQueue {
-            @display("p=310,180,row,100");
+        routerInputQueue[sizeof(port)]: PacketQueue {
+            @display("p=850,105,column,100");
+            waitForSignal = true;
         }
     connections:
-        app.net <--> appQueue.left;
-        appQueue.right <--> ni.app;
+        app.net$i <-- niAppQueue.out;
+        app.net$o --> appNiQueue.in;
         
-        ni.router <--> niQueue.left;
-        niQueue.right <--> router.local;
+        ni.app$i <-- appNiQueue.out;
+        ni.app$o --> niAppQueue.in;
+        
+        ni.router$i <-- routerNiQueue.out;
+        ni.router$o --> niRouterQueue.in;
+        
+        router.local$i <-- niRouterQueue.out;
+        router.local$o --> routerNiQueue.in;
         
         for i=0..sizeof(port)-1 {
-            router.port[i] <--> routerQueue[i].left;
-            port[i] <--> routerQueue[i].right;
+            router.port$i[i] <-- routerInputQueue[i].out;
+            router.port$o[i] --> port$o[i];
+            port$i[i] --> routerInputQueue[i].in;
         }
 }

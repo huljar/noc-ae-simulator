@@ -17,6 +17,8 @@
 #define ROUTERS_ROUTERBASE_H_
 
 #include <omnetpp.h>
+#include <Clocking/PacketQueueBase.h>
+#include <map>
 
 using namespace omnetpp;
 
@@ -25,7 +27,7 @@ namespace HaecComm { namespace Routers {
 /**
  * \brief Base class for all router modules
  */
-class RouterBase : public cSimpleModule {
+class RouterBase : public cSimpleModule, public cListener {
 public:
 	RouterBase();
 	virtual ~RouterBase();
@@ -33,9 +35,14 @@ public:
 protected:
 	virtual void initialize() override;
 	virtual void handleMessage(cMessage* msg) override = 0;
+    virtual void receiveSignal(cComponent* source, simsignal_t signalID, bool b, cObject* details) override;
 
 	int gridColumns;
 	int nodeId;
+
+	std::map<int, int> modulePortMap;
+	std::map<int, bool> portReadyMap;
+	std::map<int, Clocking::PacketQueueBase*> portQueueMap;
 };
 
 }} //namespace

@@ -41,10 +41,8 @@ GenTraffic::~GenTraffic() {
 void GenTraffic::initialize() {
 	MiddlewareBase::initialize();
 
-	if(getAncestorPar("isClocked")) {
-		// subscribe to clock signal
-		getSimulation()->getSystemModule()->subscribe("clock", this);
-	}
+    // subscribe to clock signal
+    getSimulation()->getSystemModule()->subscribe("clock", this);
 
 	injectionProb = par("injectionProb");
 	if(injectionProb < 0.0 || injectionProb > 1.0)

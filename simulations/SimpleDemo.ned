@@ -27,7 +27,6 @@ import HaecComm.MW.Delay;
 //
 network SimpleDemo {
     parameters:
-        bool isClocked = true;
         int id = 0;
         int columns = 1;
         int rows = 1;

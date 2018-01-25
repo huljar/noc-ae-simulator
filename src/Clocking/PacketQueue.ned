@@ -27,6 +27,7 @@ simple PacketQueue like IPacketQueueBase {
         @statistic[queueLength](source=qlen; record=max,timeavg,vector?; title="Queue Length");
         @statistic[dropCount](source=count(pktdrop); record=last; title="Packets dropped");
         @display("i=block/queue");
+        bool waitForSignal = default(false);
         bool syncFirstPacket = default(true);
         // Maximum length of the queue. A value of 0 means no limit.
         int maxLength = default(0);

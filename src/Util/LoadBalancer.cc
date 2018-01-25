@@ -20,10 +20,8 @@ namespace HaecComm { namespace Util {
 Define_Module(LoadBalancer);
 
 void LoadBalancer::initialize() {
-	if(getAncestorPar("isClocked")) {
-		// subscribe to clock signal
-		getSimulation()->getSystemModule()->subscribe("clock", this);
-	}
+    // subscribe to clock signal
+    getSimulation()->getSystemModule()->subscribe("clock", this);
 
 	size_t busyCycles = static_cast<size_t>(par("busyCycles"));
 	if(busyCycles < 1)

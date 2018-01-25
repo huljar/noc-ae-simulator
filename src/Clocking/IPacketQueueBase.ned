@@ -20,6 +20,7 @@ package HaecComm.Clocking;
 //
 moduleinterface IPacketQueueBase {
     parameters:
+        bool awaitSendRequests;
         bool syncFirstPacket;
         int maxLength;
 }

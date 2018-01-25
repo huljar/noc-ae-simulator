@@ -22,75 +22,40 @@ namespace HaecComm { namespace MW {
 Define_Module(Delay);
 
 Delay::Delay()
-	: isClocked(false)
-	, waitCycles(0)
-	, waitTime(0.0)
+	: waitCycles(0)
 {
 }
 
 Delay::~Delay() {
 	for(auto it = shiftRegister.begin(); it != shiftRegister.end(); ++it)
 		delete *it;
-	for(auto it = registry.begin(); it != registry.end(); ++it)
-		cancelAndDelete(*it);
 }
 
 void Delay::initialize() {
 	MiddlewareBase::initialize();
 
-	isClocked = getAncestorPar("isClocked");
 	waitCycles = par("waitCycles");
-	if(isClocked && waitCycles < 0)
+	if(waitCycles < 0)
 		throw cRuntimeError(this, "waitCycles must be 0 or greater, but is %i", waitCycles);
 
-	waitTime = par("waitTime");
-	if(!isClocked && waitTime < 0.0)
-		throw cRuntimeError(this, "waitTime must be 0 or greater, but is %f", waitTime);
+    // subscribe to clock signal
+    getSimulation()->getSystemModule()->subscribe("clock", this);
 
-
-	if(isClocked) {
-		// subscribe to clock signal
-		getSimulation()->getSystemModule()->subscribe("clock", this);
-
-		// set up shift register
-		shiftRegister = ShiftRegister<cArray*>(waitCycles < 1 ? 1 : waitCycles);
-	}
+    // set up shift register
+    shiftRegister = ShiftRegister<cArray*>(waitCycles < 1 ? 1 : waitCycles);
 }
 
 void Delay::handleMessage(cMessage* msg) {
-	if(msg->isSelfMessage()) {
-		// this is a delayed message that shall be sent out now
-		// assert that we are in an unclocked simulation
-		ASSERT(!isClocked);
-
-		// remove message from the registry
-		registry.erase(msg);
-
-		// send the message
-		send(msg, "out");
-		return;
-	}
-
 	// this is an incoming message subject to be delayed
-	// first check if we are clocked or not
-	if(isClocked) {
-		// check if waitCycles is 0
-		if(waitCycles == 0) {
-			// send message back out immediately
-			send(msg, "out");
-		}
-		else {
-			// insert the message at the back of the shift register
-			shiftRegister.back()->add(msg);
-		}
-	}
-	else {
-		// insert the message into the registry
-		registry.insert(msg);
-
-		// schedule the message for sending later
-		scheduleAt(simTime() + waitTime, msg);
-	}
+    // check if waitCycles is 0
+    if(waitCycles == 0) {
+        // send message back out immediately
+        send(msg, "out");
+    }
+    else {
+        // insert the message at the back of the shift register
+        shiftRegister.back()->add(msg);
+    }
 }
 
 void Delay::receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) {

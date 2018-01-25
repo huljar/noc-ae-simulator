@@ -27,7 +27,6 @@ import HaecComm.Core.IHaecChannel;
 //
 network Mesh2D {
     parameters:
-        bool isClocked = default(true); // should all communication be synced with the global clock module?
         int columns = default(4);       // number of grid columns
         int rows = default(4);          // number of grid rows
         string nodeType;                // NED type of the nodes (must implement IHaecNode)

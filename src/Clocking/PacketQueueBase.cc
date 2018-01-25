@@ -18,24 +18,48 @@
 namespace HaecComm { namespace Clocking {
 
 PacketQueueBase::PacketQueueBase()
-	: isClocked(false)
+    : awaitSendRequests(false)
 	, syncFirstPacket(true)
 	, maxLength(0)
+    , cycleFree(true)
+    , gotSendRequest(false)
+    , queue(nullptr)
 {
 }
 
 PacketQueueBase::~PacketQueueBase() {
+    delete queue;
+}
+
+void PacketQueueBase::requestPacket() {
+    gotSendRequest = true;
+}
+
+cPacket* PacketQueueBase::peek() {
+    // front() returns nullptr if the queue is empty
+    return queue->front();
 }
 
 void PacketQueueBase::initialize() {
-	isClocked = getAncestorPar("isClocked");
-	if(isClocked) {
-		// subscribe to clock signal
-		getSimulation()->getSystemModule()->subscribe("clock", this);
-	}
+    // subscribe to clock signal
+    getSimulation()->getSystemModule()->subscribe("clock", this);
 
+	awaitSendRequests = par("awaitSendRequests");
 	syncFirstPacket = par("syncFirstPacket");
 	maxLength = par("maxLength");
+
+    queue = new cPacketQueue;
+
+    qlenSignal = registerSignal("qlen");
+    qfullSignal = registerSignal("qfull");
+    pktdropSignal = registerSignal("pktdrop");
+}
+
+void PacketQueueBase::popQueueAndSend() {
+    cPacket* packet = queue->pop();
+    take(packet);
+    send(packet, "out");
+    emit(qfullSignal, false);
 }
 
 }} //namespace

@@ -29,6 +29,32 @@ RouterBase::~RouterBase() {
 void RouterBase::initialize() {
 	gridColumns = getAncestorPar("columns");
 	nodeId = getAncestorPar("id");
+
+	// subscribe to the "queue full" signal of the input queues
+	// of the connected routers
+	for(int i = 0; i < gateSize("port"); ++i) {
+        cGate* outGate = gate("port", i);
+        if(!outGate->isPathOK())
+            throw cRuntimeError(this, "Output gate of the router is not properly connected");
+
+        cModule* connectedModule = outGate->getPathEndGate()->getOwnerModule();
+        connectedModule->subscribe("qfull", this);
+
+        EV_DEBUG << "Subscribed to \"" << connectedModule->getFullPath() << "\"'s qfull signal." << std::endl;
+
+        modulePortMap.emplace(connectedModule->getId(), i);
+        portReadyMap.emplace(i, true);
+
+        // TODO: store queues in map
+	}
+}
+
+void RouterBase::receiveSignal(cComponent* source, simsignal_t signalID, bool b, cObject* details) {
+    // If we receive a "queue is full" signal, set the ready state for the port that connects to
+    // the source module to false. If the queue is not full any more, set ready state to true.
+    if(signalID == registerSignal("qfull")) {
+        portReadyMap.at(modulePortMap.at(source->getId())) = !b;
+    }
 }
 
 }} //namespace

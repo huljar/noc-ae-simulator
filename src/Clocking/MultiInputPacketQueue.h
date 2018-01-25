@@ -35,12 +35,6 @@ protected:
     virtual void initialize() override;
     virtual void handleMessage(cMessage* msg) override;
     virtual void receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) override;
-
-    bool cycleFree;
-    cPacketQueue* queue;
-
-    simsignal_t qlenSignal;
-    simsignal_t pktdropSignal;
 };
 
 }} //namespace

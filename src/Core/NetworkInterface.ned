@@ -39,6 +39,7 @@ module NetworkInterface like INetworkInterface {
         }
         ncEncodeQueue: PacketQueue {
             @display("p=160,120");
+            waitForSignal = true;
         }
         authLoadBalancer: LoadBalancer {
             @display("p=260,120");
@@ -59,6 +60,7 @@ module NetworkInterface like INetworkInterface {
         }
         ncDecodeQueue: PacketQueue {
             @display("p=160,420");
+            waitForSignal = true;
         }
     connections:
         ncEncode.in <-- app$i;

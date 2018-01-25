@@ -19,23 +19,14 @@ namespace HaecComm { namespace Clocking {
 
 Define_Module(PacketQueue);
 
-PacketQueue::PacketQueue()
-	: cycleFree(true)
-	, queue(nullptr)
-{
+PacketQueue::PacketQueue() {
 }
 
 PacketQueue::~PacketQueue() {
-	delete queue;
 }
 
 void PacketQueue::initialize() {
 	PacketQueueBase::initialize();
-
-    queue = new cPacketQueue;
-
-    qlenSignal = registerSignal("qlen");
-    pktdropSignal = registerSignal("pktdrop");
 }
 
 void PacketQueue::handleMessage(cMessage* msg) {
@@ -48,25 +39,33 @@ void PacketQueue::handleMessage(cMessage* msg) {
 
 	cPacket* packet = static_cast<cPacket*>(msg); // No need for dynamic_cast or check_and_cast here
 
-	if(isClocked) {
-		if(!syncFirstPacket && cycleFree) {
-			send(packet, "out");
-			cycleFree = false;
-		}
-		else if(maxLength == 0 || queue->getLength() < maxLength) {
-			queue->insert(packet);
-		}
-		else {
-			emit(pktdropSignal, packet);
-			EV_WARN << "Received a packet, but max queue length of " << maxLength
-					<< " was already reached. Discarding it." << std::endl;
-			delete packet;
-		}
-	}
-	else {
-		// Send packet through without waiting
-		send(packet, "out");
-	}
+    if(!awaitSendRequests && !syncFirstPacket && cycleFree) {
+        // If we don't wait for requests, don't sync the first packet
+        // and did not already send a packet this cycle, we can send it
+        // immediately.
+        send(packet, "out");
+        cycleFree = false;
+    }
+    else if(maxLength == 0) {
+        // Otherwise, if we don't have a queue length restriction, we can
+        // freely insert the packet.
+        queue->insert(packet);
+    }
+    else if(queue->getLength() < maxLength) {
+        // Otherwise, if there is a length restriction, but we did not reach
+        // it yet, we can also insert the packet.
+        queue->insert(packet);
+
+        // If the queue is full now, we emit the appropriate signal.
+        emit(qfullSignal, true);
+    }
+    else {
+        // If we receive a packet while the queue is full, we must discard it.
+        emit(pktdropSignal, packet);
+        EV_WARN << "Received a packet, but max queue length of " << maxLength
+                << " was already reached. Discarding it." << std::endl;
+        delete packet;
+    }
 }
 
 void PacketQueue::receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) {
@@ -77,10 +76,12 @@ void PacketQueue::receiveSignal(cComponent* source, simsignal_t signalID, unsign
 		if(queue->isEmpty()) {
 			cycleFree = true;
 		}
-		else {
-			cPacket* packet = queue->pop();
-			take(packet);
-			send(packet, "out");
+		else if(!awaitSendRequests) {
+			popQueueAndSend();
+		}
+		else if(gotSendRequest) {
+		    popQueueAndSend();
+		    gotSendRequest = false;
 		}
 	}
 }
