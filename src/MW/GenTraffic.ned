@@ -28,9 +28,11 @@ package HaecComm.MW;
 //
 simple GenTraffic like IMiddlewareBase {
     parameters:
+        @signal[pktgenerate](type=long);
+        @statistic[flitIds](source=pktgenerate; record=vector; title="Flits generated");
+        @display("i=block/departure");
         double injectionProb = default(0.5);
         bool makeLargeFlits;
-        @display("i=block/departure");
     gates:
         input  in @loose;
         output out;

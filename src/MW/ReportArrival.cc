@@ -22,10 +22,18 @@ namespace HaecComm { namespace MW {
 
 Define_Module(ReportArrival);
 
+void ReportArrival::initialize() {
+	MiddlewareBase::initialize();
+
+	pktconsumeSignal = registerSignal("pktconsume");
+}
+
 void ReportArrival::handleMessage(cMessage* msg) {
 	if(Flit* flit = dynamic_cast<Flit*>(msg)) {
+		emit(pktconsumeSignal, flit->getOriginalIds(0)); // TODO: take into account lost packets
 		EV << "Received flit \"" << flit->getName() << "\" from " << flit->getSource().str()
-		   << " at " << flit->getTarget().str() << " with hop count " << +flit->getHopCount() << std::endl;
+		   << " at " << flit->getTarget().str() << " with hop count " << +flit->getHopCount()
+		   << " (original ID: " << flit->getOriginalIds(0) << ")" << std::endl;
 	}
 	else {
 		EV << "Received message \"" << msg->getName() << "\"" << std::endl;

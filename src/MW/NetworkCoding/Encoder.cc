@@ -61,8 +61,18 @@ void Encoder::handleMessage(cMessage* msg) {
 			// there is no payload yet
 			for(int i = 0; i < numCombinations; ++i) {
 				Flit* combination = static_cast<Flit*>(generation->get(0))->dup();
+
+				// Set network coding metadata
 				combination->setGid(gidCounter);
 				combination->setGev(42); // TODO: set to something meaningful when NC is implemented
+
+				// Set original IDs vector
+				combination->setOriginalIdsArraySize(generationSize);
+				for(int j = 0; j < generationSize; ++j) {
+					combination->setOriginalIds(j, static_cast<Flit*>(generation->get(j))->getId());
+				}
+
+				// Send the encoded flit
 				send(combination, "out");
 			}
 			delete generation;

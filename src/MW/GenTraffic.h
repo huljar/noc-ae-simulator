@@ -52,6 +52,8 @@ protected:
     int nodeId;
     int nodeX;
     int nodeY;
+
+    simsignal_t pktgenerateSignal;
 };
 
 }} //namespace

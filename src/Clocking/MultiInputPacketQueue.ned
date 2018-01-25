@@ -23,7 +23,7 @@ simple MultiInputPacketQueue like IPacketQueueBase {
         @signal[qlen](type=long); // not using unsigned because queues return signed values for length
         @signal[pktdrop](type=cPacket);
         @statistic[queueLength](source=qlen; record=max,timeavg,vector?; title="Queue Length");
-        @statistic[dropCount](source=count(pktdrop); record=last,vector?; title="Packets dropped");
+        @statistic[dropCount](source=count(pktdrop); record=last; title="Packets dropped");
         @display("i=block/queue");
         bool syncFirstPacket = default(true);
         int maxLength = default(0);

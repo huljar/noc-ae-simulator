@@ -25,9 +25,6 @@ Define_Module(RouterXY);
 RouterXY::RouterXY()
 	: nodeX(0)
 	, nodeY(0)
-	, pktsendSignal(0)
-	, pktreceiveSignal(0)
-	, pktrouteSignal(0)
 {
 }
 
@@ -61,7 +58,7 @@ void RouterXY::handleMessage(cMessage* msg) {
 	bool isSender = strcmp(flit->getArrivalGate()->getName(), "local$i") == 0;
 	bool isReceiver = targetX == nodeX && targetY == nodeY;
 
-	// Emit statistics signals
+	// Emit signals
 	if(isSender && !isReceiver)
 		emit(pktsendSignal, flit);
 	if(isReceiver && !isSender)

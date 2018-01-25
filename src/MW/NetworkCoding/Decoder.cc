@@ -43,26 +43,43 @@ void Decoder::handleMessage(cMessage* msg) {
 		return;
 	}
 
-	// Insert flit into cache (indexed by source address and generation ID)
-	auto key = std::make_pair(flit->getSource(), flit->getGid());
-	cArray*& combinations = flitCache[key];
-	if(!combinations)
-		combinations = new cArray;
-	combinations->add(flit);
+	if(flit->getMode() == MODE_DATA) {
+		// Insert flit into cache (indexed by source address and generation ID)
+		auto key = std::make_pair(flit->getSource(), flit->getGid());
+		cArray*& combinations = flitCache[key];
+		if(!combinations)
+			combinations = new cArray;
+		combinations->add(flit);
 
-	if(combinations->size() == numCombinations) {
-		// TODO: do actual network decoding
+		if(combinations->size() == numCombinations) {
+			// TODO: do actual network decoding
 
-		// right now we just copy the first flit a few times because
-		// there is no payload yet
-		for(int i = 0; i < generationSize; ++i) {
-			Flit* decoded = static_cast<Flit*>(combinations->get(0))->dup();
-			decoded->setGid(0);
-			decoded->setGev(0);
-			send(decoded, "out");
+			// right now we just copy the first flit a few times because
+			// there is no payload yet
+			for(int i = 0; i < generationSize; ++i) {
+				Flit* decoded = static_cast<Flit*>(combinations->get(0))->dup();
+
+				// Remove network coding metadata
+				decoded->setGid(0);
+				decoded->setGev(0);
+
+				// Restore original flit ID using the original IDs vector
+				decoded->setOriginalIds(0, static_cast<Flit*>(combinations->get(0))->getOriginalIds(i));
+
+				// Send the decoded flit
+				send(decoded, "out");
+			}
+			delete combinations;
+			flitCache.erase(key);
 		}
-		delete combinations;
-		flitCache.erase(key);
+	}
+	else if(flit->getMode() == MODE_MAC) {
+		delete flit;
+		// TODO: implement MAC validation in separate module (afterwards, MACs shouldn't arrive here)
+	}
+	else {
+		delete flit;
+		// TODO: do something useful for MODE_DATA_MAC and MODE_ARQ
 	}
 }
 

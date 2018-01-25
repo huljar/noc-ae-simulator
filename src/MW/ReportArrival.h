@@ -35,7 +35,10 @@ namespace HaecComm { namespace MW {
  */
 class ReportArrival: public MiddlewareBase {
 protected:
+    virtual void initialize() override;
     virtual void handleMessage(cMessage* msg) override;
+
+    simsignal_t pktconsumeSignal;
 };
 
 }} //namespace

@@ -58,6 +58,8 @@ void GenTraffic::initialize() {
 
 	nodeX = nodeId % gridColumns;
 	nodeY = nodeId / gridColumns;
+
+	pktgenerateSignal = registerSignal("pktgenerate");
 }
 
 void GenTraffic::handleMessage(cMessage* msg) {
@@ -102,8 +104,9 @@ void GenTraffic::receiveSignal(cComponent* source, simsignal_t signalID, unsigne
 			flit->setSource(Address2D(nodeX, nodeY));
 			flit->setTarget(Address2D(targetX, targetY));
 
+			emit(pktgenerateSignal, flit->getId());
 			EV << "Sending flit \"" << flit->getName() << "\" from " << flit->getSource().str()
-			   << " to " << flit->getTarget().str() << std::endl;
+			   << " to " << flit->getTarget().str() << " (ID: " << flit->getId() << ")" << std::endl;
 			send(flit, "out");
 		}
 	}

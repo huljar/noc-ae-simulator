@@ -28,8 +28,8 @@ simple BidirectionalPacketQueue like IPacketQueueBase {
         @signal[pktdroprtl](type=cPacket);
         @statistic[queueLengthLTR](source=qlenltr; record=max,timeavg,vector?; title="Queue Length (-->)");
         @statistic[queueLengthRTL](source=qlenrtl; record=max,timeavg,vector?; title="Queue Length (<--)");
-        @statistic[dropCountLTR](source=count(pktdropltr); record=last,vector?; title="Packets dropped (-->)");
-        @statistic[dropCountRTL](source=count(pktdroprtl); record=last,vector?; title="Packets dropped (<--)");
+        @statistic[dropCountLTR](source=count(pktdropltr); record=last; title="Packets dropped (-->)");
+        @statistic[dropCountRTL](source=count(pktdroprtl); record=last; title="Packets dropped (<--)");
         @display("i=block/queue");
         bool syncFirstPacket = default(true);
         // Maximum length of the queues (for each direction).
