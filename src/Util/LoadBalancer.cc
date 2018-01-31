@@ -15,6 +15,8 @@
 
 #include "LoadBalancer.h"
 
+using namespace HaecComm::Clocking;
+
 namespace HaecComm { namespace Util {
 
 Define_Module(LoadBalancer);
@@ -30,6 +32,13 @@ void LoadBalancer::initialize() {
 	for(int i = 0; i < gateSize("out"); ++i)
 		availableUnits.push(i);
 	busyUnits = ShiftRegister<std::vector<int>>(busyCycles);
+
+	// Retrieve pointer to the input queue
+    cGate* inGate = gate("in");
+    if(!inGate->isPathOK())
+        throw cRuntimeError(this, "Input gate of the load balancer is not properly connected");
+
+    inputQueue = check_and_cast<PacketQueueBase*>(inGate->getPathStartGate()->getOwnerModule());
 }
 
 void LoadBalancer::handleMessage(cMessage* msg) {
@@ -52,6 +61,9 @@ void LoadBalancer::receiveSignal(cComponent* source, simsignal_t signalID, unsig
 		for(auto it = finishedUnits.begin(); it != finishedUnits.end(); ++it)
 			availableUnits.push(*it);
 	}
+
+	if(!availableUnits.empty())
+	    inputQueue->requestPacket();
 }
 
 }} //namespace

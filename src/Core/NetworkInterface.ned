@@ -39,7 +39,7 @@ module NetworkInterface like INetworkInterface {
         }
         ncEncodeQueue: PacketQueue {
             @display("p=160,120");
-            awaitSendRequests = false;
+            awaitSendRequests = true;
         }
         authLoadBalancer: LoadBalancer {
             @display("p=260,120");
