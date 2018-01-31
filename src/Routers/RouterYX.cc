@@ -15,62 +15,39 @@
 
 #include "RouterYX.h"
 #include <Messages/Flit_m.h>
+#include <Util/Constants.h>
 
 using namespace HaecComm::Messages;
+using namespace HaecComm::Util;
 
 namespace HaecComm { namespace Routers {
 
 Define_Module(RouterYX);
 
-RouterYX::RouterYX()
-	: nodeX(0)
-	, nodeY(0)
-{
+RouterYX::RouterYX() {
 }
 
 RouterYX::~RouterYX() {
 }
 
-void RouterYX::initialize() {
-	RouterBase::initialize();
+int RouterYX::computeDestinationPort(const Messages::Flit* flit) const {
+    // Get node information
+    int targetX = flit->getTarget().x();
+    int targetY = flit->getTarget().y();
 
-	nodeX = nodeId % gridColumns;
-	nodeY = nodeId / gridColumns;
-}
-
-void RouterYX::handleMessage(cMessage* msg) {
-	// Confirm that this is a flit
-	Flit* flit = dynamic_cast<Flit*>(msg);
-	if(!flit) {
-		EV_WARN << "Received a message that is not a flit. Discarding it." << std::endl;
-		delete msg;
-		return;
-	}
-
-	// Get node information
-	int targetX = flit->getTarget().x();
-	int targetY = flit->getTarget().y();
-
-	// Increase hop count if we are not the sender node
-	if(strcmp(flit->getArrivalGate()->getName(), "local$i") != 0) {
-		flit->setHopCount(flit->getHopCount() + 1);
-	}
-
-	EV << "Routing flit: " << flit->getSource().str() << " -> " << flit->getTarget().str() << std::endl;
-
-	// Route the flit
-	if(targetY != nodeY) {
-		// Move in Y direction
-		send(flit, "port$o", targetY < nodeY ? 0 : 2); // implicit knowledge
-	}
-	else if(targetX != nodeX) {
-		// Move in X direction
-		send(flit, "port$o", targetX < nodeX ? 3 : 1);
-	}
-	else {
-		// This node is the destination
-		send(flit, "local$o");
-	}
+    // Compute destination port
+    if(targetY != nodeY) {
+        // Move in Y direction
+        return targetY < nodeY ? Constants::NORTH_PORT : Constants::SOUTH_PORT;
+    }
+    else if(targetX != nodeX) {
+        // Move in X direction
+        return targetX < nodeX ? Constants::WEST_PORT : Constants::EAST_PORT;
+    }
+    else {
+        // This node is the destination
+        return -1;
+    }
 }
 
 }} //namespace

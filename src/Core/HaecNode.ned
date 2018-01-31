@@ -48,7 +48,7 @@ module HaecNode like IHaecNode {
         }
         niRouterQueue: PacketQueue {
             @display("p=600,205");
-            waitForSignal = true;
+            awaitSendRequests = true;
         }
         routerNiQueue: PacketQueue {
             @display("p=500,305");
@@ -59,7 +59,7 @@ module HaecNode like IHaecNode {
         }
         routerInputQueue[sizeof(port)]: PacketQueue {
             @display("p=850,105,column,100");
-            waitForSignal = true;
+            awaitSendRequests = true;
         }
     connections:
         app.net$i <-- niAppQueue.out;

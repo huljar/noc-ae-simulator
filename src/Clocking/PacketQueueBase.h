@@ -32,6 +32,7 @@ public:
 
 	virtual void requestPacket();
 	virtual cPacket* peek();
+	virtual void requestDrop();
 
 protected:
     virtual void initialize() override;
@@ -39,6 +40,7 @@ protected:
     virtual void receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) override;
 
     void popQueueAndSend();
+    void popQueueAndDiscard();
 
     bool awaitSendRequests;
     bool syncFirstPacket;

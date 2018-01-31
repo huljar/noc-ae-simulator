@@ -14,7 +14,6 @@
 // 
 
 #include "RouterBase.h"
-#include <Messages/Flit_m.h>
 
 using namespace HaecComm::Clocking;
 using namespace HaecComm::Messages;
@@ -44,24 +43,29 @@ void RouterBase::initialize() {
     // subscribe to clock signal
     getSimulation()->getSystemModule()->subscribe("clock", this);
 
-	// subscribe to the "queue full" signal of the input queues
-	// of the connected routers
-	for(int i = 0; i < gateSize("port"); ++i) {
-        cGate* outGate = gate("port$o", i);
-        if(!outGate->isPathOK())
-            throw cRuntimeError(this, "Output gate of the router is not properly connected");
+	// Preparations for the local port (-1) and the grid ports
+	for(int i = -1; i < gateSize("port"); ++i) {
+	    // Get in/out gates
+        cGate* outGate = (i == -1 ? gate("local$o") : gate("port$o", i));
+        cGate* inGate = (i == -1 ? gate("local$i") : gate("port$i", i));
 
+        // Check gate connectivity (important for edge/corner nodes)
+        // Skip if gate is not connected properly
+        if(!(outGate->isPathOK() && inGate->isPathOK()))
+            continue;
+
+        // Subscribe to the "queue full" signal of the input queues of the connected routers/components
         cModule* connectedModule = outGate->getPathEndGate()->getOwnerModule();
         connectedModule->subscribe("qfull", this);
 
-        EV_DEBUG << "Subscribed to \"" << connectedModule->getFullPath() << "\"'s qfull signal." << std::endl;
+        EV_DEBUG << "Subscribed to " << connectedModule->getFullPath() << "'s \"qfull\" signal." << std::endl;
 
+        // Fill the maps
         modulePortMap.emplace(connectedModule->getId(), i);
         portReadyMap.emplace(i, true);
 
         // Retrieve pointers to the input queues
         // This is necessary so we can request packets from a specific queue
-        cGate* inGate = gate("port$i", i);
         if(!inGate->isPathOK())
         	throw cRuntimeError(this, "Input gate of the router is not properly connected");
 
@@ -79,12 +83,10 @@ void RouterBase::handleMessage(cMessage* msg) {
 		return;
 	}
 
-	// Get node information
-	int targetX = flit->getTarget().x();
-	int targetY = flit->getTarget().y();
-
+	// Get information
 	bool isSender = strcmp(flit->getArrivalGate()->getName(), "local$i") == 0;
-	bool isReceiver = targetX == nodeX && targetY == nodeY;
+	int sourcePort = (isSender ? -1 : flit->getArrivalGate()->getIndex());
+	bool isReceiver = sourceDestinationCache.at(sourcePort) == -1;
 
 	// Emit signals
 	if(isSender && !isReceiver)
@@ -99,26 +101,57 @@ void RouterBase::handleMessage(cMessage* msg) {
 		flit->setHopCount(flit->getHopCount() + 1);
 	}
 
-	EV << "Routing flit: " << flit->getSource().str() << " -> " << flit->getTarget().str() << std::endl;
+	EV_DEBUG << "Routing flit: " << flit->getSource().str() << " -> " << flit->getTarget().str() << std::endl;
 
-	// Route the flit
-	if(targetX != nodeX) {
-		// Move in X direction
-		send(flit, "port$o", targetX < nodeX ? 3 : 1); // implicit knowledge
-	}
-	else if(targetY != nodeY) {
-		// Move in Y direction
-		send(flit, "port$o", targetY < nodeY ? 0 : 2);
-	}
-	else {
-		// This node is the destination
-		send(flit, "local$o");
-	}
+	// Route the flit using the cache
+	int destPort = sourceDestinationCache.at(sourcePort);
+	if(destPort == -1)
+	    send(flit, "local$o");
+	else
+	    send(flit, "port$o", destPort);
 }
 
 void RouterBase::receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) {
 	if(signalID == registerSignal("clock")) {
+	    std::map<int, std::vector<int>> applicableInputs;
 
+	    // Iterate over input queues
+	    for(auto it = portQueueMap.begin(); it != portQueueMap.end(); ++it) {
+	        // Peek at queue
+	        cPacket* packet = it->second->peek();
+	        // Check if queue was empty
+	        if(!packet)
+	            continue;
+
+	        // Confirm that this is a flit
+	        Flit* flit = dynamic_cast<Flit*>(it->second->peek());
+            if(!flit) {
+                EV_WARN << "Input queue " << it->first << " has a message that is not a flit. Discarding it." << std::endl;
+                it->second->requestDrop();
+                continue;
+            }
+
+            // Get destination port (implemented by subclasses)
+            int destPort = computeDestinationPort(flit);
+
+            // Check if the destination port's receiving queue ready
+            if(portReadyMap.at(destPort)) {
+                // Insert into map
+                applicableInputs[destPort].push_back(it->first);
+            }
+	    }
+
+	    // Iterate over output ports that have one or more packets to be sent
+	    for(auto it = applicableInputs.begin(); it != applicableInputs.end(); ++it) {
+	        // Choose a random queue that may send through this port now
+	        size_t pIdx = static_cast<size_t>(intrand(static_cast<long>(it->second.size())));
+
+	        // Insert source/destination port pair into cache
+	        sourceDestinationCache[it->second[pIdx]] = it->first;
+
+	        // Request a packet from this queue
+	        portQueueMap.at(it->second[pIdx])->requestPacket();
+	    }
 	}
 }
 

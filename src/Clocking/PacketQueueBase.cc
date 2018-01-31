@@ -41,6 +41,12 @@ cPacket* PacketQueueBase::peek() {
     return queue->front();
 }
 
+void PacketQueueBase::requestDrop() {
+    if(awaitSendRequests && !queue->isEmpty()) {
+        popQueueAndDiscard();
+    }
+}
+
 void PacketQueueBase::initialize() {
     // subscribe to clock signal
     getSimulation()->getSystemModule()->subscribe("clock", this);
@@ -116,6 +122,14 @@ void PacketQueueBase::popQueueAndSend() {
     send(packet, "out");
     if(queue->getLength() == maxLength - 1)
     	emit(qfullSignal, false);
+}
+
+void PacketQueueBase::popQueueAndDiscard() {
+    cPacket* packet = queue->pop();
+    take(packet);
+    delete(packet);
+    if(queue->getLength() == maxLength - 1)
+        emit(qfullSignal, false);
 }
 
 }} //namespace

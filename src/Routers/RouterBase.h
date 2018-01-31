@@ -18,6 +18,7 @@
 
 #include <omnetpp.h>
 #include <Clocking/PacketQueueBase.h>
+#include <Messages/Flit_m.h>
 #include <map>
 
 using namespace omnetpp;
@@ -38,6 +39,8 @@ protected:
     virtual void receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) override;
     virtual void receiveSignal(cComponent* source, simsignal_t signalID, bool b, cObject* details) override;
 
+    virtual int computeDestinationPort(const Messages::Flit* flit) const = 0;
+
 	int gridColumns;
 	int nodeId;
 
@@ -51,6 +54,7 @@ protected:
 	std::map<int, int> modulePortMap;
 	std::map<int, bool> portReadyMap;
 	std::map<int, Clocking::PacketQueueBase*> portQueueMap;
+	std::map<int, int> sourceDestinationCache;
 };
 
 }} //namespace

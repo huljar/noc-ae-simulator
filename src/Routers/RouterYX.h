@@ -38,11 +38,7 @@ public:
 	virtual ~RouterYX();
 
 protected:
-    virtual void initialize() override;
-    virtual void handleMessage(cMessage* msg) override;
-
-	int nodeX;
-	int nodeY;
+	virtual int computeDestinationPort(const Messages::Flit* flit) const override;
 };
 
 }} //namespace

@@ -38,7 +38,7 @@ public:
 	virtual ~RouterXY();
 
 protected:
-	virtual void initialize() override;
+	virtual int computeDestinationPort(const Messages::Flit* flit) const override;
 };
 
 }} //namespace
