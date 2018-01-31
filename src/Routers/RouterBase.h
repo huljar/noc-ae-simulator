@@ -34,11 +34,19 @@ public:
 
 protected:
 	virtual void initialize() override;
-	virtual void handleMessage(cMessage* msg) override = 0;
+	virtual void handleMessage(cMessage* msg) override;
+    virtual void receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) override;
     virtual void receiveSignal(cComponent* source, simsignal_t signalID, bool b, cObject* details) override;
 
 	int gridColumns;
 	int nodeId;
+
+	int nodeX;
+	int nodeY;
+
+	simsignal_t pktsendSignal;
+	simsignal_t pktreceiveSignal;
+	simsignal_t pktrouteSignal;
 
 	std::map<int, int> modulePortMap;
 	std::map<int, bool> portReadyMap;

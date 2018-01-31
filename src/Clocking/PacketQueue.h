@@ -34,11 +34,6 @@ class PacketQueue : public PacketQueueBase {
 public:
 	PacketQueue();
 	virtual ~PacketQueue();
-
-protected:
-    virtual void initialize() override;
-    virtual void handleMessage(cMessage* msg) override;
-    virtual void receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) override;
 };
 
 }} //namespace

@@ -33,13 +33,6 @@ RouterXY::~RouterXY() {
 
 void RouterXY::initialize() {
 	RouterBase::initialize();
-
-	nodeX = nodeId % gridColumns;
-	nodeY = nodeId / gridColumns;
-
-	pktsendSignal = registerSignal("pktsend");
-	pktreceiveSignal = registerSignal("pktreceive");
-	pktrouteSignal = registerSignal("pktroute");
 }
 
 void RouterXY::handleMessage(cMessage* msg) {

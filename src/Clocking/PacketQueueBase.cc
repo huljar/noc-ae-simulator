@@ -22,7 +22,6 @@ PacketQueueBase::PacketQueueBase()
 	, syncFirstPacket(true)
 	, maxLength(0)
     , cycleFree(true)
-    , gotSendRequest(false)
     , queue(nullptr)
 {
 }
@@ -32,7 +31,9 @@ PacketQueueBase::~PacketQueueBase() {
 }
 
 void PacketQueueBase::requestPacket() {
-    gotSendRequest = true;
+    if(awaitSendRequests && !queue->isEmpty()) {
+    	popQueueAndSend();
+    }
 }
 
 cPacket* PacketQueueBase::peek() {
@@ -55,11 +56,66 @@ void PacketQueueBase::initialize() {
     pktdropSignal = registerSignal("pktdrop");
 }
 
+void PacketQueueBase::handleMessage(cMessage* msg) {
+	// Confirm that this is a packet
+	if(!msg->isPacket()) {
+		EV_WARN << "Received a message that is not a packet. Discarding it." << std::endl;
+		delete msg;
+		return;
+	}
+
+	cPacket* packet = static_cast<cPacket*>(msg); // No need for dynamic_cast or check_and_cast here
+
+    if(!awaitSendRequests && !syncFirstPacket && cycleFree) {
+        // If we don't wait for requests, don't sync the first packet
+        // and did not already send a packet this cycle, we can send it
+        // immediately.
+        send(packet, "out");
+        cycleFree = false;
+    }
+    else if(maxLength == 0) {
+        // Otherwise, if we don't have a queue length restriction, we can
+        // freely insert the packet.
+        queue->insert(packet);
+    }
+    else if(queue->getLength() < maxLength) {
+        // Otherwise, if there is a length restriction, but we did not reach
+        // it yet, we can also insert the packet.
+        queue->insert(packet);
+
+        // If the queue is full now, we emit the appropriate signal.
+        if(queue->getLength() == maxLength)
+        	emit(qfullSignal, true);
+    }
+    else {
+        // If we receive a packet while the queue is full, we must discard it.
+        emit(pktdropSignal, packet);
+        EV_WARN << "Received a packet, but max queue length of " << maxLength
+                << " was already reached. Discarding it." << std::endl;
+        delete packet;
+    }
+}
+
+void PacketQueueBase::receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) {
+	if(signalID == registerSignal("clock")) {
+		// Emit queue length signal
+		emit(qlenSignal, queue->getLength());
+
+		if(queue->isEmpty()) {
+			cycleFree = true;
+		}
+		else if(!awaitSendRequests) {
+			popQueueAndSend();
+		}
+	}
+}
+
 void PacketQueueBase::popQueueAndSend() {
     cPacket* packet = queue->pop();
     take(packet);
     send(packet, "out");
-    emit(qfullSignal, false);
+    if(queue->getLength() == maxLength - 1)
+    	emit(qfullSignal, false);
 }
 
 }} //namespace

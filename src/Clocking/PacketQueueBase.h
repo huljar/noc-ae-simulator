@@ -35,8 +35,8 @@ public:
 
 protected:
     virtual void initialize() override;
-    virtual void handleMessage(cMessage* msg) override = 0;
-    virtual void receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) override = 0;
+    virtual void handleMessage(cMessage* msg) override;
+    virtual void receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) override;
 
     void popQueueAndSend();
 
@@ -45,7 +45,6 @@ protected:
     int maxLength;
 
     bool cycleFree;
-    bool gotSendRequest;
     cPacketQueue* queue;
 
     simsignal_t qlenSignal;

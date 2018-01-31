@@ -39,14 +39,6 @@ public:
 
 protected:
 	virtual void initialize() override;
-	virtual void handleMessage(cMessage* msg) override;
-
-	int nodeX;
-	int nodeY;
-
-	simsignal_t pktsendSignal;
-	simsignal_t pktreceiveSignal;
-	simsignal_t pktrouteSignal;
 };
 
 }} //namespace

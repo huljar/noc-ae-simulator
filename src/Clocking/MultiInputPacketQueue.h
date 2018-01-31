@@ -30,11 +30,6 @@ class MultiInputPacketQueue : public PacketQueueBase {
 public:
 	MultiInputPacketQueue();
 	virtual ~MultiInputPacketQueue();
-
-protected:
-    virtual void initialize() override;
-    virtual void handleMessage(cMessage* msg) override;
-    virtual void receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) override;
 };
 
 }} //namespace
