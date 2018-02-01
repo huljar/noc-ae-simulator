@@ -50,9 +50,8 @@ module NetworkInterface like INetworkInterface {
             @display("p=360,40,column,80");
             computeCycles = authCycles;
         }
-        authLoadMerger: MultiInputPacketQueue {
-            @display("p=460,120;i=block/join");
-            syncFirstPacket = false;
+        retransmissionBuffer: RetransmissionBuffer {
+            @display("p=460,120");
             gates: in[authCryptoUnits];
         }
         ncDecode: Decoder {
@@ -68,11 +67,11 @@ module NetworkInterface like INetworkInterface {
         ncEncodeQueue.out --> authLoadBalancer.in;
         for i=0..authCryptoUnits-1 {
             authUnit[i].in <-- authLoadBalancer.out[i];
-            authUnit[i].out --> authLoadMerger.in[i];
+            authUnit[i].out --> retransmissionBuffer.in[i];
         }
-        authLoadMerger.out --> router$o;
+        retransmissionBuffer.out --> router$o;
         
         ncDecode.in <-- router$i;
         ncDecode.out --> ncDecodeQueue.in;
-        ncDecodeQueue.out --> app$o; // TODO: add conditional queues in between? (-> locallyClocked)
+        ncDecodeQueue.out --> app$o;
 }
