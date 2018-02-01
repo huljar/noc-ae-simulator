@@ -22,6 +22,6 @@ simple RetransmissionBuffer {
     parameters:
         @display("i=block/buffer");
     gates:
-        input  in[];
+        input  in;
         output out;
 }
