@@ -60,11 +60,10 @@ void Decoder::handleMessage(cMessage* msg) {
 				Flit* decoded = static_cast<Flit*>(combinations->get(0))->dup();
 
 				// Remove network coding metadata
-				decoded->setGid(0);
 				decoded->setGev(0);
 
-				// Restore original flit ID using the original IDs vector
-				decoded->setOriginalIds(0, static_cast<Flit*>(combinations->get(0))->getOriginalIds(i));
+				// Restore original flit ID into the GID field using the originalIds vector
+				decoded->setGid(static_cast<uint32_t>(static_cast<Flit*>(combinations->get(0))->getOriginalIds(i)));
 
 				// Send the decoded flit
 				send(decoded, "out");

@@ -27,8 +27,8 @@ import HaecComm.Core.IHaecChannel;
 //
 network Mesh2D {
     parameters:
-        int columns = default(4);       // number of grid columns
-        int rows = default(4);          // number of grid rows
+        int columns;                    // number of grid columns
+        int rows;                       // number of grid rows
         string nodeType;                // NED type of the nodes (must implement IHaecNode)
         string channelType;             // NED type of the channels between nodes (must implement IHaecChannel)
     submodules:
