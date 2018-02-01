@@ -17,7 +17,7 @@
 
 package HaecComm.simulations;
 
-import HaecComm.Clocking.Clock;
+import HaecComm.Core.Clock;
 import HaecComm.Core.IHaecNode;
 import HaecComm.Core.IHaecChannel;
 

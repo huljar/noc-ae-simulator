@@ -15,7 +15,7 @@
 
 #include "RouterBase.h"
 
-using namespace HaecComm::Clocking;
+using namespace HaecComm::Buffers;
 using namespace HaecComm::Messages;
 
 namespace HaecComm { namespace Routers {

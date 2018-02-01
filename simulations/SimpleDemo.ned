@@ -15,8 +15,8 @@
 
 package HaecComm.simulations;
 
-import HaecComm.Clocking.Clock;
-import HaecComm.Clocking.PacketQueue;
+import HaecComm.Core.Clock;
+import HaecComm.Buffers.PacketQueue;
 import HaecComm.MW.GenTraffic;
 import HaecComm.MW.ReportArrival;
 import HaecComm.MW.Delay;

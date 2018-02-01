@@ -15,7 +15,7 @@
 
 #include "LoadBalancer.h"
 
-using namespace HaecComm::Clocking;
+using namespace HaecComm::Buffers;
 
 namespace HaecComm { namespace Util {
 

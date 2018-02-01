@@ -15,7 +15,7 @@
 
 #include "PacketQueueBase.h"
 
-namespace HaecComm { namespace Clocking {
+namespace HaecComm { namespace Buffers {
 
 PacketQueueBase::PacketQueueBase()
     : awaitSendRequests(false)

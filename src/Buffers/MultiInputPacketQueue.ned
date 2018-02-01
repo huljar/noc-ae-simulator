@@ -13,7 +13,7 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package HaecComm.Clocking;
+package HaecComm.Buffers;
 
 //
 // TODO auto-generated module

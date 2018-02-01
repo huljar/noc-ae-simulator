@@ -13,16 +13,16 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include "MultiInputPacketQueue.h"
+#include "PacketQueue.h"
 
-namespace HaecComm { namespace Clocking {
+namespace HaecComm { namespace Buffers {
 
-Define_Module(MultiInputPacketQueue);
+Define_Module(PacketQueue);
 
-MultiInputPacketQueue::MultiInputPacketQueue() {
+PacketQueue::PacketQueue() {
 }
 
-MultiInputPacketQueue::~MultiInputPacketQueue() {
+PacketQueue::~PacketQueue() {
 }
 
 }} //namespace

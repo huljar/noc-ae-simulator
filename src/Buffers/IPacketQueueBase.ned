@@ -13,16 +13,14 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include "PacketQueue.h"
+package HaecComm.Buffers;
 
-namespace HaecComm { namespace Clocking {
-
-Define_Module(PacketQueue);
-
-PacketQueue::PacketQueue() {
+//
+// TODO auto-generated module
+//
+moduleinterface IPacketQueueBase {
+    parameters:
+        bool awaitSendRequests;
+        bool syncFirstPacket;
+        int maxLength;
 }
-
-PacketQueue::~PacketQueue() {
-}
-
-}} //namespace

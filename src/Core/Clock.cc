@@ -15,7 +15,7 @@
 
 #include "Clock.h"
 
-namespace HaecComm { namespace Clocking {
+namespace HaecComm { namespace Core {
 
 Define_Module(Clock);
 

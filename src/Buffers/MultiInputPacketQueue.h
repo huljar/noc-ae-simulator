@@ -13,14 +13,25 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package HaecComm.Clocking;
+#ifndef __HAECCOMM_MULTIINPUTPACKETQUEUE_H_
+#define __HAECCOMM_MULTIINPUTPACKETQUEUE_H_
 
-//
-// TODO auto-generated module
-//
-moduleinterface IPacketQueueBase {
-    parameters:
-        bool awaitSendRequests;
-        bool syncFirstPacket;
-        int maxLength;
-}
+#include <omnetpp.h>
+#include <Buffers/PacketQueueBase.h>
+
+using namespace omnetpp;
+
+namespace HaecComm { namespace Buffers {
+
+/**
+ * TODO - Generated class
+ */
+class MultiInputPacketQueue : public PacketQueueBase {
+public:
+	MultiInputPacketQueue();
+	virtual ~MultiInputPacketQueue();
+};
+
+}} //namespace
+
+#endif

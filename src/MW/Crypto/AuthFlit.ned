@@ -15,7 +15,7 @@
 
 package HaecComm.MW.Crypto;
 
-import HaecComm.Clocking.PacketQueue;
+import HaecComm.Buffers.PacketQueue;
 import HaecComm.MW.*;
 
 //

@@ -13,7 +13,7 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package HaecComm.Clocking;
+package HaecComm.Buffers;
 
 //
 // Packet queue for synchronization with the global clock module.

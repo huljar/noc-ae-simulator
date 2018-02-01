@@ -13,25 +13,6 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __HAECCOMM_MULTIINPUTPACKETQUEUE_H_
-#define __HAECCOMM_MULTIINPUTPACKETQUEUE_H_
+package HaecComm.Buffers;
 
-#include <omnetpp.h>
-#include <Clocking/PacketQueueBase.h>
-
-using namespace omnetpp;
-
-namespace HaecComm { namespace Clocking {
-
-/**
- * TODO - Generated class
- */
-class MultiInputPacketQueue : public PacketQueueBase {
-public:
-	MultiInputPacketQueue();
-	virtual ~MultiInputPacketQueue();
-};
-
-}} //namespace
-
-#endif
+@namespace(HaecComm::Buffers);

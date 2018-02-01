@@ -20,7 +20,7 @@
 
 using namespace omnetpp;
 
-namespace HaecComm { namespace Clocking {
+namespace HaecComm { namespace Buffers {
 
 /**
  * TODO - Generated class

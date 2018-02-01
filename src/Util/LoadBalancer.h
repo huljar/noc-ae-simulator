@@ -17,7 +17,7 @@
 #define __HAECCOMM_LOADBALANCER_H_
 
 #include <omnetpp.h>
-#include <Clocking/PacketQueueBase.h>
+#include <Buffers/PacketQueueBase.h>
 #include <Util/ShiftRegister.h>
 #include <queue>
 #include <vector>
@@ -39,7 +39,7 @@ private:
     std::queue<int> availableUnits;
     ShiftRegister<std::vector<int>> busyUnits;
 
-    Clocking::PacketQueueBase* inputQueue;
+    Buffers::PacketQueueBase* inputQueue;
 };
 
 }} //namespace

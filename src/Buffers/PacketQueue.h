@@ -13,15 +13,29 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package HaecComm.Clocking;
+#ifndef __HAECCOMM_PACKETQUEUE_H_
+#define __HAECCOMM_PACKETQUEUE_H_
 
-//
-// Clock module which emits a clock signal in regular intervals.
-// Other modules can subscribe to this signal for synchronization.
-//
-simple Clock {
-    parameters:
-        @signal[clock](type=unsigned long);
-        @display("i=device/clock");
-        double inter @unit(s) = default(1s); // The interval between two clock signal emissions
-}
+#include <omnetpp.h>
+#include <Buffers/PacketQueueBase.h>
+
+using namespace omnetpp;
+
+namespace HaecComm { namespace Buffers {
+
+/**
+ * \brief Packet queue class for synchronizing packets with the global clock
+ *
+ * The packet queue can queue up packets in a single direction. On each clock tick, one
+ * packet is sent out (if there is a packet enqueued). If the simulation is not clocked,
+ * the packets are redirected immediately, and no queueing is performed.
+ */
+class PacketQueue : public PacketQueueBase {
+public:
+	PacketQueue();
+	virtual ~PacketQueue();
+};
+
+}} //namespace
+
+#endif

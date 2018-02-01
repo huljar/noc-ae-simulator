@@ -17,7 +17,7 @@
 #define ROUTERS_ROUTERBASE_H_
 
 #include <omnetpp.h>
-#include <Clocking/PacketQueueBase.h>
+#include <Buffers/PacketQueueBase.h>
 #include <Messages/Flit_m.h>
 #include <map>
 
@@ -53,7 +53,7 @@ protected:
 
 	std::map<int, int> modulePortMap;
 	std::map<int, bool> portReadyMap;
-	std::map<int, Clocking::PacketQueueBase*> portQueueMap;
+	std::map<int, Buffers::PacketQueueBase*> portQueueMap;
 	std::map<int, int> sourceDestinationCache;
 };
 

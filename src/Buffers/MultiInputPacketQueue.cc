@@ -13,38 +13,16 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef CLOCK_H_
-#define CLOCK_H_
+#include "MultiInputPacketQueue.h"
 
-#include <omnetpp.h>
+namespace HaecComm { namespace Buffers {
 
-using namespace omnetpp;
+Define_Module(MultiInputPacketQueue);
 
-namespace HaecComm { namespace Clocking {
+MultiInputPacketQueue::MultiInputPacketQueue() {
+}
 
-/**
- * \brief Clock class to generate a global clock signal
- *
- * The clock class generates a clock signal in a configurable, regular
- * interval. Other modules can subscribe to this signal for synchronization.
- */
-class Clock: public cSimpleModule {
-private:
-    cMessage *timerMessage;
-    simsignal_t clockSignal;
-    unsigned long cycleCounter;
-
-public:
-    Clock();
-    virtual ~Clock();
-
-    unsigned long getCurrentCycle() const;
-
-protected:
-    virtual void initialize();
-    virtual void handleMessage(cMessage *msg);
-};
+MultiInputPacketQueue::~MultiInputPacketQueue() {
+}
 
 }} //namespace
-
-#endif /* CLOCK_H_ */

@@ -16,7 +16,7 @@
 package HaecComm.Core;
 
 import HaecComm.Routers.IRouter;
-import HaecComm.Clocking.PacketQueue;
+import HaecComm.Buffers.PacketQueue;
 
 //
 // Default definition of the HAEC network nodes. It consists of an App (aka.

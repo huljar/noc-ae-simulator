@@ -15,7 +15,7 @@
 
 package HaecComm.Core;
 
-import HaecComm.Clocking.*;
+import HaecComm.Buffers.*;
 import HaecComm.MW.*;
 import HaecComm.MW.Crypto.*;
 import HaecComm.MW.NetworkCoding.*;
