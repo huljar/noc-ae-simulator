@@ -30,10 +30,10 @@ namespace HaecComm { namespace MW { namespace NetworkCoding {
 /**
  * TODO - Generated class
  */
-class Decoder : public NetworkCodingBase {
+class DecoderImpl : public NetworkCodingBase {
 public:
-	Decoder();
-	virtual ~Decoder();
+	DecoderImpl();
+	virtual ~DecoderImpl();
 
 protected:
     virtual void initialize() override;

@@ -60,10 +60,10 @@ void LoadBalancer::receiveSignal(cComponent* source, simsignal_t signalID, unsig
 		std::vector<int> finishedUnits = busyUnits.shift();
 		for(auto it = finishedUnits.begin(); it != finishedUnits.end(); ++it)
 			availableUnits.push(*it);
-	}
 
-	if(!availableUnits.empty())
-	    inputQueue->requestPacket();
+	    if(!availableUnits.empty())
+	        inputQueue->requestPacket();
+	}
 }
 
 }} //namespace

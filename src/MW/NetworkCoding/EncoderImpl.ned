@@ -13,36 +13,20 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __HAECCOMM_NETWORKCODINGENCODER_H_
-#define __HAECCOMM_NETWORKCODINGENCODER_H_
+package HaecComm.MW.NetworkCoding;
 
-#include <omnetpp.h>
-#include <Messages/fieldtypes.h>
-#include <MW/NetworkCoding/NetworkCodingBase.h>
-#include <cinttypes>
-#include <map>
-
-using namespace omnetpp;
-
-namespace HaecComm { namespace MW { namespace NetworkCoding {
-
-/**
- * TODO - Generated class
- */
-class Encoder : public NetworkCodingBase {
-public:
-	Encoder();
-	virtual ~Encoder();
-
-protected:
-    virtual void initialize() override;
-    virtual void handleMessage(cMessage* msg) override;
-
-private:
-    std::map<Messages::Address2D, cArray*> flitCache;
-    uint32_t gidCounter;
-};
-
-}}} //namespace
-
-#endif
+//
+// Simple module implementing network encoding. Flits with the same destination
+// are grouped into a generation. For each generation, a number of linear
+// combinations is computed, which are then sent out. On the receiver side,
+// a ~Decoder module is required to obtain the original flits.
+//
+simple EncoderImpl like INetworkCodingBase {
+    parameters:
+        int generationSize;
+        int numCombinations;
+        @display("i=block/cogwheel");
+    gates:
+        input  in;
+        output out;
+}

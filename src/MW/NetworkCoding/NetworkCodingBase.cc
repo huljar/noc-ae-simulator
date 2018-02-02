@@ -15,6 +15,8 @@
 
 #include "NetworkCodingBase.h"
 
+using namespace HaecComm::Buffers;
+
 namespace HaecComm { namespace MW { namespace NetworkCoding {
 
 NetworkCodingBase::NetworkCodingBase()
@@ -29,6 +31,9 @@ NetworkCodingBase::~NetworkCodingBase() {
 void NetworkCodingBase::initialize() {
     MiddlewareBase::initialize();
 
+    // subscribe to clock signal
+    getSimulation()->getSystemModule()->subscribe("clock", this);
+
     generationSize = par("generationSize");
     if(generationSize < 1)
     	throw cRuntimeError(this, "Generation size must be greater than 0, but received %i", generationSize);
@@ -36,6 +41,19 @@ void NetworkCodingBase::initialize() {
     numCombinations = par("numCombinations");
     if(numCombinations < 1)
     	throw cRuntimeError(this, "Number of combinations must be greater than 0, but received %i", numCombinations);
+
+    // Retrieve pointer to the input queue
+    cGate* inGate = gate("in");
+    if(!inGate->isPathOK())
+        throw cRuntimeError(this, "Input gate of the network coding module is not properly connected");
+
+    inputQueue = check_and_cast<PacketQueueBase*>(inGate->getPathStartGate()->getOwnerModule());
+}
+
+void NetworkCodingBase::receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) {
+    if(signalID == registerSignal("clock")) {
+        inputQueue->requestPacket();
+    }
 }
 
 }}} //namespace

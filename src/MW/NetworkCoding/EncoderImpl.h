@@ -13,31 +13,34 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __HAECCOMM_NETWORKCODINGBASE_H_
-#define __HAECCOMM_NETWORKCODINGBASE_H_
+#ifndef __HAECCOMM_NETWORKCODINGENCODER_H_
+#define __HAECCOMM_NETWORKCODINGENCODER_H_
 
 #include <omnetpp.h>
-#include <Buffers/PacketQueueBase.h>
-#include <MW/MiddlewareBase.h>
+#include <Messages/fieldtypes.h>
+#include <MW/NetworkCoding/NetworkCodingBase.h>
+#include <cinttypes>
+#include <map>
 
 using namespace omnetpp;
 
 namespace HaecComm { namespace MW { namespace NetworkCoding {
 
-class NetworkCodingBase: public MiddlewareBase, public cListener {
+/**
+ * TODO - Generated class
+ */
+class EncoderImpl : public NetworkCodingBase {
 public:
-	NetworkCodingBase();
-	virtual ~NetworkCodingBase();
+	EncoderImpl();
+	virtual ~EncoderImpl();
 
 protected:
     virtual void initialize() override;
-    virtual void handleMessage(cMessage* msg) override = 0;
-    virtual void receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) override;
+    virtual void handleMessage(cMessage* msg) override;
 
-    int generationSize;
-    int numCombinations;
-
-    Buffers::PacketQueueBase* inputQueue;
+private:
+    std::map<Messages::Address2D, cArray*> flitCache;
+    uint32_t gidCounter;
 };
 
 }}} //namespace

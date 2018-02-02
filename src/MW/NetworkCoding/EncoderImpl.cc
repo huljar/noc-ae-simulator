@@ -13,28 +13,31 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include "Decoder.h"
+#include "EncoderImpl.h"
 #include <Messages/Flit_m.h>
+#include <utility>
 
 using namespace HaecComm::Messages;
 
 namespace HaecComm { namespace MW { namespace NetworkCoding {
 
-Define_Module(Decoder);
+Define_Module(EncoderImpl);
 
-Decoder::Decoder() {
+EncoderImpl::EncoderImpl()
+	: gidCounter(0)
+{
 }
 
-Decoder::~Decoder() {
+EncoderImpl::~EncoderImpl() {
 	for(auto it = flitCache.begin(); it != flitCache.end(); ++it)
 		delete it->second;
 }
 
-void Decoder::initialize() {
+void EncoderImpl::initialize() {
     NetworkCodingBase::initialize();
 }
 
-void Decoder::handleMessage(cMessage* msg) {
+void EncoderImpl::handleMessage(cMessage* msg) {
 	// Confirm that this is a flit
 	Flit* flit = dynamic_cast<Flit*>(msg);
 	if(!flit) {
@@ -44,41 +47,45 @@ void Decoder::handleMessage(cMessage* msg) {
 	}
 
 	if(flit->getMode() == MODE_DATA) {
-		// Insert flit into cache (indexed by source address and generation ID)
-		auto key = std::make_pair(flit->getSource(), flit->getGid());
-		cArray*& combinations = flitCache[key];
-		if(!combinations)
-			combinations = new cArray;
-		combinations->add(flit);
+		// Insert flit into cache (indexed by target address)
+		Address2D target = flit->getTarget();
+		cArray*& generation = flitCache[target];
+		if(!generation)
+			generation = new cArray;
+		generation->add(flit);
 
-		if(combinations->size() == numCombinations) {
-			// TODO: do actual network decoding
+		if(generation->size() == generationSize) {
+			// TODO: do actual network coding
 
 			// right now we just copy the first flit a few times because
 			// there is no payload yet
-			for(int i = 0; i < generationSize; ++i) {
-				Flit* decoded = static_cast<Flit*>(combinations->get(0))->dup();
+			for(int i = 0; i < numCombinations; ++i) {
+				Flit* combination = static_cast<Flit*>(generation->get(0))->dup();
 
-				// Remove network coding metadata
-				decoded->setGev(0);
+				// Set network coding metadata
+				combination->setGid(gidCounter);
+				combination->setGev(42); // TODO: set to something meaningful when NC is implemented
 
-				// Restore original flit ID into the GID field using the originalIds vector
-				decoded->setGid(static_cast<uint32_t>(static_cast<Flit*>(combinations->get(0))->getOriginalIds(i)));
+				// Set original IDs vector
+				combination->setOriginalIdsArraySize(generationSize);
+				for(int j = 0; j < generationSize; ++j) {
+					combination->setOriginalIds(j, static_cast<Flit*>(generation->get(j))->getId());
+				}
 
-				// Send the decoded flit
-				send(decoded, "out");
+				// Send the encoded flit
+				send(combination, "out");
 			}
-			delete combinations;
-			flitCache.erase(key);
+			delete generation;
+			flitCache.erase(target);
+			++gidCounter;
 		}
 	}
 	else if(flit->getMode() == MODE_MAC) {
-		delete flit;
-		// TODO: implement MAC validation in separate module (afterwards, MACs shouldn't arrive here)
+		flit->setGid(gidCounter - 1); // -1 because the counter contains the ID of the next generation
+		send(flit, "out");
 	}
 	else {
-		delete flit;
-		// TODO: do something useful for MODE_DATA_MAC and MODE_ARQ
+		send(flit, "out");
 	}
 }
 

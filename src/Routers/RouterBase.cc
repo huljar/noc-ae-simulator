@@ -66,9 +66,6 @@ void RouterBase::initialize() {
 
         // Retrieve pointers to the input queues
         // This is necessary so we can request packets from a specific queue
-        if(!inGate->isPathOK())
-        	throw cRuntimeError(this, "Input gate of the router is not properly connected");
-
         PacketQueueBase* inputQueue = check_and_cast<PacketQueueBase*>(inGate->getPathStartGate()->getOwnerModule());
         portQueueMap.emplace(i, inputQueue);
 	}
