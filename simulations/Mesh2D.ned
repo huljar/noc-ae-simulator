@@ -27,8 +27,8 @@ import HaecComm.Core.IHaecChannel;
 //
 network Mesh2D {
     parameters:
-        int columns = default(4);       // number of grid columns
-        int rows = default(4);          // number of grid rows
+        int columns;                    // number of grid columns
+        int rows;                       // number of grid rows
         string nodeType;                // NED type of the nodes (must implement IHaecNode)
         string channelType;             // NED type of the channels between nodes (must implement IHaecChannel)
     submodules:
@@ -37,16 +37,16 @@ network Mesh2D {
         // transmissions. The clock emits a "clock" signal in regular intervals.
         //
         clock: Clock {
-            @display("p=30,40");
+            @display("p=30,80");
         }
         //
         // The nodes of the network. They must implement the IHaecNode interface.
         // To set the actual type, use the nodeType string parameter.
         //
         node[columns*rows]: <nodeType> like IHaecNode {
-            @display("p=100,40,matrix,$columns,100,100");
+            @display("p=120,80,matrix,$columns,100,100");
             id = index;
-            gates: port[4];
+            numPorts = 4;
         }
     connections allowunconnected:
         // port indices: top=0, right=1, bottom=2, left=3

@@ -15,7 +15,9 @@
 
 package HaecComm.Core;
 
-import HaecComm.MW.*;
+import HaecComm.MW.GenTraffic;
+import HaecComm.MW.ReportArrival;
+import HaecComm.Buffers.PacketQueue;
 
 //
 // Default implementation of the Processing Unit from the HAEC project (called "App" here).
@@ -28,12 +30,16 @@ module App like IApp {
         inout net;
     submodules:
         producer: GenTraffic {
-            @display("p=160,60");
+            @display("p=300,100");
+        }
+        inputQueue: PacketQueue {
+            @display("p=80,100");
         }
         consumer: ReportArrival {
-            @display("p=60,60");
+            @display("p=180,100");
         }
     connections:
         producer.out --> net$o;
-        consumer.in <-- net$i; // TODO: add conditional queues in between (-> locallyClocked)
+        inputQueue.in <-- net$i;
+        inputQueue.out --> consumer.in;
 }

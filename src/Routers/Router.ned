@@ -13,44 +13,39 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package HaecComm.Core;
+package HaecComm.Routers;
 
-import HaecComm.Routers.Router;
 import HaecComm.Buffers.PacketQueue;
 
-//
-// Default definition of the HAEC network nodes. It consists of an App (aka.
-// Processing Unit), a Network Interface, and a Router. Between the submodules
-// and in front of the outgoing connections, there are packet queues handling
-// clock synchronization if clocking is enabled.
-//
-module HaecNode like IHaecNode {
+module Router {
     parameters:
-        int id;
-        int numPorts;
-        string appType;
-        string niType;
+        @display("i=block/routing");
         string routerType;
-        @display("i=block/network");
+        int numPorts;
     gates:
+        inout local;
         inout port[numPorts];
     submodules:
-        app: <appType> like IApp {
-            @display("p=80,100");
+        localInputQueue: PacketQueue {
+            @display("p=80,250");
+            awaitSendRequests = true;
         }
-        ni: <niType> like INetworkInterface {
-            @display("p=180,100");
+        routerImpl: <routerType> like IRouterBase {
+            @display("p=230,250");
+            gates: port[numPorts];
         }
-        router: Router {
-            @display("p=280,100");
-            routerType = routerType;
-            numPorts = numPorts;
+        nodeInputQueue[numPorts]: PacketQueue {
+            @display("p=380,100,column,100");
+            awaitSendRequests = true;
         }
     connections:
-        app.net <--> ni.app;
-        ni.router <--> router.local;
+        localInputQueue.in <-- local$i;
+        localInputQueue.out --> routerImpl.local$i;
+        local$o <-- routerImpl.local$o;
         
         for i=0..numPorts-1 {
-            router.port[i] <--> port[i];
+            port$i[i] --> nodeInputQueue[i].in;
+            routerImpl.port$i[i] <-- nodeInputQueue[i].out;
+            routerImpl.port$o[i] --> port$o[i];
         }
 }

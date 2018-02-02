@@ -22,6 +22,7 @@ package HaecComm.Core;
 moduleinterface IHaecNode {
     parameters:
         int id;
+        int numPorts;
     gates:
-        inout port[];
+        inout port[numPorts];
 }
