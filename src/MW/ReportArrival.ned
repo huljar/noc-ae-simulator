@@ -27,7 +27,7 @@ package HaecComm.MW;
 //
 simple ReportArrival like IMiddlewareBase {
     parameters:
-        @signal[pktconsume](type=long);
+        @signal[pktconsume](type=unsigned long);
         @statistic[flitIds](source=pktconsume; record=vector; title="Flits consumed");
         @display("i=block/arrival");
     gates:
