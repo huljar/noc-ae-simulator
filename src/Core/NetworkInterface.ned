@@ -17,6 +17,7 @@ package HaecComm.Core;
 
 import HaecComm.Buffers.PacketQueue;
 import HaecComm.Buffers.RetransmissionBuffer;
+import HaecComm.Util.ArqSplitter;
 
 //
 // Minimal implementation of the Network Interface from the HAEC project.
@@ -33,12 +34,25 @@ module NetworkInterface like INetworkInterface {
             @display("p=80,100");
         }
         retransmissionBuffer: RetransmissionBuffer {
-            @display("p=220,100");
+            @display("p=200,100");
+        }
+        arqSplitter: ArqSplitter {
+            @display("p=200,250");
+        }
+        arqQueue: PacketQueue {
+            @display("p=160,175");
+        }
+        routerInputQueue: PacketQueue {
+            @display("p=80,250");
         }
     connections:
         app$i --> appInputQueue.in;
         retransmissionBuffer.in <-- appInputQueue.out;
         retransmissionBuffer.out --> router$o;
         
-        router$i --> app$o;
+        arqSplitter.in <-- router$i;
+        arqSplitter.arqOut --> arqQueue.in;
+        arqQueue.out --> retransmissionBuffer.arqIn;
+        arqSplitter.othersOut --> routerInputQueue.in;
+        routerInputQueue.out --> app$o;
 }

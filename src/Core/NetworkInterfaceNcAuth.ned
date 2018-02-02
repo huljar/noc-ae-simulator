@@ -76,17 +76,23 @@ module NetworkInterfaceNcAuth like INetworkInterface {
         retransmissionBuffer: RetransmissionBuffer {
             @display("p=800,120");
         }
+        arqSplitter: ArqSplitter {
+            @display("p=800,420");
+        }
+        arqQueue: PacketQueue {
+            @display("p=750,270");
+        }
         routerInputQueue: PacketQueue {
-            @display("p=80,420");
+            @display("p=680,420");
             awaitSendRequests = true;
         }
         ncDecode: Decoder {
-            @display("p=200,420");
+            @display("p=560,420");
             generationSize = ncGenerationSize;
             numCombinations = ncNumCombinations;
         }
         ncDecodeQueue: PacketQueue {
-            @display("p=320,420");
+            @display("p=440,420");
             awaitSendRequests = false;
         }
     connections:
@@ -116,7 +122,10 @@ module NetworkInterfaceNcAuth like INetworkInterface {
         	ncEncoder.out --> retransmissionBuffer.in;
         }
         
-        router$i --> routerInputQueue.in;
+        arqSplitter.in <-- router$i;
+        arqSplitter.arqOut --> arqQueue.in;
+        arqQueue.out --> retransmissionBuffer.arqIn;
+        arqSplitter.othersOut --> routerInputQueue.in;
         ncDecode.in <-- routerInputQueue.out;
         ncDecode.out --> ncDecodeQueue.in;
         ncDecodeQueue.out --> app$o;

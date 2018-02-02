@@ -13,16 +13,24 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package HaecComm.Buffers;
+#ifndef __HAECCOMM_ARQSPLITTER_H_
+#define __HAECCOMM_ARQSPLITTER_H_
 
-//
-// TODO auto-generated module
-//
-simple RetransmissionBuffer {
-    parameters:
-        @display("i=block/buffer");
-    gates:
-        input  in;
-        output out;
-        input  arqIn;
-}
+#include <omnetpp.h>
+
+using namespace omnetpp;
+
+namespace HaecComm { namespace Util {
+
+/**
+ * TODO - Generated class
+ */
+class ArqSplitter : public cSimpleModule {
+protected:
+    virtual void initialize() override;
+    virtual void handleMessage(cMessage* msg) override;
+};
+
+}} //namespace
+
+#endif

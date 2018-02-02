@@ -13,16 +13,16 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package HaecComm.Buffers;
+package HaecComm.Util;
 
 //
 // TODO auto-generated module
 //
-simple RetransmissionBuffer {
+simple ArqSplitter {
     parameters:
-        @display("i=block/buffer");
+        @display("i=block/classifier");
     gates:
         input  in;
-        output out;
-        input  arqIn;
+        output arqOut;
+        output othersOut;
 }

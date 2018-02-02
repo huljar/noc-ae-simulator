@@ -13,19 +13,19 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include "RetransmissionBuffer.h"
+#include "ArqSplitter.h"
 #include <Messages/Flit_m.h>
 
 using namespace HaecComm::Messages;
 
-namespace HaecComm { namespace Buffers {
+namespace HaecComm { namespace Util {
 
-Define_Module(RetransmissionBuffer);
+Define_Module(ArqSplitter);
 
-void RetransmissionBuffer::initialize() {
+void ArqSplitter::initialize() {
 }
 
-void RetransmissionBuffer::handleMessage(cMessage* msg) {
+void ArqSplitter::handleMessage(cMessage* msg) {
     // Confirm that this is a flit
     Flit* flit = dynamic_cast<Flit*>(msg);
     if(!flit) {
@@ -34,20 +34,11 @@ void RetransmissionBuffer::handleMessage(cMessage* msg) {
         return;
     }
 
-    if(strcmp(flit->getArrivalGate()->getName(), "arqIn") == 0) {
-        // Confirm that this is an ARQ
-        if(flit->getMode() != MODE_ARQ) {
-            EV_WARN << "Received a flit on the ARQ line that is not an ARQ. Discarding it." << std::endl;
-            delete msg;
-            return;
-        }
-
-        // TODO: look up flit from buffer and send out
-        delete flit;
+    if(flit->getMode() == MODE_ARQ) {
+        send(flit, "arqOut");
     }
     else {
-        // TODO: copy flit (dup()) to buffer, implement caching strategy
-        send(flit, "out");
+        send(flit, "othersOut");
     }
 }
 
