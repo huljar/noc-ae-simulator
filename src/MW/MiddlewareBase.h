@@ -38,9 +38,6 @@ public:
 protected:
     virtual void initialize() override;
     virtual void handleMessage(cMessage* msg) override = 0;
-
-    // Convenience stuff
-    cPacket* createPacket(const char* name);
 };
 
 }} //namespace

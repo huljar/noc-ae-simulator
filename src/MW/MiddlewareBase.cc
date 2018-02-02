@@ -26,10 +26,4 @@ MiddlewareBase::~MiddlewareBase() {
 void MiddlewareBase::initialize() {
 }
 
-cPacket* MiddlewareBase::createPacket(const char* name) {
-    cPacket* packet = new cPacket(name);
-    take(packet);
-    return packet;
-}
-
 }} //namespace
