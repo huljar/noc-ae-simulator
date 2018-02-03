@@ -21,6 +21,7 @@ package HaecComm.Buffers;
 simple RetransmissionBuffer {
     parameters:
         @display("i=block/buffer");
+        int bufSize; // Amount of flits that can be cached
     gates:
         input  in;
         output out;

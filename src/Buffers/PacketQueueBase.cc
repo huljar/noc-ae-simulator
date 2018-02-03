@@ -54,6 +54,8 @@ void PacketQueueBase::initialize() {
 	awaitSendRequests = par("awaitSendRequests");
 	syncFirstPacket = par("syncFirstPacket");
 	maxLength = par("maxLength");
+	if(maxLength < 0)
+		throw cRuntimeError(this, "Queue max length must be greater or equal to 0, but received %i", maxLength);
 
     queue = new cPacketQueue;
 

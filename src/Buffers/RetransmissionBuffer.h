@@ -17,6 +17,9 @@
 #define __HAECCOMM_RETRANSMISSIONBUFFER_H_
 
 #include <omnetpp.h>
+#include <Messages/Flit_m.h>
+#include <map>
+#include <queue>
 
 using namespace omnetpp;
 
@@ -26,9 +29,20 @@ namespace HaecComm { namespace Buffers {
  * TODO - Generated class
  */
 class RetransmissionBuffer : public cSimpleModule {
+public:
+	typedef long int FlitKey;
+
+	RetransmissionBuffer();
+	virtual ~RetransmissionBuffer();
+
 protected:
     virtual void initialize() override;
     virtual void handleMessage(cMessage* msg) override;
+
+    int bufSize;
+
+    std::map<FlitKey, Messages::Flit*> flitCache;
+    std::queue<FlitKey> flitQueue;
 };
 
 }} //namespace
