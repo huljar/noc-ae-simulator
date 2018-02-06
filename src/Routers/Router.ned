@@ -17,10 +17,10 @@ package HaecComm.Routers;
 
 import HaecComm.Buffers.PacketQueue;
 
-module Router {
+module Router like IRouter {
     parameters:
         @display("i=block/routing");
-        string routerType;
+        string internalType;
         int numPorts;
     gates:
         inout local;
@@ -30,7 +30,7 @@ module Router {
             @display("p=80,250");
             awaitSendRequests = true;
         }
-        routerImpl: <routerType> like IRouterBase {
+        routerImpl: <internalType> like IRouterBase {
             @display("p=230,250");
             gates: port[numPorts];
         }

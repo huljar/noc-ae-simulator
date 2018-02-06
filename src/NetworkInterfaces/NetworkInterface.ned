@@ -13,7 +13,7 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package HaecComm.Core;
+package HaecComm.NetworkInterfaces;
 
 import HaecComm.Buffers.PacketQueue;
 import HaecComm.Buffers.RetransmissionBuffer;

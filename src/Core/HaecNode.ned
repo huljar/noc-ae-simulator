@@ -15,7 +15,8 @@
 
 package HaecComm.Core;
 
-import HaecComm.Routers.Router;
+import HaecComm.NetworkInterfaces.INetworkInterface;
+import HaecComm.Routers.IRouter;
 import HaecComm.Buffers.PacketQueue;
 
 //
@@ -41,9 +42,8 @@ module HaecNode like IHaecNode {
         ni: <niType> like INetworkInterface {
             @display("p=180,100");
         }
-        router: Router {
+        router: <routerType> like IRouter {
             @display("p=280,100");
-            routerType = routerType;
             numPorts = numPorts;
         }
     connections:

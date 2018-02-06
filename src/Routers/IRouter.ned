@@ -13,14 +13,17 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package HaecComm.Core;
+package HaecComm.Routers;
 
 //
-// Module interface for Network Interface modules.
-// Network Interfaces used in the HaecNode compound module must implement this interface.
+// Module interface for Router modules.
+// Routers used in the HaecNode compound module must implement this interface.
 //
-moduleinterface INetworkInterface {
+moduleinterface IRouter {
+    parameters:
+        string internalType;
+        int numPorts;
     gates:
-        inout app;
-        inout router;
+        inout local;
+        inout port[numPorts];
 }
