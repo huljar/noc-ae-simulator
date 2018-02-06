@@ -13,18 +13,17 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include "FlitSplitter.h"
+package HaecComm.MW.NetworkCoding;
 
-namespace HaecComm { namespace Util {
+import HaecComm.MW.IMiddlewareBase;
 
-Define_Module(FlitSplitter);
-
-void FlitSplitter::initialize() {
-    // TODO - Generated method body
+//
+// TODO auto-generated module
+//
+simple FlitSplitterImpl like IMiddlewareBase {
+    parameters:
+        @display("i=block/cogwheel");
+    gates:
+        input  in;
+        output out;
 }
-
-void FlitSplitter::handleMessage(cMessage* msg) {
-    // TODO - Generated method body
-}
-
-}} //namespace

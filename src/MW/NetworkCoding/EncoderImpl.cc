@@ -84,6 +84,10 @@ void EncoderImpl::handleMessage(cMessage* msg) {
 		flit->setGid(gidCounter - 1); // -1 because the counter contains the ID of the next generation
 		send(flit, "out");
 	}
+	else if(flit->getMode() == MODE_DATA_MAC) {
+		// TODO: network coding for half-flits
+		send(flit, "out");
+	}
 	else {
 		send(flit, "out");
 	}

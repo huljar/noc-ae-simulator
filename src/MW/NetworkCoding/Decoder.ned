@@ -32,7 +32,7 @@ module Decoder like INetworkCodingBase {
             numCombinations = numCombinations;
         }
         serializer: PacketQueue {
-            @display("p=180,100");
+            @display("p=180,100;i=block/transport");
             syncFirstPacket = false;
         }
     connections:

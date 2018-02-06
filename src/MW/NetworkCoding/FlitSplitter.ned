@@ -13,10 +13,27 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package HaecComm.Util;
+package HaecComm.MW.NetworkCoding;
 
-//
-// TODO auto-generated module
-//
-simple FlitSplitter {
+import HaecComm.MW.IMiddlewareBase;
+import HaecComm.Buffers.PacketQueue;
+
+module FlitSplitter like IMiddlewareBase {
+    parameters:
+        @display("i=block/classifier2");
+    gates:
+        input  in;
+        output out;
+    submodules:
+        flitSplitterImpl: FlitSplitterImpl {
+            @display("p=80,100");
+        }
+        serializer: PacketQueue {
+            @display("p=180,100;i=block/transport");
+            syncFirstPacket = false;
+        }
+    connections:
+        in --> flitSplitterImpl.in;
+        serializer.in <-- flitSplitterImpl.out;
+        serializer.out --> out;
 }

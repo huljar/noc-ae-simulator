@@ -17,20 +17,21 @@
 #define __HAECCOMM_FLITSPLITTER_H_
 
 #include <omnetpp.h>
+#include <MW/MiddlewareBase.h>
 
 using namespace omnetpp;
 
-namespace HaecComm { namespace Util {
+namespace HaecComm { namespace MW { namespace NetworkCoding {
 
 /**
  * TODO - Generated class
  */
-class FlitSplitter : public cSimpleModule {
+class FlitSplitterImpl : public MiddlewareBase {
 protected:
     virtual void initialize() override;
     virtual void handleMessage(cMessage* msg) override;
 };
 
-}} //namespace
+}}} //namespace
 
 #endif
