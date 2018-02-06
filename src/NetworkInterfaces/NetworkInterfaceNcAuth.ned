@@ -37,42 +37,68 @@ module NetworkInterfaceNcAuth like INetworkInterface {
         inout app;
         inout router;
     submodules:
+        //#### Input queue for all auth modes ####//
         appInputQueue: PacketQueue {
             @display("p=80,120");
             awaitSendRequests = true;
         }
-        ncEncoder: Encoder {
+        
+        //#### Auth modes 0 and 2 (positioning of modules varies) ####//
+        ncEncoderFirst: Encoder if authMode != 1 {
             @display("p=200,120");
             generationSize = ncGenerationSize;
             numCombinations = ncNumCombinations;
         }
-        authQueue: PacketQueue {
+        authQueue: PacketQueue if authMode != 1 {
             @display("p=320,120");
             awaitSendRequests = true;
         }
-        authLoadBalancer: LoadBalancer {
+        authLoadBalancerSecond: LoadBalancer if authMode != 1 {
             @display("p=440,120");
             busyCycles = authCycles;
             gates: out[authCryptoUnits];
         }
-        authUnit0[authCryptoUnits]: AuthFlit if authMode == 0 {
+        authUnitFlit[authCryptoUnits]: AuthFlit if authMode == 0 {
             @display("p=560,40,column,80");
             computeCycles = authCycles;
         }
-        authUnit1[authCryptoUnits]: AuthGeneration if authMode == 1 {
-            @display("p=560,40,column,80");
-            computeCycles = authCycles;
-            generationSize = ncGenerationSize;
-        }
-        authUnit2[authCryptoUnits]: AuthHalfFlit if authMode == 2 {
+        authUnitHalfFlit[authCryptoUnits]: AuthHalfFlit if authMode == 2 {
             @display("p=560,40,column,80");
             computeCycles = authCycles;
         }
-        authSerializer: MultiInputPacketQueue {
+        authSerializerSecond: MultiInputPacketQueue if authMode != 1 {
             @display("p=680,120");
             syncFirstPacket = false;
             gates: in[authCryptoUnits];
         }
+        
+        //#### Auth mode 1 (positioning of modules varies) ####//
+        authLoadBalancerFirst: LoadBalancer if authMode == 1 {
+            @display("p=200,120");
+            busyCycles = authCycles;
+            gates: out[authCryptoUnits];
+        }
+        authUnitGen[authCryptoUnits]: AuthGeneration if authMode == 1 {
+            @display("p=320,40,column,80");
+            computeCycles = authCycles;
+            generationSize = ncGenerationSize;
+        }
+        authSerializerFirst: MultiInputPacketQueue if authMode == 1 {
+            @display("p=440,120");
+            syncFirstPacket = false;
+            gates: in[authCryptoUnits];
+        }
+        ncEncoderQueue: PacketQueue if authMode == 1 {
+            @display("p=560,120");
+            awaitSendRequests = true;
+        }
+        ncEncoderSecond: Encoder if authMode == 1 {
+            @display("p=680,120");
+            generationSize = ncGenerationSize;
+            numCombinations = ncNumCombinations;
+        }
+        
+        //#### Auth mode independent modules ####//
         retransmissionBuffer: RetransmissionBuffer {
             @display("p=800,120");
         }
@@ -98,29 +124,29 @@ module NetworkInterfaceNcAuth like INetworkInterface {
     connections:
         app$i --> appInputQueue.in;
         
+        if authMode != 1 {
+            appInputQueue.out --> ncEncoderFirst.in;
+            ncEncoderFirst.out --> authQueue.in;
+            authQueue.out --> authLoadBalancerSecond.in;
+            authSerializerSecond.out --> retransmissionBuffer.in;
+        }
+        if authMode == 1 {
+            appInputQueue.out --> authLoadBalancerFirst.in;
+            authSerializerFirst.out --> ncEncoderQueue.in;
+            ncEncoderQueue.out --> ncEncoderSecond.in;
+            ncEncoderSecond.out --> retransmissionBuffer.in;
+        }
+        
         for i=0..authCryptoUnits-1 {
-            authUnit0[i].in <-- authLoadBalancer.out[i] if authMode == 0;
-            authUnit0[i].out --> authSerializer.in[i] if authMode == 0;
-            authUnit1[i].in <-- authLoadBalancer.out[i] if authMode == 1;
-            authUnit1[i].out --> authSerializer.in[i] if authMode == 1;
-            authUnit2[i].in <-- authLoadBalancer.out[i] if authMode == 2;
-            authUnit2[i].out --> authSerializer.in[i] if authMode == 2;
+            authUnitFlit[i].in <-- authLoadBalancerSecond.out[i] if authMode == 0;
+            authUnitFlit[i].out --> authSerializerSecond.in[i] if authMode == 0;
+            authUnitGen[i].in <-- authLoadBalancerFirst.out[i] if authMode == 1;
+            authUnitGen[i].out --> authSerializerFirst.in[i] if authMode == 1;
+            authUnitHalfFlit[i].in <-- authLoadBalancerSecond.out[i] if authMode == 2;
+            authUnitHalfFlit[i].out --> authSerializerSecond.in[i] if authMode == 2;
         }
         
         retransmissionBuffer.out --> router$o;
-        
-        if authMode != 1 {
-            appInputQueue.out --> ncEncoder.in;
-            ncEncoder.out --> authQueue.in;
-            authQueue.out --> authLoadBalancer.in;
-            authSerializer.out --> retransmissionBuffer.in;
-        }
-        if authMode == 1 {
-        	appInputQueue.out --> authLoadBalancer.in;
-        	authSerializer.out --> authQueue.in;
-        	authQueue.out --> ncEncoder.in;
-        	ncEncoder.out --> retransmissionBuffer.in;
-        }
         
         arqSplitter.in <-- router$i;
         arqSplitter.arqOut --> arqQueue.in;
