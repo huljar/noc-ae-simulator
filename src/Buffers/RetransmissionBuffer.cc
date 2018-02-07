@@ -78,7 +78,7 @@ void RetransmissionBuffer::handleMessage(cMessage* msg) {
     	flitCache.emplace(flitKey, flitCopy);
 
     	// Check if cache size was exceeded
-    	while(flitQueue.size() > bufSize) {
+    	while(flitQueue.size() > static_cast<size_t>(bufSize)) {
     		FlitKey toRemove = flitQueue.front();
     		delete flitCache.at(toRemove);
     		flitCache.erase(toRemove);

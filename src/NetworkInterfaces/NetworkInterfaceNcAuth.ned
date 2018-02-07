@@ -67,7 +67,7 @@ module NetworkInterfaceNcAuth like INetworkInterface {
             computeCycles = authCycles;
         }
         authSerializerSecond: MultiInputPacketQueue if authMode != 1 {
-            @display("p=680,120");
+            @display("p=680,120;i=block/join");
             syncFirstPacket = false;
             gates: in[authCryptoUnits];
         }
@@ -84,7 +84,7 @@ module NetworkInterfaceNcAuth like INetworkInterface {
             generationSize = ncGenerationSize;
         }
         authSerializerFirst: MultiInputPacketQueue if authMode == 1 {
-            @display("p=440,120");
+            @display("p=440,120;i=block/join");
             syncFirstPacket = false;
             gates: in[authCryptoUnits];
         }
@@ -124,6 +124,7 @@ module NetworkInterfaceNcAuth like INetworkInterface {
     connections:
         app$i --> appInputQueue.in;
         
+        //# NED does not allow nested if/for blocks
         if authMode != 1 {
             appInputQueue.out --> ncEncoderFirst.in;
             ncEncoderFirst.out --> authQueue.in;
