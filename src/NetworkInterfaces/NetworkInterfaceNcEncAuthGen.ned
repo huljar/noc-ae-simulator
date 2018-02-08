@@ -27,91 +27,55 @@ import HaecComm.Util.*;
 //
 module NetworkInterfaceNcEncAuthGen like INetworkInterface {
     parameters:
-        int ncGenerationSize;
-        int ncNumCombinations;
-        int authMode;
-        int authCryptoUnits;
+        int generationSize;
+        int numCombinations;
+        int authUnits;
         int authCycles;
         @display("i=block/control");
     gates:
         inout app;
         inout router;
     submodules:
-        //#### Input queue for all auth modes ####//
         appInputQueue: PacketQueue {
             @display("p=80,120");
             awaitSendRequests = true;
         }
-        
-        //#### Auth modes 1 and 3 (positioning of modules varies) ####//
-        //# TODO: split different auth modes into different NED files
-        ncEncoderFirst: Encoder if authMode != 2 {
-            @display("p=200,120");
-            generationSize = ncGenerationSize;
-            numCombinations = ncNumCombinations;
-        }
-        authQueue: PacketQueue if authMode != 2 {
-            @display("p=320,120");
-            awaitSendRequests = true;
-        }
-        authLoadBalancerSecond: LoadBalancer if authMode != 2 {
-            @display("p=440,120");
-            busyCycles = authCycles;
-            gates: out[authCryptoUnits];
-        }
-        authUnitFlit[authCryptoUnits]: AuthFlit if authMode == 1 {
-            @display("p=560,40,column,80");
-            computeCycles = authCycles;
-        }
-        authUnitHalfFlit[authCryptoUnits]: AuthHalfFlit if authMode == 3 {
-            @display("p=560,40,column,80");
-            computeCycles = authCycles;
-        }
-        authSerializerSecond: MultiInputPacketQueue if authMode != 2 {
-            @display("p=680,120;i=block/join");
-            syncFirstPacket = false;
-            gates: in[authCryptoUnits];
-        }
-        
-        //#### Auth mode 2 (positioning of modules varies) ####//
-        authLoadBalancerFirst: LoadBalancer if authMode == 2 {
+        loadBalancer: LoadBalancer {
             @display("p=200,120");
             busyCycles = authCycles;
             gates: out[authCryptoUnits];
         }
-        authUnitGen[authCryptoUnits]: AuthGeneration if authMode == 2 {
+        authUnit[authUnits]: AuthGeneration {
             @display("p=320,40,column,80");
             computeCycles = authCycles;
-            generationSize = ncGenerationSize;
+            generationSize = generationSize;
         }
-        authSerializerFirst: MultiInputPacketQueue if authMode == 2 {
+        serializer: MultiInputPacketQueue {
             @display("p=440,120;i=block/join");
             syncFirstPacket = false;
-            gates: in[authCryptoUnits];
+            gates: in[authUnits];
         }
-        ncEncoderQueue: PacketQueue if authMode == 2 {
+        encoderQueue: PacketQueue {
             @display("p=560,120");
             awaitSendRequests = true;
         }
-        ncEncoderSecond: Encoder if authMode == 2 {
+        encoder: Encoder {
             @display("p=680,120");
-            generationSize = ncGenerationSize;
-            numCombinations = ncNumCombinations;
+            generationSize = generationSize;
+            numCombinations = numCombinations;
         }
-        
-        //#### Auth mode independent modules ####//
         retransmissionBuffer: RetransmissionBuffer {
             @display("p=800,120");
+        }
+        routerInputQueue: PacketQueue {
+            @display("p=680,420");
+            awaitSendRequests = true;
         }
         arqSplitter: ArqSplitter {
             @display("p=800,420");
         }
         arqQueue: PacketQueue {
             @display("p=750,270");
-        }
-        routerInputQueue: PacketQueue {
-            @display("p=680,420");
-            awaitSendRequests = true;
         }
         ncDecode: Decoder {
             @display("p=560,420");

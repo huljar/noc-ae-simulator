@@ -67,7 +67,7 @@ module NetworkInterfaceNcEncAuthFlit like INetworkInterface {
         }
         
         routerInputQueue: PacketQueue {
-            @display("p=800,120");
+            @display("p=800,420");
         }
         arqSplitter: ArqSplitter {
             @display("p=680,420");
