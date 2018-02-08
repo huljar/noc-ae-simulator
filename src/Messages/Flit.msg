@@ -21,6 +21,7 @@ namespace HaecComm::Messages;
 
 class noncobject Address2D;
 enum Mode;
+enum Status;
 
 //
 // Base class representing a HAEC flit. This class contains only the headers
@@ -64,4 +65,7 @@ packet Flit {
     
     // For encoded flits: the flit IDs from which the generation was formed
     long originalIds[];
+    
+    // Flit markers for correct distribution inside the network interface
+    uint8_t status @enum(Status);
 }

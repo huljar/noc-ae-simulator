@@ -94,6 +94,12 @@ enum Mode { // not using "enum class" (scoped enumeration) here, because the OMN
 };
 // TODO: make Mode a flag enum (bitwise-or allowed)?
 
+enum Status {
+    STATUS_NONE,
+    STATUS_ENCODING,
+    STATUS_DECODING
+};
+
 }} //namespace
 
 #endif /* MESSAGES_FIELDTYPES_H_ */
