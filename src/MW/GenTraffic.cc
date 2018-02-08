@@ -101,9 +101,9 @@ void GenTraffic::receiveSignal(cComponent* source, simsignal_t signalID, unsigne
 			// Set header fields
 			flit->setSource(Address2D(nodeX, nodeY));
 			flit->setTarget(Address2D(targetX, targetY));
-			flit->setGid(static_cast<uint32_t>(flit->getId()));
+			flit->setGid_fid(static_cast<uint32_t>(flit->getId()));
 
-			emit(pktgenerateSignal, flit->getGid());
+			emit(pktgenerateSignal, flit->getGid_fid());
 			EV << "Sending flit \"" << flit->getName() << "\" from " << flit->getSource().str()
 			   << " to " << flit->getTarget().str() << " (ID: " << flit->getId() << ")" << std::endl;
 			send(flit, "out");

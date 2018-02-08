@@ -37,7 +37,7 @@ packet Flit {
     
     // For encoded flits: Generation ID. Specifies the generation that this flit belongs to.
     // For decoded/uncoded flits: Flit ID.
-    uint32_t gid;
+    uint32_t gid_fid;
     //# TODO: assert 24 bit size
     uint16_t gev; // Global Encoding Vector. Only used in network coding combinations.
     //# TODO: assert 12 bit size
@@ -46,8 +46,5 @@ packet Flit {
     //# message (and thus should not be considered when setting the bit length
     //# of the flit).
     uint8_t hopCount; // Hop count (how many nodes were visited before reaching the destination)
-    // For encoded flits: the packet IDs from which the generation was formed
-    // Note: As of OMNeT++ 5.2, arrays cannot be resized to a smaller value than the old array, so we can't reduce the
-    // array size to 1.
-    long originalIds[];
+    long originalIds[]; // For encoded flits: the flit IDs from which the generation was formed
 }

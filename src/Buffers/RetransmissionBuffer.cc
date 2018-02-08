@@ -56,7 +56,7 @@ void RetransmissionBuffer::handleMessage(cMessage* msg) {
         }
 
         // Find the requested flit
-        FlitKey lookupKey = static_cast<FlitKey>(flit->getGid()); // TODO: use the correct identifier
+        FlitKey lookupKey = static_cast<FlitKey>(flit->getGid_fid()); // TODO: use the correct identifier
         auto lookupResult = flitCache.find(lookupKey);
 
         // If it is still in the buffer, copy it and send out
