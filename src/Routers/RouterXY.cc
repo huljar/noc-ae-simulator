@@ -14,7 +14,7 @@
 // 
 
 #include "RouterXY.h"
-#include <Messages/Flit_m.h>
+#include <Messages/Flit.h>
 #include <Util/Constants.h>
 
 using namespace HaecComm::Messages;

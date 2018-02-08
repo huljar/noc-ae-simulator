@@ -14,9 +14,7 @@
 // 
 
 #include "FlitSplitterImpl.h"
-#include <Messages/Flit_m.h>
-#include <Messages/FlitLarge_m.h>
-#include <Messages/FlitSmall_m.h>
+#include <Messages/Flit.h>
 
 using namespace HaecComm::Messages;
 
@@ -38,36 +36,18 @@ void FlitSplitterImpl::handleMessage(cMessage* msg) {
 	}
 
 	if(flit->getMode() == MODE_DATA) {
-		flit->setMode(MODE_DATA_MAC);
 		Flit* split = flit->dup();
+        flit->setMode(MODE_SPLIT_1);
+        split->setMode(MODE_SPLIT_2);
 		// TODO: set a sensible ID for the new flit (use omnet internal ID again?)
 
-		if(FlitLarge* firstFlit = dynamic_cast<FlitLarge*>(flit)) {
-			ASSERT(firstFlit->getPayloadArraySize() == 16);
-			FlitLarge* secondFlit = static_cast<FlitLarge*>(split);
-
-			// Split into two 64bit data flits
-			for(unsigned int i = 0; i < 8; ++i) {
-				secondFlit->setPayload(i, firstFlit->getPayload(i + 8));
-				firstFlit->setPayload(i + 8, 0);
-				secondFlit->setPayload(i + 8, 0);
-			}
-
-		}
-		else if(FlitSmall* firstFlit = dynamic_cast<FlitSmall*>(flit)) {
-			ASSERT(firstFlit->getPayloadArraySize() == 8);
-			FlitSmall* secondFlit = static_cast<FlitSmall*>(split);
-
-			// Split into two 32bit data flits
-			for(unsigned int i = 0; i < 4; ++i) {
-				secondFlit->setPayload(i, firstFlit->getPayload(i + 4));
-				firstFlit->setPayload(i + 4, 0);
-				secondFlit->setPayload(i + 4, 0);
-			}
-		}
-		else {
-			throw cRuntimeError(this, "Received an unknown subclass of Flit");
-		}
+        // Split payload
+        unsigned int payloadHalfSize = flit->getPayloadArraySize() / 2;
+        for(unsigned int i = 0; i < payloadHalfSize; ++i) {
+            split->setPayload(i, flit->getPayload(payloadHalfSize + i));
+            flit->setPayload(payloadHalfSize + i, 0);
+            split->setPayload(payloadHalfSize + i, 0);
+        }
 	}
 	else {
 		EV_WARN << "Received an unexpected type of flit. Mode: " << flit->getMode() << ". Discarding it." << std::endl;

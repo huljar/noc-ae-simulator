@@ -17,6 +17,7 @@
 #define __HAECCOMM_ARQSPLITTER_H_
 
 #include <omnetpp.h>
+#include <Messages/Flit.h>
 
 using namespace omnetpp;
 

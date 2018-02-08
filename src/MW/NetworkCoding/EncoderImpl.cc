@@ -14,7 +14,7 @@
 // 
 
 #include "EncoderImpl.h"
-#include <Messages/Flit_m.h>
+#include <Messages/Flit.h>
 #include <utility>
 
 using namespace HaecComm::Messages;
@@ -63,7 +63,7 @@ void EncoderImpl::handleMessage(cMessage* msg) {
 				Flit* combination = static_cast<Flit*>(generation->get(0))->dup();
 
 				// Set network coding metadata
-				combination->setGid_fid(gidCounter);
+				combination->setGidOrFid(gidCounter);
 				combination->setGev(42); // TODO: set to something meaningful when NC is implemented
 
 				// Set original IDs vector
@@ -81,10 +81,10 @@ void EncoderImpl::handleMessage(cMessage* msg) {
 		}
 	}
 	else if(flit->getMode() == MODE_MAC) {
-		flit->setGid_fid(gidCounter - 1); // -1 because the counter contains the ID of the next generation
+		flit->setGidOrFid(gidCounter - 1); // -1 because the counter contains the ID of the next generation
 		send(flit, "out");
 	}
-	else if(flit->getMode() == MODE_DATA_MAC) {
+	else if(flit->getMode() == MODE_SPLIT_1) {
 		// TODO: network coding for half-flits
 		send(flit, "out");
 	}

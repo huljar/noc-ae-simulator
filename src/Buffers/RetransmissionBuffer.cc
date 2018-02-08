@@ -14,7 +14,6 @@
 // 
 
 #include "RetransmissionBuffer.h"
-#include <Messages/Flit_m.h>
 
 using namespace HaecComm::Messages;
 
@@ -49,14 +48,14 @@ void RetransmissionBuffer::handleMessage(cMessage* msg) {
 
     if(strcmp(flit->getArrivalGate()->getName(), "arqIn") == 0) {
         // Confirm that this is an ARQ
-        if(flit->getMode() != MODE_ARQ) {
+        if(flit->getMode() != MODE_ARQ_DATA) { // TODO: handle different ARQ types
             EV_WARN << "Received a flit on the ARQ line that is not an ARQ. Discarding it." << std::endl;
             delete flit;
             return;
         }
 
         // Find the requested flit
-        FlitKey lookupKey = static_cast<FlitKey>(flit->getGid_fid()); // TODO: use the correct identifier
+        FlitKey lookupKey = static_cast<FlitKey>(flit->getGidOrFid()); // TODO: use the correct identifier
         auto lookupResult = flitCache.find(lookupKey);
 
         // If it is still in the buffer, copy it and send out

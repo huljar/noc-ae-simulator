@@ -17,7 +17,7 @@
 #define __HAECCOMM_RETRANSMISSIONBUFFER_H_
 
 #include <omnetpp.h>
-#include <Messages/Flit_m.h>
+#include <Messages/Flit.h>
 #include <map>
 #include <queue>
 

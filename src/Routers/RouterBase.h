@@ -18,7 +18,7 @@
 
 #include <omnetpp.h>
 #include <Buffers/PacketQueueBase.h>
-#include <Messages/Flit_m.h>
+#include <Messages/Flit.h>
 #include <map>
 
 using namespace omnetpp;

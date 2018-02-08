@@ -14,8 +14,7 @@
 // 
 
 #include "GenTraffic.h"
-#include <Messages/FlitSmall_m.h>
-#include <Messages/FlitLarge_m.h>
+#include <Messages/Flit.h>
 #include <sstream>
 
 using namespace HaecComm::Messages;
@@ -91,19 +90,18 @@ void GenTraffic::receiveSignal(cComponent* source, simsignal_t signalID, unsigne
 
 			// Create the flit
 			// TODO: use a FlitFactory class or factory method?
-			Flit* flit;
-			if(makeLargeFlits)
-				flit = new FlitLarge(packetName.str().c_str());
-			else
-				flit = new FlitSmall(packetName.str().c_str());
+			Flit* flit = new Flit(packetName.str().c_str());
+			if(makeLargeFlits) flit->setLargeFlit();
+			else flit->setSmallFlit();
+
 			take(flit);
 
 			// Set header fields
 			flit->setSource(Address2D(nodeX, nodeY));
 			flit->setTarget(Address2D(targetX, targetY));
-			flit->setGid_fid(static_cast<uint32_t>(flit->getId()));
+			flit->setGidOrFid(static_cast<uint32_t>(flit->getId()));
 
-			emit(pktgenerateSignal, flit->getGid_fid());
+			emit(pktgenerateSignal, flit->getGidOrFid());
 			EV << "Sending flit \"" << flit->getName() << "\" from " << flit->getSource().str()
 			   << " to " << flit->getTarget().str() << " (ID: " << flit->getId() << ")" << std::endl;
 			send(flit, "out");

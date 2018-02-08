@@ -14,7 +14,7 @@
 // 
 
 #include "AuthHalfFlitImpl.h"
-#include <Messages/Flit_m.h>
+#include <Messages/Flit.h>
 
 using namespace HaecComm::Messages;
 

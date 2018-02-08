@@ -124,7 +124,7 @@ module NetworkInterfaceNcAuth like INetworkInterface {
     connections:
         app$i --> appInputQueue.in;
         
-        //# NED does not allow nested if/for blocks
+        //# NED does not allow nested if/for blocks as of OMNeT++ 5.2
         if authMode != 2 {
             appInputQueue.out --> ncEncoderFirst.in;
             ncEncoderFirst.out --> authQueue.in;

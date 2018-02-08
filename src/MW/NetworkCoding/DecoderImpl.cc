@@ -14,7 +14,7 @@
 // 
 
 #include "DecoderImpl.h"
-#include <Messages/Flit_m.h>
+#include <Messages/Flit.h>
 
 using namespace HaecComm::Messages;
 
@@ -45,7 +45,7 @@ void DecoderImpl::handleMessage(cMessage* msg) {
 
 	if(flit->getMode() == MODE_DATA) {
 		// Insert flit into cache (indexed by source address and generation ID)
-		auto key = std::make_pair(flit->getSource(), flit->getGid_fid());
+		auto key = std::make_pair(flit->getSource(), flit->getGidOrFid());
 		cArray*& combinations = flitCache[key];
 		if(!combinations)
 			combinations = new cArray;
@@ -63,7 +63,7 @@ void DecoderImpl::handleMessage(cMessage* msg) {
 				decoded->setGev(0);
 
 				// Restore original flit ID into the GID field using the originalIds vector
-				decoded->setGid_fid(static_cast<uint32_t>(static_cast<Flit*>(combinations->get(0))->getOriginalIds(i)));
+				decoded->setGidOrFid(static_cast<uint32_t>(static_cast<Flit*>(combinations->get(0))->getOriginalIds(i)));
 
 				// Send the decoded flit
 				send(decoded, "out");

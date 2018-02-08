@@ -14,7 +14,7 @@
 // 
 
 #include "ArqSplitter.h"
-#include <Messages/Flit_m.h>
+#include <Messages/Flit.h>
 
 using namespace HaecComm::Messages;
 
@@ -34,7 +34,7 @@ void ArqSplitter::handleMessage(cMessage* msg) {
         return;
     }
 
-    if(flit->getMode() == MODE_ARQ) {
+    if(flit->isArq()) {
         send(flit, "arqOut");
     }
     else {

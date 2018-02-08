@@ -77,13 +77,20 @@ inline bool operator<(const Address2D& lhs, const Address2D& rhs) {
 
 /**
  * Enumerator which contains the possible values for the <em>mode</em>
- * field in flits.
+ * field in flits. <b>ARQ</b> stands for <b>A</b>utomatic <b>R</b>e-transmission
+ * re<b>Q</b>uest.
  */
 enum Mode { // not using "enum class" (scoped enumeration) here, because the OMNeT++ msg compiler doesn't do it either
-	MODE_DATA = 0,     //!< MODE_DATA Normal data flit. This is the default value.
-	MODE_MAC = 1,      //!< MODE_MAC Flit containing a Message Authentication Code (MAC) for another flit.
-	MODE_DATA_MAC = 2, //!< MODE_DATA_MAC Flit where the payload consists of half data and half MAC.
-	MODE_ARQ = 3       //!< MODE_ARQ Flit containing an <b>A</b>utomatic <b>R</b>e-transmission re<b>Q</b>uest.
+	MODE_DATA,          //!< MODE_DATA Normal data flit. This is the default value.
+	MODE_MAC,           //!< MODE_MAC Flit containing a Message Authentication Code (MAC) for another flit.
+	MODE_SPLIT_1,       //!< MODE_SPLIT_1 Flit where the payload consists of half data and half MAC (first part).
+	MODE_SPLIT_2,       //!< MODE_SPLIT_2 Flit where the payload consists of half data and half MAC (second part).
+	MODE_ARQ_DATA,      //!< MODE_ARQ_DATA Flit containing an ARQ, requesting a data flit.
+	MODE_ARQ_MAC,       //!< MODE_ARQ_MAC Flit containing an ARQ, requesting a MAC flit.
+	MODE_ARQ_DATA_MAC,  //!< MODE_ARQ_DATA_MAC Flit containing an ARQ, requesting both data and MAC flit.
+	MODE_ARQ_SPLIT_1,   //!< MODE_ARQ_SPLIT_1 Flit containing an ARQ, requesting the first half of a split.
+	MODE_ARQ_SPLIT_2,   //!< MODE_ARQ_SPLIT_2 Flit containing an ARQ, requesting the second half of a split.
+	// TODO: MODE_ARQ_COMPLETE? for authGen?
 };
 // TODO: make Mode a flag enum (bitwise-or allowed)?
 
