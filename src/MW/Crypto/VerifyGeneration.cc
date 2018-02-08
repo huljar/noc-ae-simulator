@@ -13,25 +13,18 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __HAECCOMM_AUTHHALFFLIT_H_
-#define __HAECCOMM_AUTHHALFFLIT_H_
-
-#include <omnetpp.h>
-#include <MW/MiddlewareBase.h>
-
-using namespace omnetpp;
+#include "VerifyGeneration.h"
 
 namespace HaecComm { namespace MW { namespace Crypto {
 
-/**
- * TODO - Generated class
- */
-class AuthHalfFlitImpl : public MiddlewareBase {
-protected:
-    virtual void initialize() override;
-    virtual void handleMessage(cMessage* msg) override;
-};
+Define_Module(VerifyGeneration);
+
+void VerifyGeneration::initialize() {
+    // TODO - Generated method body
+}
+
+void VerifyGeneration::handleMessage(cMessage* msg) {
+    // TODO - Generated method body
+}
 
 }}} //namespace
-
-#endif

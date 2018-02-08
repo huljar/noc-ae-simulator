@@ -13,30 +13,22 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __HAECCOMM_NETWORKCODINGBASE_H_
-#define __HAECCOMM_NETWORKCODINGBASE_H_
+#ifndef __HAECCOMM_VERIFYSPLIT_H_
+#define __HAECCOMM_VERIFYSPLIT_H_
 
 #include <omnetpp.h>
-#include <Buffers/PacketQueueBase.h>
-#include <MW/MiddlewareBase.h>
 
 using namespace omnetpp;
 
-namespace HaecComm { namespace MW { namespace NetworkCoding {
+namespace HaecComm { namespace MW { namespace Crypto {
 
-class NetworkCodingBase: public MiddlewareBase {
-public:
-	NetworkCodingBase();
-	virtual ~NetworkCodingBase();
-
+/**
+ * TODO - Generated class
+ */
+class VerifySplit : public cSimpleModule {
 protected:
     virtual void initialize() override;
-    virtual void handleMessage(cMessage* msg) override = 0;
-
-    int generationSize;
-    int numCombinations;
-
-    Buffers::PacketQueueBase* inputQueue;
+    virtual void handleMessage(cMessage* msg) override;
 };
 
 }}} //namespace

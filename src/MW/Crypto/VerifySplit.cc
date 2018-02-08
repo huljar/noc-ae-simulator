@@ -13,31 +13,18 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include "NetworkCodingBase.h"
+#include "VerifySplit.h"
 
-using namespace HaecComm::Buffers;
+namespace HaecComm { namespace MW { namespace Crypto {
 
-namespace HaecComm { namespace MW { namespace NetworkCoding {
+Define_Module(VerifySplit);
 
-NetworkCodingBase::NetworkCodingBase()
-	: generationSize(1)
-	, numCombinations(1)
-{
+void VerifySplit::initialize() {
+    // TODO - Generated method body
 }
 
-NetworkCodingBase::~NetworkCodingBase() {
-}
-
-void NetworkCodingBase::initialize() {
-    MiddlewareBase::initialize();
-
-    generationSize = par("generationSize");
-    if(generationSize < 1)
-    	throw cRuntimeError(this, "Generation size must be greater than 0, but received %i", generationSize);
-
-    numCombinations = par("numCombinations");
-    if(numCombinations < 1)
-    	throw cRuntimeError(this, "Number of combinations must be greater than 0, but received %i", numCombinations);
+void VerifySplit::handleMessage(cMessage* msg) {
+    // TODO - Generated method body
 }
 
 }}} //namespace

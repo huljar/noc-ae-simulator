@@ -13,32 +13,30 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __HAECCOMM_NETWORKCODINGBASE_H_
-#define __HAECCOMM_NETWORKCODINGBASE_H_
+#include "Duplicator.h"
+#include <Messages/Flit.h>
 
-#include <omnetpp.h>
-#include <Buffers/PacketQueueBase.h>
-#include <MW/MiddlewareBase.h>
+using namespace HaecComm::Messages;
 
-using namespace omnetpp;
+namespace HaecComm { namespace Util {
 
-namespace HaecComm { namespace MW { namespace NetworkCoding {
+Define_Module(Duplicator);
 
-class NetworkCodingBase: public MiddlewareBase {
-public:
-	NetworkCodingBase();
-	virtual ~NetworkCodingBase();
+void Duplicator::initialize() {
+}
 
-protected:
-    virtual void initialize() override;
-    virtual void handleMessage(cMessage* msg) override = 0;
+void Duplicator::handleMessage(cMessage* msg) {
+    // Confirm that this is a flit
+    Flit* flit = dynamic_cast<Flit*>(msg);
+    if(!flit) {
+        EV_WARN << "Received a message that is not a flit. Discarding it." << std::endl;
+        delete msg;
+        return;
+    }
 
-    int generationSize;
-    int numCombinations;
+    Flit* dup = flit->dup();
+    send(flit, "origOut");
+    send(dup, "dupOut");
+}
 
-    Buffers::PacketQueueBase* inputQueue;
-};
-
-}}} //namespace
-
-#endif
+}} //namespace

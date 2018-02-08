@@ -13,32 +13,25 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __HAECCOMM_NETWORKCODINGBASE_H_
-#define __HAECCOMM_NETWORKCODINGBASE_H_
+#ifndef __HAECCOMM_ARQSPLITTER_H_
+#define __HAECCOMM_ARQSPLITTER_H_
 
 #include <omnetpp.h>
-#include <Buffers/PacketQueueBase.h>
-#include <MW/MiddlewareBase.h>
+#include <Messages/Flit.h>
 
 using namespace omnetpp;
 
-namespace HaecComm { namespace MW { namespace NetworkCoding {
+namespace HaecComm { namespace Util {
 
-class NetworkCodingBase: public MiddlewareBase {
-public:
-	NetworkCodingBase();
-	virtual ~NetworkCodingBase();
-
+/**
+ * TODO - Generated class
+ */
+class Duplicator : public cSimpleModule {
 protected:
     virtual void initialize() override;
-    virtual void handleMessage(cMessage* msg) override = 0;
-
-    int generationSize;
-    int numCombinations;
-
-    Buffers::PacketQueueBase* inputQueue;
+    virtual void handleMessage(cMessage* msg) override;
 };
 
-}}} //namespace
+}} //namespace
 
 #endif

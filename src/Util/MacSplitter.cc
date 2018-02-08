@@ -13,32 +13,33 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __HAECCOMM_NETWORKCODINGBASE_H_
-#define __HAECCOMM_NETWORKCODINGBASE_H_
+#include "MacSplitter.h"
+#include <Messages/Flit.h>
 
-#include <omnetpp.h>
-#include <Buffers/PacketQueueBase.h>
-#include <MW/MiddlewareBase.h>
+using namespace HaecComm::Messages;
 
-using namespace omnetpp;
+namespace HaecComm { namespace Util {
 
-namespace HaecComm { namespace MW { namespace NetworkCoding {
+Define_Module(MacSplitter);
 
-class NetworkCodingBase: public MiddlewareBase {
-public:
-	NetworkCodingBase();
-	virtual ~NetworkCodingBase();
+void MacSplitter::initialize() {
+}
 
-protected:
-    virtual void initialize() override;
-    virtual void handleMessage(cMessage* msg) override = 0;
+void MacSplitter::handleMessage(cMessage* msg) {
+    // Confirm that this is a flit
+    Flit* flit = dynamic_cast<Flit*>(msg);
+    if(!flit) {
+        EV_WARN << "Received a message that is not a flit. Discarding it." << std::endl;
+        delete msg;
+        return;
+    }
 
-    int generationSize;
-    int numCombinations;
+    if(flit->getMode() == MODE_MAC) {
+        send(flit, "macOut");
+    }
+    else {
+        send(flit, "othersOut");
+    }
+}
 
-    Buffers::PacketQueueBase* inputQueue;
-};
-
-}}} //namespace
-
-#endif
+}} //namespace

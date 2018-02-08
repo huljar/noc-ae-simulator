@@ -13,22 +13,18 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package HaecComm.MW.Crypto;
+#include "VerifyFlit.h"
 
-import HaecComm.MW.IMiddlewareBase;
+namespace HaecComm { namespace MW { namespace Crypto {
 
-//
-// Authentication module implementing the half flit authentication scheme
-// as described in the paper. Each incoming flit is split into two flits,
-// with the first flit containing the first half of the payload and the
-// second one containing the second half. For each of these Flits, a short MAC is
-// computed and put into the (now empty) second half of the payload. Then,
-// both flits are sent out.
-//
-simple AuthHalfFlitImpl like IMiddlewareBase {
-    parameters:
-        @display("i=block/cogwheel");
-    gates:
-        input  in;
-        output out;
+Define_Module(VerifyFlit);
+
+void VerifyFlit::initialize() {
+    // TODO - Generated method body
 }
+
+void VerifyFlit::handleMessage(cMessage* msg) {
+    // TODO - Generated method body
+}
+
+}}} //namespace

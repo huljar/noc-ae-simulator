@@ -13,31 +13,22 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include "AuthHalfFlitImpl.h"
-#include <Messages/Flit.h>
+package HaecComm.MW.Crypto;
 
-using namespace HaecComm::Messages;
+import HaecComm.MW.IMiddlewareBase;
 
-namespace HaecComm { namespace MW { namespace Crypto {
-
-Define_Module(AuthHalfFlitImpl);
-
-void AuthHalfFlitImpl::initialize() {
-	MiddlewareBase::initialize();
+//
+// Authentication module implementing the half flit authentication scheme
+// as described in the paper. Each incoming flit is split into two flits,
+// with the first flit containing the first half of the payload and the
+// second one containing the second half. For each of these Flits, a short MAC is
+// computed and put into the (now empty) second half of the payload. Then,
+// both flits are sent out.
+//
+simple AuthSplitImpl like IMiddlewareBase {
+    parameters:
+        @display("i=block/cogwheel");
+    gates:
+        input  in;
+        output out;
 }
-
-void AuthHalfFlitImpl::handleMessage(cMessage* msg) {
-	// Confirm that this is a flit
-	Flit* flit = dynamic_cast<Flit*>(msg);
-	if(!flit) {
-		EV_WARN << "Received a message that is not a flit. Discarding it." << std::endl;
-		delete msg;
-		return;
-	}
-
-	// TODO: actual MAC computations
-
-	send(flit, "out");
-}
-
-}}} //namespace

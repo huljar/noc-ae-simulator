@@ -25,7 +25,7 @@ import HaecComm.Util.*;
 // Default implementation of the Network Interface from the HAEC project.
 // It contains a network encoder and decoder.
 //
-module NetworkInterfaceNcAuth like INetworkInterface {
+module NetworkInterfaceNcEncAuthSplit like INetworkInterface {
     parameters:
         int ncGenerationSize;
         int ncNumCombinations;
@@ -44,6 +44,7 @@ module NetworkInterfaceNcAuth like INetworkInterface {
         }
         
         //#### Auth modes 1 and 3 (positioning of modules varies) ####//
+        //# TODO: split different auth modes into different NED files
         ncEncoderFirst: Encoder if authMode != 2 {
             @display("p=200,120");
             generationSize = ncGenerationSize;
@@ -72,7 +73,7 @@ module NetworkInterfaceNcAuth like INetworkInterface {
             gates: in[authCryptoUnits];
         }
         
-        //#### Auth mode 1 (positioning of modules varies) ####//
+        //#### Auth mode 2 (positioning of modules varies) ####//
         authLoadBalancerFirst: LoadBalancer if authMode == 2 {
             @display("p=200,120");
             busyCycles = authCycles;
@@ -126,7 +127,9 @@ module NetworkInterfaceNcAuth like INetworkInterface {
         
         //# NED does not allow nested if/for blocks as of OMNeT++ 5.2
         if authMode != 2 {
-            appInputQueue.out --> ncEncoderFirst.in;
+            appInputQueue.out --> ncEncoderFirst.in if authMode == 1;
+            appInputQueue.out --> flitSplitter.in if authMode == 3;
+            flitSplitter.out --> ncEncoderFirst.in if authMode == 3;
             ncEncoderFirst.out --> authQueue.in;
             authQueue.out --> authLoadBalancerSecond.in;
             authSerializerSecond.out --> retransmissionBuffer.in;

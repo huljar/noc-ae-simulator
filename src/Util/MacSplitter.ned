@@ -13,32 +13,16 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __HAECCOMM_NETWORKCODINGBASE_H_
-#define __HAECCOMM_NETWORKCODINGBASE_H_
+package HaecComm.Util;
 
-#include <omnetpp.h>
-#include <Buffers/PacketQueueBase.h>
-#include <MW/MiddlewareBase.h>
-
-using namespace omnetpp;
-
-namespace HaecComm { namespace MW { namespace NetworkCoding {
-
-class NetworkCodingBase: public MiddlewareBase {
-public:
-	NetworkCodingBase();
-	virtual ~NetworkCodingBase();
-
-protected:
-    virtual void initialize() override;
-    virtual void handleMessage(cMessage* msg) override = 0;
-
-    int generationSize;
-    int numCombinations;
-
-    Buffers::PacketQueueBase* inputQueue;
-};
-
-}}} //namespace
-
-#endif
+//
+// TODO auto-generated module
+//
+simple MacSplitter {
+    parameters:
+        @display("i=block/classifier");
+    gates:
+        input  in;
+        output macOut;
+        output othersOut;
+}

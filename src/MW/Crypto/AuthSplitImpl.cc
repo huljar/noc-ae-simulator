@@ -13,31 +13,32 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include "NetworkCodingBase.h"
+#include "AuthSplitImpl.h"
 
-using namespace HaecComm::Buffers;
+#include <Messages/Flit.h>
 
-namespace HaecComm { namespace MW { namespace NetworkCoding {
+using namespace HaecComm::Messages;
 
-NetworkCodingBase::NetworkCodingBase()
-	: generationSize(1)
-	, numCombinations(1)
-{
+namespace HaecComm { namespace MW { namespace Crypto {
+
+Define_Module(AuthSplitImpl);
+
+void AuthSplitImpl::initialize() {
+	MiddlewareBase::initialize();
 }
 
-NetworkCodingBase::~NetworkCodingBase() {
-}
+void AuthSplitImpl::handleMessage(cMessage* msg) {
+	// Confirm that this is a flit
+	Flit* flit = dynamic_cast<Flit*>(msg);
+	if(!flit) {
+		EV_WARN << "Received a message that is not a flit. Discarding it." << std::endl;
+		delete msg;
+		return;
+	}
 
-void NetworkCodingBase::initialize() {
-    MiddlewareBase::initialize();
+	// TODO: actual MAC computations
 
-    generationSize = par("generationSize");
-    if(generationSize < 1)
-    	throw cRuntimeError(this, "Generation size must be greater than 0, but received %i", generationSize);
-
-    numCombinations = par("numCombinations");
-    if(numCombinations < 1)
-    	throw cRuntimeError(this, "Number of combinations must be greater than 0, but received %i", numCombinations);
+	send(flit, "out");
 }
 
 }}} //namespace
