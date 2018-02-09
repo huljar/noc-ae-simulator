@@ -13,16 +13,33 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package HaecComm.Util;
+#ifndef __HAECCOMM_EXITGUARD_H_
+#define __HAECCOMM_EXITGUARD_H_
 
-//
-// TODO auto-generated module
-//
-simple LoadBalancer {
-    parameters:
-        int busyCycles;
-        @display("i=block/fork");
-    gates:
-        input  in;
-        output out[];
-}
+#include <omnetpp.h>
+#include <Messages/Flit.h>
+
+using namespace omnetpp;
+
+namespace HaecComm { namespace MW { namespace Crypto {
+
+/**
+ * TODO - Generated class
+ */
+class ExitGuardFlitImpl : public cSimpleModule {
+public:
+    ExitGuardFlitImpl();
+    virtual ~ExitGuardFlitImpl();
+
+protected:
+    virtual void initialize() override;
+    virtual void handleMessage(cMessage* msg) override;
+
+    int mode;
+    Messages::Flit* netCache;
+    Messages::Flit* appCache;
+};
+
+}}} //namespace
+
+#endif

@@ -24,24 +24,26 @@
 
 using namespace omnetpp;
 
-namespace HaecComm { namespace Util {
+namespace HaecComm { namespace MW { namespace Crypto {
 
 /**
  * TODO - implement load balancing for unclocked simulations
  */
-class LoadBalancer : public cSimpleModule, public cListener {
+class EntryGuardFlit : public cSimpleModule, public cListener {
 protected:
     virtual void initialize() override;
     virtual void handleMessage(cMessage* msg) override;
     virtual void receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) override;
 
-private:
-    std::queue<int> availableUnits;
-    ShiftRegister<std::vector<int>> busyUnits;
+    std::queue<int> availableEncUnits;
+    Util::ShiftRegister<std::vector<int>> busyEncUnits;
+    std::queue<int> availableAuthUnits;
+    Util::ShiftRegister<std::vector<int>> busyAuthUnits;
 
-    Buffers::PacketQueueBase* inputQueue;
+    Buffers::PacketQueueBase* appInputQueue;
+    Buffers::PacketQueueBase* netInputQueue;
 };
 
-}} //namespace
+}}} //namespace
 
 #endif
