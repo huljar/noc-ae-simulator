@@ -30,12 +30,15 @@ module NetworkInterfaceNcEncAuthFlit like INetworkInterface {
         @display("i=block/control");
         int generationSize;
         int numCombinations;
+        int encUnits;
+        int encCycles;
         int authUnits;
         int authCycles;
     gates:
         inout app;
         inout router;
     submodules:
+        //# app->net
         appInputQueue: PacketQueue {
             @display("p=80,120");
         }
@@ -44,36 +47,51 @@ module NetworkInterfaceNcEncAuthFlit like INetworkInterface {
             generationSize = generationSize;
             numCombinations = numCombinations;
         }
-        authQueue: PacketQueue {
+        appCryptoQueue: PacketQueue {
             @display("p=320,120");
             awaitSendRequests = true;
         }
-        loadBalancer: LoadBalancer {
+        entryGuard: EntryGuardFlit {
             @display("p=440,120");
-            busyCycles = authCycles;
-            gates: out[authCryptoUnits];
+            busyCyclesEnc = encCycles;
+            busyCyclesAuth = authCycles;
+            gates:
+                encOut[encUnits];
+                authOut[authUnits];
+        }
+        encUnit[encUnits]: EncFlit {
+            @display("p=500,40,column,80");
+            computeCycles = encCycles;
         }
         authUnit[authUnits]: AuthFlit {
             @display("p=560,40,column,80");
             computeCycles = authCycles;
         }
-        serializer: MultiInputPacketQueue {
-            @display("p=680,120;i=block/join");
-            syncFirstPacket = false;
-            gates: in[authUnits];
+        exitGuard: ExitGuardFlit {
+            @display("p=680,120");
+            busyCyclesEnc = encCycles;
+            busyCyclesAuth = authCycles;
+            gates:
+                encIn[encUnits];
+                authIn[authUnits];
         }
         retransmissionBuffer: RetransmissionBuffer {
             @display("p=800,120");
         }
         
+        //# net->app
         routerInputQueue: PacketQueue {
             @display("p=800,420");
         }
         arqSplitter: ArqSplitter {
             @display("p=680,420");
         }
-        macSplitter: MacSplitter {
+        macSplitter: MacSplitter { //# TODO: replace MAC splitter by some sort of manager, which is able to issue ARQs
             @display("p=560,420");
+        }
+        netCryptoQueue: PacketQueue {
+            @display("p=320,300");
+            awaitSendRequests = true;
         }
         verifier: VerifyFlit {
             @display("p=440,420");
@@ -89,15 +107,20 @@ module NetworkInterfaceNcEncAuthFlit like INetworkInterface {
     connections:
         app$i --> appInputQueue.in;
         encoder.in <-- appInputQueue.out;
-        encoder.out --> authQueue.in;
-        loadBalancer.in <-- authQueue.out;
+        encoder.out --> appCryptoQueue.in;
+        entryGuard.appIn <-- appCryptoQueue.out;
         
-        for i=0..authUnits-1 {
-            authUnit[i].in <-- loadBalancer.out[i];
-            authUnit[i].out --> serializer.in[i];
+        for i=0..encUnits-1 {
+            encUnit[i].in <-- entryGuard.encOut[i];
+            encUnit[i].out --> exitGuard.encIn[i];
         }
         
-        serializer.out --> retransmissionBuffer.in;
+        for i=0..authUnits-1 {
+            authUnit[i].in <-- entryGuard.authOut[i];
+            authUnit[i].out --> exitGuard.authIn[i];
+        }
+        
+        exitGuard.netOut --> retransmissionBuffer.in;
         router$o <-- retransmissionBuffer.out;
         
         router$i --> routerInputQueue.in;
@@ -105,8 +128,9 @@ module NetworkInterfaceNcEncAuthFlit like INetworkInterface {
         arqSplitter.arqOut --> retransmissionBuffer.arqIn;
         arqSplitter.othersOut --> macSplitter.in;
         macSplitter.macOut --> verifier.macIn;
-        macSplitter.othersOut --> loadBalancer.in; //# TODO: load balancer multiple in gates, status flag in flit
-        serializer.out --> verifier.authIn; //# TODO: serializer multiple out gates, status flag in flit
+        macSplitter.othersOut --> netCryptoQueue.in;
+        entryGuard.netIn <-- netCryptoQueue.out;
+        exitGuard.appOut --> verifier.othersIn;
         verifier.out --> decoderQueue.in;
         decoder.in <-- decoderQueue.out;
         decoder.out --> app$o;

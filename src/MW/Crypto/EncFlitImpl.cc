@@ -13,17 +13,31 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include "VerifyFlit.h"
+#include "EncFlitImpl.h"
+#include <Messages/Flit.h>
+
+using namespace HaecComm::Messages;
 
 namespace HaecComm { namespace MW { namespace Crypto {
 
-Define_Module(VerifyFlit);
+Define_Module(EncFlitImpl);
 
-void VerifyFlit::initialize() {
+void EncFlitImpl::initialize() {
+	MiddlewareBase::initialize();
 }
 
-void VerifyFlit::handleMessage(cMessage* msg) {
-    delete msg; // TODO: do something useful
+void EncFlitImpl::handleMessage(cMessage* msg) {
+	// Confirm that this is a flit
+	Flit* flit = dynamic_cast<Flit*>(msg);
+	if(!flit) {
+		EV_WARN << "Received a message that is not a flit. Discarding it." << std::endl;
+		delete msg;
+		return;
+	}
+	// TODO: do actual encryption
+
+	// Send out encrypted flit
+	send(flit, "out");
 }
 
 }}} //namespace

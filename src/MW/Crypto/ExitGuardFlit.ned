@@ -55,7 +55,7 @@ module ExitGuardFlit {
     connections:
         //# NED does not allow nested if/for blocks as of OMNeT++ 5.2
         // Connect encryption units to delays or directly to the exit guard
-        for i=0..sizeof(encIn) {
+        for i=0..sizeof(encIn)-1 {
             encIn[i] --> delayEnc[i].in if busyCyclesAuth - busyCyclesEnc > 1;
             exitGuard.encIn[i] <-- delayEnc[i].out if busyCyclesAuth - busyCyclesEnc > 1;
             
@@ -63,7 +63,7 @@ module ExitGuardFlit {
         }
         
         // Connect authentication units to delays or directly to the exit guard
-        for i=0..sizeof(authIn) {
+        for i=0..sizeof(authIn)-1 {
             authIn[i] --> delayAuth[i].in if busyCyclesEnc - busyCyclesAuth > 1;
             exitGuard.authIn[i] <-- delayAuth[i].out if busyCyclesEnc - busyCyclesAuth > 1;
             

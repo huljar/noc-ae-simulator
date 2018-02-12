@@ -46,31 +46,20 @@ void ExitGuardFlitImpl::handleMessage(cMessage* msg) {
         return;
     }
 
-    // TODO: continue here
+    // Reset scheduling priority
+    flit->setSchedulingPriority(0);
+
+    // Send to correct output
     if(flit->getStatus() == STATUS_ENCODING) {
-        if(mode > 0) {
-
-        }
-        else if(mode < 0) {
-
-        }
-        else { // mode == 0
-
-        }
+        flit->setStatus(STATUS_NONE);
+        send(flit, "netOut");
     }
     else if(flit->getStatus() == STATUS_DECODING) {
-        if(mode > 0) {
-
-        }
-        else if(mode < 0) {
-
-        }
-        else { // mode == 0
-
-        }
+        flit->setStatus(STATUS_NONE);
+        send(flit, "appOut");
     }
     else {
-        throw cRuntimeError(this, "Flit with unexpected status %u arrived at the exit guard", flit->getStatus());
+        throw cRuntimeError(this, "Received a flit with an unexpected status: %u", flit->getStatus());
     }
 }
 

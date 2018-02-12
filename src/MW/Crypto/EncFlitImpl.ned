@@ -13,17 +13,17 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include "VerifyFlit.h"
+package HaecComm.MW.Crypto;
 
-namespace HaecComm { namespace MW { namespace Crypto {
+import HaecComm.MW.IMiddlewareBase;
 
-Define_Module(VerifyFlit);
-
-void VerifyFlit::initialize() {
+//
+// Encryption module.
+//
+simple EncFlitImpl like IMiddlewareBase {
+    parameters:
+        @display("i=block/cogwheel");
+    gates:
+        input  in;
+        output out;
 }
-
-void VerifyFlit::handleMessage(cMessage* msg) {
-    delete msg; // TODO: do something useful
-}
-
-}}} //namespace

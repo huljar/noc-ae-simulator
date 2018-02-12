@@ -33,7 +33,7 @@ packet Flit {
     @customize(true);
     
     // Burst bit. Marks this flit as part of a burst of several flits.
-    bool burst;
+    bool burst = false;
     
     // Address of the sender of this flit.
     Address2D source;
@@ -42,7 +42,7 @@ packet Flit {
     Address2D target;
     
     // Flags which specify the type of flit and how memAddress is used.
-    uint8_t mode @enum(Mode);
+    uint8_t mode @enum(Mode) = MODE_DATA;
     
     // 32 bit memory address marking a region to be read from/written to, depending on mode.
     uint32_t memAddress; //# TODO: how exactly is this field used?
@@ -68,8 +68,8 @@ packet Flit {
     long originalIds[];
     
     // Flit markers for correct distribution inside the network interface
-    uint8_t status @enum(Status);
+    uint8_t status @enum(Status) = STATUS_NONE;
     
     // Flit marker for the network coding mode
-    uint8_t ncMode @enum(NC);
+    uint8_t ncMode @enum(NC) = NC_UNCODED;
 }

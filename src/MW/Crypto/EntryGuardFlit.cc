@@ -28,11 +28,11 @@ void EntryGuardFlit::initialize() {
     // Subscribe to clock signal
     getSimulation()->getSystemModule()->subscribe("clock", this);
 
-	size_t busyCyclesEnc = static_cast<size_t>(par("busyCyclesEnc"));
+	busyCyclesEnc = par("busyCyclesEnc");
 	if(busyCyclesEnc < 1)
 		throw cRuntimeError(this, "busyCyclesEnc must be greater than 0");
 
-    size_t busyCyclesAuth = static_cast<size_t>(par("busyCyclesAuth"));
+    busyCyclesAuth = par("busyCyclesAuth");
     if(busyCyclesAuth < 1)
         throw cRuntimeError(this, "busyCyclesAuth must be greater than 0");
 
@@ -41,8 +41,8 @@ void EntryGuardFlit::initialize() {
     for(int i = 0; i < gateSize("authOut"); ++i)
 	    availableAuthUnits.push(i);
 
-	busyEncUnits = ShiftRegister<std::vector<int>>(busyCyclesEnc);
-	busyAuthUnits = ShiftRegister<std::vector<int>>(busyCyclesAuth);
+	busyEncUnits = ShiftRegister<std::vector<int>>(static_cast<size_t>(busyCyclesEnc));
+	busyAuthUnits = ShiftRegister<std::vector<int>>(static_cast<size_t>(busyCyclesAuth));
 
 	// Retrieve pointers to the input queues
     cGate* appInGate = gate("appIn");
@@ -75,9 +75,25 @@ void EntryGuardFlit::handleMessage(cMessage* msg) {
     int encIdx = availableEncUnits.front();
     int authIdx = availableAuthUnits.front();
 
+    // Set status according to arrival gate
+    if(strcmp(flit->getArrivalGate()->getName(), "appIn") == 0) {
+        flit->setStatus(STATUS_ENCODING);
+    }
+    else { // arrivalGate == "netIn"
+        flit->setStatus(STATUS_DECODING);
+    }
+
     // TODO: flit names
-    send(flit->dup(), "authOut", authIdx);
+    Flit* mac = flit->dup();
+
+    // Set scheduling priorities to ensure that data and mac flits are not split up
+    // after the encryption/authentication (lower value = higher priority)
+    // TODO: test this when flit names are better
+    flit->setSchedulingPriority(static_cast<short>(busyCyclesAuth - busyCyclesEnc));
+    mac->setSchedulingPriority(static_cast<short>(busyCyclesEnc - busyCyclesAuth));
+
     send(flit, "encOut", encIdx);
+    send(mac, "authOut", authIdx);
 
     availableEncUnits.pop();
     busyEncUnits.back().push_back(encIdx);

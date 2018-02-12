@@ -81,7 +81,7 @@ inline bool operator<(const Address2D& lhs, const Address2D& rhs) {
  * re<b>Q</b>uest.
  */
 enum Mode { // not using "enum class" (scoped enumeration) here, because the OMNeT++ msg compiler doesn't do it either
-	MODE_DATA = 0,      //!< MODE_DATA Normal data flit. This is the default value.
+	MODE_DATA,          //!< MODE_DATA Normal data flit. This is the default value.
 	MODE_MAC,           //!< MODE_MAC Flit containing a Message Authentication Code (MAC) for another flit.
 	MODE_SPLIT_1,       //!< MODE_SPLIT_1 Flit where the payload consists of half data and half MAC (first part).
 	MODE_SPLIT_2,       //!< MODE_SPLIT_2 Flit where the payload consists of half data and half MAC (second part).
@@ -95,7 +95,7 @@ enum Mode { // not using "enum class" (scoped enumeration) here, because the OMN
 // TODO: make Mode a flag enum (bitwise-or allowed)?
 
 enum Status {
-    STATUS_NONE = 0,
+    STATUS_NONE,
     STATUS_ENCODING,
     STATUS_DECODING
 };
@@ -105,7 +105,7 @@ enum Status {
  * This is used as a meta field in flits.
  */
 enum NC {
-    NC_UNCODED = 0,     //!< NC_UNCODED No network coding was applied to this flit.
+    NC_UNCODED,         //!< NC_UNCODED No network coding was applied to this flit.
     NC_G2C3,            //!< NC_G2C3 Network coding was applied with generation size 2 and 3 combinations.
     NC_G2C4             //!< NC_G2C4 Network coding was applied with generation size 2 and 4 combinations.
 };

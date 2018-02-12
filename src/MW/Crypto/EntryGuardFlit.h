@@ -35,6 +35,9 @@ protected:
     virtual void handleMessage(cMessage* msg) override;
     virtual void receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) override;
 
+    int busyCyclesEnc;
+    int busyCyclesAuth;
+
     std::queue<int> availableEncUnits;
     Util::ShiftRegister<std::vector<int>> busyEncUnits;
     std::queue<int> availableAuthUnits;
