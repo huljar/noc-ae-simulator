@@ -83,12 +83,21 @@ void EntryGuardFlit::handleMessage(cMessage* msg) {
         flit->setStatus(STATUS_DECODING);
     }
 
-    // TODO: flit names
+    // TODO: do this only for encoding, different behaviour for decoding
+    // Create MAC flit
     Flit* mac = flit->dup();
+
+    // Set names
+    std::ostringstream dataName;
+    dataName << flit->getName() << "-enc";
+    flit->setName(dataName.str().c_str());
+
+    std::ostringstream macName;
+    macName << mac->getName() << "-mac";
+    mac->setName(macName.str().c_str());
 
     // Set scheduling priorities to ensure that data and mac flits are not split up
     // after the encryption/authentication (lower value = higher priority)
-    // TODO: test this when flit names are better
     flit->setSchedulingPriority(static_cast<short>(busyCyclesAuth - busyCyclesEnc));
     mac->setSchedulingPriority(static_cast<short>(busyCyclesEnc - busyCyclesAuth));
 

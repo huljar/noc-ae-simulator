@@ -60,7 +60,7 @@ public:
 	/// Get string representation of the address
 	std::string str() const {
 		std::ostringstream s;
-		s << '(' << +x() << ", " << +y() << ')';
+		s << '(' << +x() << "," << +y() << ')';
 		return s.str();
 	}
 

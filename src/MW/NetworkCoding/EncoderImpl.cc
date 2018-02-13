@@ -15,6 +15,7 @@
 
 #include "EncoderImpl.h"
 #include <Messages/Flit.h>
+#include <sstream>
 #include <utility>
 
 using namespace HaecComm::Messages;
@@ -62,15 +63,21 @@ void EncoderImpl::handleMessage(cMessage* msg) {
 			for(int i = 0; i < numCombinations; ++i) {
 				Flit* combination = static_cast<Flit*>(generation->get(0))->dup();
 
+                // Set original IDs vector
+                combination->setOriginalIdsArraySize(generationSize);
+                for(int j = 0; j < generationSize; ++j) {
+                    combination->setOriginalIds(j, static_cast<Flit*>(generation->get(j))->getGidOrFid());
+                }
+
 				// Set network coding metadata
 				combination->setGidOrFid(gidCounter);
-				combination->setGev(42); // TODO: set to something meaningful when NC is implemented
+				combination->setGev(static_cast<uint16_t>(i));
 
-				// Set original IDs vector
-				combination->setOriginalIdsArraySize(generationSize);
-				for(int j = 0; j < generationSize; ++j) {
-					combination->setOriginalIds(j, static_cast<Flit*>(generation->get(j))->getId());
-				}
+				// Set name
+	            std::ostringstream packetName;
+	            packetName << "nc-" << gidCounter << "-" << i << "-s" << combination->getSource().str()
+	                       << "-t" << combination->getTarget().str();
+	            combination->setName(packetName.str().c_str());
 
 				// Send the encoded flit
 				send(combination, "out");

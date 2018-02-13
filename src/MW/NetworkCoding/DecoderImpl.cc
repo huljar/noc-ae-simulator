@@ -62,8 +62,17 @@ void DecoderImpl::handleMessage(cMessage* msg) {
 				// Remove network coding metadata
 				decoded->setGev(0);
 
-				// Restore original flit ID into the GID field using the originalIds vector
-				decoded->setGidOrFid(static_cast<uint32_t>(static_cast<Flit*>(combinations->get(0))->getOriginalIds(i)));
+				// Get original flit ID
+				uint32_t fid = static_cast<uint32_t>(decoded->getOriginalIds(i));
+
+				// Restore original flit ID
+				decoded->setGidOrFid(fid);
+
+                // Set name
+                std::ostringstream packetName;
+                packetName << "uc-" << fid << "-" << "-s" << decoded->getSource().str()
+                           << "-t" << decoded->getTarget().str();
+                decoded->setName(packetName.str().c_str());
 
 				// Send the decoded flit
 				send(decoded, "out");

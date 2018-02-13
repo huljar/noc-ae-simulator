@@ -53,6 +53,8 @@ protected:
     int nodeX;
     int nodeY;
 
+    uint32_t fidCounter;
+
     simsignal_t pktgenerateSignal;
 };
 
