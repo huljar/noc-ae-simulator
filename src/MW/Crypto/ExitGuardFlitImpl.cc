@@ -46,15 +46,26 @@ void ExitGuardFlitImpl::handleMessage(cMessage* msg) {
         return;
     }
 
-    // Reset scheduling priority
-    flit->setSchedulingPriority(0);
+    // Check flit status flag
+    if(flit->getStatus() == STATUS_ENCRYPTING) {
+        // TODO: Store encrypted flit, send back a copy for authentication
+        Flit* mac = flit->dup();
+        send(mac, "entryOut");
 
-    // Send to correct output
-    if(flit->getStatus() == STATUS_ENCODING) {
         flit->setStatus(STATUS_NONE);
-        send(flit, "netOut");
     }
-    else if(flit->getStatus() == STATUS_DECODING) {
+    else if(flit->getStatus() == STATUS_AUTHENTICATING) {
+        // TODO: Retrieve corresponding encrypted flit, send both out to the network
+        flit->setStatus(STATUS_NONE);
+        send(flit, "appOut");
+    }
+    else if(flit->getStatus() == STATUS_DECRYPTING) {
+        // Send decrypted flit back to the app
+        flit->setStatus(STATUS_NONE);
+        send(flit, "appOut");
+    }
+    else if(flit->getStatus() == STATUS_VERIFYING) {
+        // Send verification MAC back to the app
         flit->setStatus(STATUS_NONE);
         send(flit, "appOut");
     }

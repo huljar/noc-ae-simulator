@@ -96,8 +96,10 @@ enum Mode { // not using "enum class" (scoped enumeration) here, because the OMN
 
 enum Status {
     STATUS_NONE,
-    STATUS_ENCODING,
-    STATUS_DECODING
+    STATUS_ENCRYPTING,
+    STATUS_AUTHENTICATING,
+    STATUS_DECRYPTING,
+    STATUS_VERIFYING
 };
 
 /**

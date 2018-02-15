@@ -16,7 +16,6 @@
 package HaecComm.MW.Crypto;
 
 import HaecComm.Buffers.PacketQueue;
-import HaecComm.MW.Delay;
 
 module ExitGuardFlit {
     parameters:
@@ -28,46 +27,32 @@ module ExitGuardFlit {
         input  authIn[];
         output netOut;
         output appOut;
+        output entryOut;
     submodules:
-        delayEnc[sizeof(encIn)]: Delay if busyCyclesAuth - busyCyclesEnc > 1 {
-            @display("p=80,80,column,100");
-            waitCycles = busyCyclesAuth - busyCyclesEnc - 1;
-        }
-        delayAuth[sizeof(authIn)]: Delay if busyCyclesEnc - busyCyclesAuth > 1 {
-            @display("p=80,80,column,100");
-            waitCycles = busyCyclesEnc - busyCyclesAuth - 1;
-        }
         exitGuard: ExitGuardFlitImpl {
-            @display("p=200,120");
+            @display("p=80,120");
             mode = busyCyclesEnc - busyCyclesAuth;
             gates:
                 encIn[sizeof(encIn)];
                 authIn[sizeof(authIn)];
         }
         netSerializer: PacketQueue {
-            @display("p=320,80;i=block/transport");
+            @display("p=200,80;i=block/transport");
             syncFirstPacket = false;
         }
         appSerializer: PacketQueue {
-            @display("p=320,180;i=block/transport");
+            @display("p=200,180;i=block/transport");
             syncFirstPacket = false;
         }
     connections:
-        //# NED does not allow nested if/for blocks as of OMNeT++ 5.2
-        // Connect encryption units to delays or directly to the exit guard
+        // Connect encryption units to the exit guard
         for i=0..sizeof(encIn)-1 {
-            encIn[i] --> delayEnc[i].in if busyCyclesAuth - busyCyclesEnc > 1;
-            exitGuard.encIn[i] <-- delayEnc[i].out if busyCyclesAuth - busyCyclesEnc > 1;
-            
-            encIn[i] --> exitGuard.encIn[i] if busyCyclesAuth - busyCyclesEnc <= 1;
+            encIn[i] --> exitGuard.encIn[i];
         }
         
-        // Connect authentication units to delays or directly to the exit guard
+        // Connect authentication units to the exit guard
         for i=0..sizeof(authIn)-1 {
-            authIn[i] --> delayAuth[i].in if busyCyclesEnc - busyCyclesAuth > 1;
-            exitGuard.authIn[i] <-- delayAuth[i].out if busyCyclesEnc - busyCyclesAuth > 1;
-            
-            authIn[i] --> exitGuard.authIn[i] if busyCyclesEnc - busyCyclesAuth <= 1;
+            authIn[i] --> exitGuard.authIn[i];
         }
         
         exitGuard.netOut --> netSerializer.in;
@@ -75,4 +60,6 @@ module ExitGuardFlit {
         
         exitGuard.appOut --> appSerializer.in;
         appOut <-- appSerializer.out;
+        
+        entryOut <-- exitGuard.entryOut;
 }

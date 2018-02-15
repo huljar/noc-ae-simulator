@@ -44,6 +44,7 @@ protected:
     Util::ShiftRegister<std::vector<int>> busyAuthUnits;
 
     Buffers::PacketQueueBase* appInputQueue;
+    Buffers::PacketQueueBase* exitInputQueue;
     Buffers::PacketQueueBase* netInputQueue;
 };
 

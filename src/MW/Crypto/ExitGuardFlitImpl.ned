@@ -27,4 +27,5 @@ simple ExitGuardFlitImpl {
         input  authIn[];
         output netOut;
         output appOut;
+        output entryOut;
 }

@@ -25,6 +25,7 @@ simple EntryGuardFlit {
         int busyCyclesAuth;
     gates:
         input  appIn;
+        input  exitIn;
         input  netIn;
         output encOut[];
         output authOut[];

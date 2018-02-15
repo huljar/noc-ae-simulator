@@ -49,21 +49,20 @@ void EntryGuardFlit::initialize() {
     if(!appInGate->isPathOK())
         throw cRuntimeError(this, "App input gate of the entry guard is not properly connected");
 
+    cGate* exitInGate = gate("exitIn");
+    if(!exitInGate->isPathOK())
+        throw cRuntimeError(this, "Exit guard input gate of the entry guard is not properly connected");
+
     cGate* netInGate = gate("netIn");
     if(!netInGate->isPathOK())
         throw cRuntimeError(this, "Net input gate of the entry guard is not properly connected");
 
     appInputQueue = check_and_cast<PacketQueueBase*>(appInGate->getPathStartGate()->getOwnerModule());
+    exitInputQueue = check_and_cast<PacketQueueBase*>(exitInGate->getPathStartGate()->getOwnerModule());
     netInputQueue = check_and_cast<PacketQueueBase*>(netInGate->getPathStartGate()->getOwnerModule());
 }
 
 void EntryGuardFlit::handleMessage(cMessage* msg) {
-    if(availableEncUnits.empty() || availableAuthUnits.empty()) {
-    	EV_WARN << "Received a message, but all encryption or authentication units are busy. Discarding it." << std::endl;
-    	delete msg;
-    	return;
-    }
-
     // Confirm that this is a flit
     Flit* flit = dynamic_cast<Flit*>(msg);
     if(!flit) {
@@ -72,47 +71,102 @@ void EntryGuardFlit::handleMessage(cMessage* msg) {
         return;
     }
 
-    int encIdx = availableEncUnits.front();
-    int authIdx = availableAuthUnits.front();
-
-    // Set status according to arrival gate
+    // Perform actions depending on arrival gate
     if(strcmp(flit->getArrivalGate()->getName(), "appIn") == 0) {
-        flit->setStatus(STATUS_ENCODING);
+        // Flit arrived from the PE, send to encryption
+        ASSERT(flit->getStatus() == STATUS_NONE);
+        flit->setStatus(STATUS_ENCRYPTING);
+
+        // Ensure that a unit is available
+        if(availableEncUnits.empty()) {
+            EV_WARN << "Received a message, but all encryption units are busy. Discarding it." << std::endl;
+            delete flit;
+            return;
+        }
+        int encIdx = availableEncUnits.front();
+
+        // Set name
+        std::ostringstream flitName;
+        flitName << flit->getName() << "-enc";
+        flit->setName(flitName.str().c_str());
+
+        // Send flit
+        send(flit, "encOut", encIdx);
+
+        // Adjust unit status
+        availableEncUnits.pop();
+        busyEncUnits.back().push_back(encIdx);
+    }
+    else if(strcmp(flit->getArrivalGate()->getName(), "exitIn") == 0) {
+        // Flit arrived from the exit guard (encrypted), send to authentication
+        ASSERT(flit->getStatus() == STATUS_ENCRYPTING);
+        flit->setStatus(STATUS_AUTHENTICATING);
+
+        // Ensure that a unit is available
+        if(availableAuthUnits.empty()) {
+            EV_WARN << "Received a message, but all authentication units are busy. Discarding it." << std::endl;
+            delete flit;
+            return;
+        }
+        int authIdx = availableAuthUnits.front();
+
+        // Set name
+        // TODO: better names
+        std::ostringstream flitName;
+        flitName << flit->getName() << "-mac";
+        flit->setName(flitName.str().c_str());
+
+        // Send flit
+        send(flit, "authOut", authIdx);
+
+        // Adjust unit status
+        availableAuthUnits.pop();
+        busyAuthUnits.back().push_back(authIdx);
     }
     else { // arrivalGate == "netIn"
-        flit->setStatus(STATUS_DECODING);
+        // Flit arrived from the network, send to both decryption and verification
+        ASSERT(flit->getStatus() == STATUS_NONE);
+
+        // Ensure that units are available
+        if(availableEncUnits.empty() || availableAuthUnits.empty()) {
+            EV_WARN << "Received a message, but either all encryption or all authentication units are busy. Discarding it." << std::endl;
+            delete flit;
+            return;
+        }
+        int encIdx = availableEncUnits.front();
+        int authIdx = availableAuthUnits.front();
+
+        // Create verification flit
+        Flit* mac = flit->dup();
+
+        // Set status
+        flit->setStatus(STATUS_DECRYPTING);
+        mac->setStatus(STATUS_VERIFYING);
+
+        // Set names
+        std::ostringstream dataName;
+        dataName << flit->getName() << "-dec";
+        flit->setName(dataName.str().c_str());
+
+        std::ostringstream macName;
+        macName << mac->getName() << "-ver";
+        mac->setName(macName.str().c_str());
+
+        // Send flits
+        send(flit, "encOut", encIdx);
+        send(mac, "authOut", authIdx);
+
+        // Adjust unit status
+        availableEncUnits.pop();
+        busyEncUnits.back().push_back(encIdx);
+        availableAuthUnits.pop();
+        busyAuthUnits.back().push_back(authIdx);
     }
-
-    // TODO: do this only for encoding, different behaviour for decoding
-    // Create MAC flit
-    Flit* mac = flit->dup();
-
-    // Set names
-    std::ostringstream dataName;
-    dataName << flit->getName() << "-enc";
-    flit->setName(dataName.str().c_str());
-
-    std::ostringstream macName;
-    macName << mac->getName() << "-mac";
-    mac->setName(macName.str().c_str());
-
-    // Set scheduling priorities to ensure that data and mac flits are not split up
-    // after the encryption/authentication (lower value = higher priority)
-    flit->setSchedulingPriority(static_cast<short>(busyCyclesAuth - busyCyclesEnc));
-    mac->setSchedulingPriority(static_cast<short>(busyCyclesEnc - busyCyclesAuth));
-
-    send(flit, "encOut", encIdx);
-    send(mac, "authOut", authIdx);
-
-    availableEncUnits.pop();
-    busyEncUnits.back().push_back(encIdx);
-
-    availableAuthUnits.pop();
-    busyAuthUnits.back().push_back(authIdx);
 }
 
 void EntryGuardFlit::receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) {
 	if(signalID == registerSignal("clock")) {
+	    // Shift busy units
 		std::vector<int> finishedEncUnits = busyEncUnits.shift();
 		for(auto it = finishedEncUnits.begin(); it != finishedEncUnits.end(); ++it)
 			availableEncUnits.push(*it);
@@ -121,14 +175,27 @@ void EntryGuardFlit::receiveSignal(cComponent* source, simsignal_t signalID, uns
         for(auto it = finishedAuthUnits.begin(); it != finishedAuthUnits.end(); ++it)
             availableAuthUnits.push(*it);
 
-        if(availableEncUnits.size() >= 2 && availableAuthUnits.size() >= 2) {
-            appInputQueue->requestPacket();
+        // Count the free units affected by packet requests
+        size_t availEnc = availableEncUnits.size();
+        size_t availAuth = availableAuthUnits.size();
+
+        // Highest priority: authenticate an already encrypted flit
+        if(exitInputQueue->peek() && availAuth > 0) {
+            --availAuth;
+            exitInputQueue->requestPacket();
+        }
+
+        // Next priority: decrypt/verify an arriving flit
+        if(netInputQueue->peek() && availEnc > 0 && availAuth > 0) {
+            --availEnc;
+            --availAuth;
             netInputQueue->requestPacket();
         }
-        else if(!availableEncUnits.empty() && !availableAuthUnits.empty()) {
-	        // TODO: priorities of input queues (round robin?)
-            if(netInputQueue->peek()) netInputQueue->requestPacket();
-            else appInputQueue->requestPacket();
+
+        // Next priority: encrypt a new departing flit
+        if(appInputQueue->peek() && availEnc > 0) {
+            --availEnc;
+            appInputQueue->requestPacket();
 	    }
 	}
 }
