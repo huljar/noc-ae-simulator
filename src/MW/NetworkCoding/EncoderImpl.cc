@@ -73,6 +73,13 @@ void EncoderImpl::handleMessage(cMessage* msg) {
 				combination->setGidOrFid(gidCounter);
 				combination->setGev(static_cast<uint16_t>(i));
 
+				if(generationSize == 2 && numCombinations == 3)
+					combination->setNcMode(NC_G2C3);
+				else if(generationSize == 2 && numCombinations == 4)
+					combination->setNcMode(NC_G2C4);
+				else
+					throw cRuntimeError(this, "Cannot set NC mode to NC_G%uC%u", generationSize, numCombinations);
+
 				// Set name
 	            std::ostringstream packetName;
 	            packetName << "nc-" << gidCounter << "-" << i << "-s" << combination->getSource().str()

@@ -23,14 +23,14 @@ Define_Module(ExitGuardFlitImpl);
 
 ExitGuardFlitImpl::ExitGuardFlitImpl()
     : mode(0)
-    , netCache(nullptr)
-    , appCache(nullptr)
 {
 }
 
 ExitGuardFlitImpl::~ExitGuardFlitImpl() {
-    delete netCache;
-    delete appCache;
+    for(auto it = ucFlitCache.begin(); it != ucFlitCache.end(); ++it)
+        delete it->second;
+    for(auto it = ncFlitCache.begin(); it != ncFlitCache.end(); ++it)
+        delete it->second;
 }
 
 void ExitGuardFlitImpl::initialize() {
@@ -48,23 +48,52 @@ void ExitGuardFlitImpl::handleMessage(cMessage* msg) {
 
     // Check flit status flag
     if(flit->getStatus() == STATUS_ENCRYPTING) {
-        // TODO: Store encrypted flit, send back a copy for authentication
+        ASSERT(strcmp(flit->getArrivalGate()->getName(), "encIn") == 0);
+
+        // Store encrypted flit (select cache based on network coding mode)
+        if(flit->getNcMode() == NC_UNCODED) {
+            ucFlitCache.emplace(flit->getGidOrFid(), flit);
+        }
+        else {
+            ncFlitCache.emplace(std::make_pair(flit->getGidOrFid(), flit->getGev()), flit);
+        }
+
+        // Send back a copy for authentication
+        flit->setStatus(STATUS_NONE);
         Flit* mac = flit->dup();
         send(mac, "entryOut");
-
-        flit->setStatus(STATUS_NONE);
     }
     else if(flit->getStatus() == STATUS_AUTHENTICATING) {
-        // TODO: Retrieve corresponding encrypted flit, send both out to the network
+        ASSERT(strcmp(flit->getArrivalGate()->getName(), "authIn") == 0);
+
+        // Retrieve corresponding encrypted flit, send both out to the network
+        Flit* cached;
+        uint32_t id = flit->getGidOrFid();
+        if(flit->getNcMode() == NC_UNCODED) {
+            cached = ucFlitCache.at(id);
+            ucFlitCache.erase(id);
+        }
+        else {
+            auto key = std::make_pair(id, flit->getGev());
+            cached = ncFlitCache.at(key);
+            ncFlitCache.erase(key);
+        }
+
+        // Send both out, encrypted data first
         flit->setStatus(STATUS_NONE);
-        send(flit, "appOut");
+        send(cached, "netOut");
+        send(flit, "netOut");
     }
     else if(flit->getStatus() == STATUS_DECRYPTING) {
+        ASSERT(strcmp(flit->getArrivalGate()->getName(), "encIn") == 0);
+
         // Send decrypted flit back to the app
         flit->setStatus(STATUS_NONE);
         send(flit, "appOut");
     }
     else if(flit->getStatus() == STATUS_VERIFYING) {
+        ASSERT(strcmp(flit->getArrivalGate()->getName(), "authIn") == 0);
+
         // Send verification MAC back to the app
         flit->setStatus(STATUS_NONE);
         send(flit, "appOut");

@@ -71,10 +71,11 @@ void EntryGuardFlit::handleMessage(cMessage* msg) {
         return;
     }
 
+    ASSERT(flit->getStatus() == STATUS_NONE);
+
     // Perform actions depending on arrival gate
     if(strcmp(flit->getArrivalGate()->getName(), "appIn") == 0) {
         // Flit arrived from the PE, send to encryption
-        ASSERT(flit->getStatus() == STATUS_NONE);
         flit->setStatus(STATUS_ENCRYPTING);
 
         // Ensure that a unit is available
@@ -99,7 +100,6 @@ void EntryGuardFlit::handleMessage(cMessage* msg) {
     }
     else if(strcmp(flit->getArrivalGate()->getName(), "exitIn") == 0) {
         // Flit arrived from the exit guard (encrypted), send to authentication
-        ASSERT(flit->getStatus() == STATUS_ENCRYPTING);
         flit->setStatus(STATUS_AUTHENTICATING);
 
         // Ensure that a unit is available
@@ -125,8 +125,6 @@ void EntryGuardFlit::handleMessage(cMessage* msg) {
     }
     else { // arrivalGate == "netIn"
         // Flit arrived from the network, send to both decryption and verification
-        ASSERT(flit->getStatus() == STATUS_NONE);
-
         // Ensure that units are available
         if(availableEncUnits.empty() || availableAuthUnits.empty()) {
             EV_WARN << "Received a message, but either all encryption or all authentication units are busy. Discarding it." << std::endl;

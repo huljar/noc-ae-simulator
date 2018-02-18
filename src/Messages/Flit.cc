@@ -19,47 +19,12 @@ namespace HaecComm { namespace Messages {
 
 Register_Class(Flit);
 
-void Flit::setPayloadArraySize(unsigned int size) {
-    if(size == 8) { // 64 bit payload
-        payload.resize(8, 0);
-        setBitLength(153);
-    }
-    else if(size == 16) { // 128 bit payload
-        payload.resize(16, 0);
-        setBitLength(217);
-    }
-    else {
-        throw cRuntimeError(this, "Invalid payload length: %u", size);
-    }
-}
-
-unsigned int Flit::getPayloadArraySize() const {
-    return payload.size();
-}
-
-uint8_t Flit::getPayload(unsigned int k) const {
-    return payload.at(k);
-}
-
-void Flit::setPayload(unsigned int k, uint8_t payload) {
-    this->payload.at(k) = payload;
-}
-
-void Flit::setSmallFlit() {
-    setPayloadArraySize(8);
-}
-
-void Flit::setLargeFlit() {
-    setPayloadArraySize(16);
-}
-
 bool Flit::isArq() const {
     return mode == MODE_ARQ_DATA || mode == MODE_ARQ_MAC || mode == MODE_ARQ_DATA_MAC
         || mode == MODE_ARQ_SPLIT_1 || mode == MODE_ARQ_SPLIT_2;
 }
 
 void Flit::copy(const Flit& other) {
-    this->payload = other.payload;
 }
 
 }} // namespace

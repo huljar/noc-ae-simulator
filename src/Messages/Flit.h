@@ -22,24 +22,15 @@ namespace HaecComm { namespace Messages {
 
 class Flit : public Flit_Base {
 public:
-    Flit(const char *name=nullptr, short kind=0) : Flit_Base(name,kind) {setSmallFlit();}
+    Flit(const char *name=nullptr, short kind=0) : Flit_Base(name,kind) {}
     Flit(const Flit& other) : Flit_Base(other) {copy(other);}
     Flit& operator=(const Flit& other) {if (this==&other) return *this; Flit_Base::operator=(other); copy(other); return *this;}
     virtual Flit *dup() const override {return new Flit(*this);}
 
     // ADD CODE HERE to redefine and implement pure virtual functions from Flit_Base
-    virtual void setPayloadArraySize(unsigned int size);
-    virtual unsigned int getPayloadArraySize() const;
-    virtual uint8_t getPayload(unsigned int k) const;
-    virtual void setPayload(unsigned int k, uint8_t payload);
 
     // Other helper methods
-    virtual void setSmallFlit();
-    virtual void setLargeFlit();
     bool isArq() const;
-
-protected:
-    std::vector<uint8_t> payload;
 
 private:
     void copy(const Flit& other);

@@ -61,6 +61,7 @@ void DecoderImpl::handleMessage(cMessage* msg) {
 
 				// Remove network coding metadata
 				decoded->setGev(0);
+				decoded->setNcMode(NC_UNCODED);
 
 				// Get original flit ID
 				uint32_t fid = static_cast<uint32_t>(decoded->getOriginalIds(i));

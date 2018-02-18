@@ -36,7 +36,6 @@ network SimpleDemo {
         }
         source: GenTraffic {
             @display("p=200,40");
-            makeLargeFlits = true;
         }
         delay: Delay {
             @display("p=200,120");

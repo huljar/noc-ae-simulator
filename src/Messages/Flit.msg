@@ -55,7 +55,7 @@ packet Flit {
     uint16_t gev; //# TODO: assert 12 bit size
     
     // Payload, represented as a byte array.
-    abstract uint8_t payload[];
+    uint8_t payload[8];
     
     //# The following fields are helpers which are not "officially" part of the
     //# message (and thus should not be considered when setting the bit length

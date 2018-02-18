@@ -25,7 +25,6 @@ Define_Module(GenTraffic);
 
 GenTraffic::GenTraffic()
     : injectionProb(0.0)
-    , makeLargeFlits(false)
     , gridRows(1)
     , gridColumns(1)
     , nodeId(0)
@@ -47,8 +46,6 @@ void GenTraffic::initialize() {
 	injectionProb = par("injectionProb");
 	if(injectionProb < 0.0 || injectionProb > 1.0)
 		throw cRuntimeError(this, "Injection probability must be between 0 and 1, but is %f", injectionProb);
-
-	makeLargeFlits = par("makeLargeFlits");
 
 	gridRows = getAncestorPar("rows");
 	gridColumns = getAncestorPar("columns");
@@ -94,9 +91,6 @@ void GenTraffic::receiveSignal(cComponent* source, simsignal_t signalID, unsigne
 
 			// Create the flit
 			Flit* flit = new Flit(packetName.str().c_str());
-			if(makeLargeFlits) flit->setLargeFlit();
-			else flit->setSmallFlit();
-
 			take(flit);
 
 			// Set header fields

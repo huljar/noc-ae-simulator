@@ -18,6 +18,7 @@
 
 #include <omnetpp.h>
 #include <Messages/Flit.h>
+#include <map>
 
 using namespace omnetpp;
 
@@ -28,6 +29,10 @@ namespace HaecComm { namespace MW { namespace Crypto {
  */
 class ExitGuardFlitImpl : public cSimpleModule {
 public:
+    typedef std::map<uint32_t, Messages::Flit*> UncodedFlitMap;
+    typedef std::pair<uint32_t, uint16_t> NcKey;
+    typedef std::map<NcKey, Messages::Flit*> NetworkCodedFlitMap;
+
     ExitGuardFlitImpl();
     virtual ~ExitGuardFlitImpl();
 
@@ -36,8 +41,8 @@ protected:
     virtual void handleMessage(cMessage* msg) override;
 
     int mode;
-    Messages::Flit* netCache;
-    Messages::Flit* appCache;
+    UncodedFlitMap ucFlitCache;
+    NetworkCodedFlitMap ncFlitCache;
 };
 
 }}} //namespace

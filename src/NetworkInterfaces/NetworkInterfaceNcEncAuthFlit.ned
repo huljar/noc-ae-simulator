@@ -25,7 +25,8 @@ import HaecComm.Util.*;
 // Default implementation of the Network Interface from the HAEC project.
 // It contains a network encoder and decoder.
 //
-module NetworkInterfaceNcEncAuthFlit like INetworkInterface {
+module NetworkInterfaceNcEncAuthFlit like INetworkInterface
+{
     parameters:
         @display("i=block/control");
         int generationSize;
@@ -75,10 +76,14 @@ module NetworkInterfaceNcEncAuthFlit like INetworkInterface {
                 encIn[encUnits];
                 authIn[authUnits];
         }
+        authCryptoQueue: PacketQueue {
+            @display("p=320,200");
+            awaitSendRequests = true;
+        }
         retransmissionBuffer: RetransmissionBuffer {
             @display("p=800,120");
         }
-        
+
         //# net->app
         routerInputQueue: PacketQueue {
             @display("p=800,420");
@@ -86,7 +91,7 @@ module NetworkInterfaceNcEncAuthFlit like INetworkInterface {
         arqSplitter: ArqSplitter {
             @display("p=680,420");
         }
-        macSplitter: MacSplitter { //# TODO: replace MAC splitter by some sort of manager, which is able to issue ARQs
+        macSplitter: MacSplitter { //# TODO: replace MAC splitter by some sort of ArrivalManager, which is able to issue ARQs
             @display("p=560,420");
         }
         netCryptoQueue: PacketQueue {
@@ -109,20 +114,21 @@ module NetworkInterfaceNcEncAuthFlit like INetworkInterface {
         encoder.in <-- appInputQueue.out;
         encoder.out --> appCryptoQueue.in;
         entryGuard.appIn <-- appCryptoQueue.out;
-        
+        entryGuard.exitIn <-- authCryptoQueue.out;
+
         for i=0..encUnits-1 {
             encUnit[i].in <-- entryGuard.encOut[i];
             encUnit[i].out --> exitGuard.encIn[i];
         }
-        
+
         for i=0..authUnits-1 {
             authUnit[i].in <-- entryGuard.authOut[i];
             authUnit[i].out --> exitGuard.authIn[i];
         }
-        
+
         exitGuard.netOut --> retransmissionBuffer.in;
         router$o <-- retransmissionBuffer.out;
-        
+
         router$i --> routerInputQueue.in;
         arqSplitter.in <-- routerInputQueue.out;
         arqSplitter.arqOut --> retransmissionBuffer.arqIn;
@@ -131,6 +137,7 @@ module NetworkInterfaceNcEncAuthFlit like INetworkInterface {
         macSplitter.othersOut --> netCryptoQueue.in;
         entryGuard.netIn <-- netCryptoQueue.out;
         exitGuard.appOut --> verifier.othersIn;
+        exitGuard.entryOut --> authCryptoQueue.in;
         verifier.out --> decoderQueue.in;
         decoder.in <-- decoderQueue.out;
         decoder.out --> app$o;
