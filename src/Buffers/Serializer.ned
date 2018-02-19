@@ -13,29 +13,14 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package HaecComm.MW.NetworkCoding;
+package HaecComm.Buffers;
 
-import HaecComm.Buffers.Serializer;
-
-module Encoder like INetworkCodingBase {
+//
+// TODO auto-generated module
+//
+simple Serializer extends PacketQueue {
     parameters:
-        int generationSize;
-        int numCombinations;
-        @display("i=block/switch");
-    gates:
-        input  in;
-        output out;
-    submodules:
-        encoderImpl: EncoderImpl {
-            @display("p=80,100");
-            generationSize = generationSize;
-            numCombinations = numCombinations;
-        }
-        serializer: Serializer {
-            @display("p=180,100");
-        }
-    connections:
-        in --> encoderImpl.in;
-        serializer.in <-- encoderImpl.out;
-        serializer.out --> out;
+        @display("i=block/transport");
+        awaitSendRequests = false;
+        syncFirstPacket = false;
 }

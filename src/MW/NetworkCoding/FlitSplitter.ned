@@ -16,7 +16,7 @@
 package HaecComm.MW.NetworkCoding;
 
 import HaecComm.MW.IMiddlewareBase;
-import HaecComm.Buffers.PacketQueue;
+import HaecComm.Buffers.Serializer;
 
 module FlitSplitter like IMiddlewareBase {
     parameters:
@@ -28,9 +28,8 @@ module FlitSplitter like IMiddlewareBase {
         flitSplitterImpl: FlitSplitterImpl {
             @display("p=80,100");
         }
-        serializer: PacketQueue {
-            @display("p=180,100;i=block/transport");
-            syncFirstPacket = false;
+        serializer: Serializer {
+            @display("p=180,100");
         }
     connections:
         in --> flitSplitterImpl.in;

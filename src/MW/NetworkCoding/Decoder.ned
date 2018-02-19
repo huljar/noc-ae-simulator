@@ -15,7 +15,7 @@
 
 package HaecComm.MW.NetworkCoding;
 
-import HaecComm.Buffers.PacketQueue;
+import HaecComm.Buffers.Serializer;
 
 module Decoder like INetworkCodingBase {
     parameters:
@@ -31,9 +31,8 @@ module Decoder like INetworkCodingBase {
             generationSize = generationSize;
             numCombinations = numCombinations;
         }
-        serializer: PacketQueue {
-            @display("p=180,100;i=block/transport");
-            syncFirstPacket = false;
+        serializer: Serializer {
+            @display("p=180,100");
         }
     connections:
         in --> decoderImpl.in;

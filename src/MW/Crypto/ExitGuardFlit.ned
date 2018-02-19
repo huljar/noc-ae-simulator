@@ -15,7 +15,7 @@
 
 package HaecComm.MW.Crypto;
 
-import HaecComm.Buffers.PacketQueue;
+import HaecComm.Buffers.Serializer;
 
 module ExitGuardFlit {
     parameters:
@@ -36,13 +36,11 @@ module ExitGuardFlit {
                 encIn[sizeof(encIn)];
                 authIn[sizeof(authIn)];
         }
-        netSerializer: PacketQueue {
-            @display("p=200,80;i=block/transport");
-            syncFirstPacket = false;
+        netSerializer: Serializer {
+            @display("p=200,80");
         }
-        appSerializer: PacketQueue {
-            @display("p=200,180;i=block/transport");
-            syncFirstPacket = false;
+        appSerializer: Serializer {
+            @display("p=200,180");
         }
     connections:
         // Connect encryption units to the exit guard

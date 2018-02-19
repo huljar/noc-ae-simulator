@@ -15,7 +15,7 @@
 
 package HaecComm.MW.Crypto;
 
-import HaecComm.Buffers.PacketQueue;
+import HaecComm.Buffers.Serializer;
 import HaecComm.MW.*;
 
 //
@@ -38,9 +38,8 @@ module AuthSplit like IAuthBase {
             @display("p=160,60");
             waitCycles = computeCycles;
         }
-        serializer: PacketQueue {
+        serializer: Serializer {
             @display("p=260,60");
-            syncFirstPacket = false;
         }
     connections:
         in --> auth.in;
