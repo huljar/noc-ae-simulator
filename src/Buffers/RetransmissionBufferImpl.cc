@@ -53,28 +53,66 @@ void RetransmissionBufferImpl::handleMessage(cMessage* msg) {
         ASSERT(strcmp(flit->getArrivalGate()->getName(), "arqIn") == 0);
 
         // Check what kind of ARQ we have
-        if(flit->getMode() == MODE_ARQ_DATA) {
+        Mode mode = static_cast<Mode>(flit->getMode());
+        if(mode == MODE_ARQ_DATA || mode == MODE_ARQ_MAC || mode == MODE_ARQ_SPLIT_1 || mode == MODE_ARQ_SPLIT_2) {
             // Find and copy the requested flit
             Flit* cached = nullptr;
             uint32_t id = flit->getGidOrFid();
+
             if(flit->getNcMode() == NC_UNCODED) {
-                UcKey key = std::make_pair(id, MODE_DATA);
+                UcKey key = std::make_pair(id, mode);
                 auto res = ucFlitCache.find(key);
                 if(res != ucFlitCache.end())
                     cached = res->second->dup();
             }
             else {
-                NcKey key = std::make_tuple(id, flit->getGev(), MODE_DATA);
+                NcKey key = std::make_tuple(id, flit->getGev(), mode);
                 auto res = ncFlitCache.find(key);
                 if(res != ncFlitCache.end())
                     cached = res->second->dup();
             }
 
-            // If lookup was successful, copy the cached flit and send it out
+            // If lookup was successful, send out the copy
             if(cached)
                 send(cached, "arqOut");
         }
-        // TODO: handle other ARQ modes
+        else if(flit->getMode() == MODE_ARQ_DATA_MAC) {
+            // Find and copy the requested flits
+            Flit* cachedData = nullptr;
+            Flit* cachedMac = nullptr;
+            uint32_t id = flit->getGidOrFid();
+
+            if(flit->getNcMode() == NC_UNCODED) {
+                UcKey key = std::make_pair(id, MODE_DATA);
+                auto res = ucFlitCache.find(key);
+                if(res != ucFlitCache.end())
+                    cachedData = res->second->dup();
+                key = std::make_pair(id, MODE_MAC);
+                res = ucFlitCache.find(key);
+                if(res != ucFlitCache.end())
+                    cachedMac = res->second->dup();
+            }
+            else {
+                NcKey key = std::make_tuple(id, flit->getGev(), MODE_DATA);
+                auto res = ncFlitCache.find(key);
+                if(res != ncFlitCache.end())
+                    cachedData = res->second->dup();
+                key = std::make_tuple(id, flit->getGev(), MODE_MAC);
+                res = ncFlitCache.find(key);
+                if(res != ncFlitCache.end())
+                    cachedMac = res->second->dup();
+            }
+
+            // If lookup of both data and MAC was successful, send out the copies
+            if(cachedData && cachedMac) {
+                send(cachedData, "arqOut");
+                send(cachedMac, "arqOut");
+            }
+            else {
+                delete cachedData;
+                delete cachedMac;
+            }
+        }
 
         // Delete ARQ flit
         delete flit;

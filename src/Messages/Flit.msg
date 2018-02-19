@@ -52,7 +52,7 @@ packet Flit {
     uint32_t gidOrFid; //# TODO: assert 24 bit size
     
     // Global Encoding Vector. Only used in network coding combinations.
-    uint16_t gev; //# TODO: assert 12 bit size
+    uint16_t gev = 0; //# TODO: assert 12 bit size
     
     // Payload, represented as a byte array.
     uint8_t payload[8];
@@ -62,7 +62,7 @@ packet Flit {
     //# of the flit).
     
     // Hop count (how many nodes were visited before reaching the destination)
-    uint8_t hopCount;
+    uint8_t hopCount = 0;
     
     // For encoded flits: the flit IDs from which the generation was formed
     long originalIds[];
