@@ -31,6 +31,9 @@ GenTraffic::GenTraffic()
     , nodeX(0)
     , nodeY(0)
     , fidCounter(0)
+    , useCachedTarget(false)
+    , cachedTargetX(0)
+    , cachedTargetY(0)
 {
 }
 
@@ -46,6 +49,8 @@ void GenTraffic::initialize() {
 	injectionProb = par("injectionProb");
 	if(injectionProb < 0.0 || injectionProb > 1.0)
 		throw cRuntimeError(this, "Injection probability must be between 0 and 1, but is %f", injectionProb);
+
+	generatePairs = par("generatePairs");
 
 	gridRows = getAncestorPar("rows");
 	gridColumns = getAncestorPar("columns");
@@ -64,49 +69,71 @@ void GenTraffic::handleMessage(cMessage* msg) {
 
 void GenTraffic::receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) {
 	if(signalID == registerSignal("clock")) {
-		// Decide if we should generate a packet based on injection probability parameter
-		if(injectionProb == 0.0) // Explicit zero check because uniform(0.0, 1.0) can return 0
-			return;
+	    // First, check if we need to serve the second flit of a pair
+	    if(useCachedTarget) {
+	        // Generate flit
+	        generateFlit(cachedTargetX, cachedTargetY);
 
-		if(uniform(0.0, 1.0) < injectionProb) {
-			// Generate a flit
-			int targetNodeId;
+	        // Mark that we have served the second flit
+	        useCachedTarget = false;
+	    }
+	    else {
+            // Decide if we should generate a packet based on injection probability parameter
+            if(injectionProb == 0.0) // Explicit zero check because uniform(0.0, 1.0) can return 0
+                return;
 
-			// TODO create paramterized target selection class
-			// Uniform target selection
-			do {
-				targetNodeId = static_cast<int>(intrand(gridRows * gridColumns));
-			} while(targetNodeId == nodeId);
+            if(uniform(0.0, 1.0) < injectionProb) {
+                // Generate a flit
+                int targetNodeId;
 
-			// Get target X and Y
-			int targetX = targetNodeId % gridColumns;
-			int targetY = targetNodeId / gridColumns;
+                // TODO create paramterized target selection class
+                // Uniform target selection
+                do {
+                    targetNodeId = static_cast<int>(intrand(gridRows * gridColumns));
+                } while(targetNodeId == nodeId);
 
-			Address2D source(nodeX, nodeY);
-			Address2D target(targetX, targetY);
+                // Get target X and Y
+                int targetX = targetNodeId % gridColumns;
+                int targetY = targetNodeId / gridColumns;
 
-			// Build packet name
-			std::ostringstream packetName;
-			packetName << "uc-" << fidCounter << "-s" << source.str() << "-t" << target.str();
+                // Generate flit
+                generateFlit(targetX, targetY);
 
-			// Create the flit
-			Flit* flit = new Flit(packetName.str().c_str());
-			take(flit);
-
-			// Set header fields
-			flit->setSource(source);
-			flit->setTarget(target);
-			flit->setGidOrFid(fidCounter);
-
-			emit(pktgenerateSignal, flit->getGidOrFid());
-			EV << "Sending flit \"" << flit->getName() << "\" from " << flit->getSource().str()
-			   << " to " << flit->getTarget().str() << " (ID: " << flit->getGidOrFid() << ")" << std::endl;
-			send(flit, "out");
-
-			// Increment Flit ID counter
-			++fidCounter;
-		}
+                // If pair generation is enabled, set the parameters for next clock tick
+                if(generatePairs) {
+                    useCachedTarget = true;
+                    cachedTargetX = targetX;
+                    cachedTargetY = targetY;
+                }
+            }
+	    }
 	}
+}
+
+void GenTraffic::generateFlit(int targetX, int targetY) {
+    Address2D source(nodeX, nodeY);
+    Address2D target(targetX, targetY);
+
+    // Build packet name
+    std::ostringstream packetName;
+    packetName << "uc-" << fidCounter << "-s" << source.str() << "-t" << target.str();
+
+    // Create the flit
+    Flit* flit = new Flit(packetName.str().c_str());
+    take(flit);
+
+    // Set header fields
+    flit->setSource(source);
+    flit->setTarget(target);
+    flit->setGidOrFid(fidCounter);
+
+    emit(pktgenerateSignal, flit->getGidOrFid());
+    EV << "Sending flit \"" << flit->getName() << "\" from " << flit->getSource().str()
+       << " to " << flit->getTarget().str() << " (ID: " << flit->getGidOrFid() << ")" << std::endl;
+    send(flit, "out");
+
+    // Increment Flit ID counter
+    ++fidCounter;
 }
 
 }} //namespace

@@ -44,7 +44,10 @@ protected:
     virtual void handleMessage(cMessage* msg) override;
     virtual void receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) override;
 
+    virtual void generateFlit(int targetX, int targetY);
+
     double injectionProb;
+    bool generatePairs;
 
     int gridRows;
     int gridColumns;
@@ -53,6 +56,10 @@ protected:
     int nodeY;
 
     uint32_t fidCounter;
+
+    bool useCachedTarget;
+    int cachedTargetX;
+    int cachedTargetY;
 
     simsignal_t pktgenerateSignal;
 };
