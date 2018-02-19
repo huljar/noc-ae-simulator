@@ -57,6 +57,9 @@ packet Flit {
     // Payload, represented as a byte array.
     uint8_t payload[8];
     
+    // Specify the bit length of the flit (not modifyable from C++)
+    bitLength = 153;
+    
     //# The following fields are helpers which are not "officially" part of the
     //# message (and thus should not be considered when setting the bit length
     //# of the flit).
