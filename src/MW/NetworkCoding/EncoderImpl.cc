@@ -13,31 +13,32 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include "Encoder.h"
-#include <Messages/Flit_m.h>
+#include "EncoderImpl.h"
+#include <Messages/Flit.h>
+#include <sstream>
 #include <utility>
 
 using namespace HaecComm::Messages;
 
 namespace HaecComm { namespace MW { namespace NetworkCoding {
 
-Define_Module(Encoder);
+Define_Module(EncoderImpl);
 
-Encoder::Encoder()
+EncoderImpl::EncoderImpl()
 	: gidCounter(0)
 {
 }
 
-Encoder::~Encoder() {
+EncoderImpl::~EncoderImpl() {
 	for(auto it = flitCache.begin(); it != flitCache.end(); ++it)
 		delete it->second;
 }
 
-void Encoder::initialize() {
+void EncoderImpl::initialize() {
     NetworkCodingBase::initialize();
 }
 
-void Encoder::handleMessage(cMessage* msg) {
+void EncoderImpl::handleMessage(cMessage* msg) {
 	// Confirm that this is a flit
 	Flit* flit = dynamic_cast<Flit*>(msg);
 	if(!flit) {
@@ -62,15 +63,28 @@ void Encoder::handleMessage(cMessage* msg) {
 			for(int i = 0; i < numCombinations; ++i) {
 				Flit* combination = static_cast<Flit*>(generation->get(0))->dup();
 
-				// Set network coding metadata
-				combination->setGid(gidCounter);
-				combination->setGev(42); // TODO: set to something meaningful when NC is implemented
+                // Set original IDs vector
+                combination->setOriginalIdsArraySize(generationSize);
+                for(int j = 0; j < generationSize; ++j) {
+                    combination->setOriginalIds(j, static_cast<Flit*>(generation->get(j))->getGidOrFid());
+                }
 
-				// Set original IDs vector
-				combination->setOriginalIdsArraySize(generationSize);
-				for(int j = 0; j < generationSize; ++j) {
-					combination->setOriginalIds(j, static_cast<Flit*>(generation->get(j))->getId());
-				}
+				// Set network coding metadata
+				combination->setGidOrFid(gidCounter);
+				combination->setGev(static_cast<uint16_t>(i));
+
+				if(generationSize == 2 && numCombinations == 3)
+					combination->setNcMode(NC_G2C3);
+				else if(generationSize == 2 && numCombinations == 4)
+					combination->setNcMode(NC_G2C4);
+				else
+					throw cRuntimeError(this, "Cannot set NC mode to NC_G%uC%u", generationSize, numCombinations);
+
+				// Set name
+	            std::ostringstream packetName;
+	            packetName << "nc-" << gidCounter << "-" << i << "-s" << combination->getSource().str()
+	                       << "-t" << combination->getTarget().str();
+	            combination->setName(packetName.str().c_str());
 
 				// Send the encoded flit
 				send(combination, "out");
@@ -81,7 +95,11 @@ void Encoder::handleMessage(cMessage* msg) {
 		}
 	}
 	else if(flit->getMode() == MODE_MAC) {
-		flit->setGid(gidCounter - 1); // -1 because the counter contains the ID of the next generation
+		flit->setGidOrFid(gidCounter - 1); // -1 because the counter contains the ID of the next generation
+		send(flit, "out");
+	}
+	else if(flit->getMode() == MODE_SPLIT_1) {
+		// TODO: network coding for half-flits
 		send(flit, "out");
 	}
 	else {

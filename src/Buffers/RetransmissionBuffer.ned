@@ -15,13 +15,35 @@
 
 package HaecComm.Buffers;
 
-//
-// TODO auto-generated module
-//
-simple RetransmissionBuffer {
+import HaecComm.MW.Delay;
+
+module RetransmissionBuffer {
     parameters:
         @display("i=block/buffer");
+        int bufSize; // Amount of flits that can be cached
+        int bufLookupCycles = default(1);
     gates:
-        input  in[];
+        input  dataIn;
+        input  arqIn;
         output out;
+    submodules:
+        retransBuf: RetransmissionBufferImpl {
+            @display("p=80,120");
+            bufSize = bufSize;
+        }
+        arqLookup: Delay {
+            @display("p=180,180");
+            waitCycles = bufLookupCycles;
+        }
+        serializer: MultiInputSerializer {
+            @display("p=280,120");
+            gates: in[2];
+        }
+    connections:
+        dataIn --> retransBuf.dataIn;
+        arqIn --> retransBuf.arqIn;
+        retransBuf.dataOut --> serializer.in[0];
+        retransBuf.arqOut --> arqLookup.in;
+        arqLookup.out --> serializer.in[1];
+        serializer.out --> out;
 }

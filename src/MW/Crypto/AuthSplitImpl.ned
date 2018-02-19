@@ -13,24 +13,22 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __HAECCOMM_RETRANSMISSIONBUFFER_H_
-#define __HAECCOMM_RETRANSMISSIONBUFFER_H_
+package HaecComm.MW.Crypto;
 
-#include <omnetpp.h>
+import HaecComm.MW.IMiddlewareBase;
 
-using namespace omnetpp;
-
-namespace HaecComm { namespace Buffers {
-
-/**
- * TODO - Generated class
- */
-class RetransmissionBuffer : public cSimpleModule {
-protected:
-    virtual void initialize() override;
-    virtual void handleMessage(cMessage* msg) override;
-};
-
-}} //namespace
-
-#endif
+//
+// Authentication module implementing the half flit authentication scheme
+// as described in the paper. Each incoming flit is split into two flits,
+// with the first flit containing the first half of the payload and the
+// second one containing the second half. For each of these Flits, a short MAC is
+// computed and put into the (now empty) second half of the payload. Then,
+// both flits are sent out.
+//
+simple AuthSplitImpl like IMiddlewareBase {
+    parameters:
+        @display("i=block/cogwheel");
+    gates:
+        input  in;
+        output out;
+}

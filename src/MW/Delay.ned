@@ -30,8 +30,8 @@ package HaecComm.MW;
 //
 simple Delay like IMiddlewareBase {
     parameters:
-        int waitCycles = default(10);
         @display("i=block/delay");
+        int waitCycles;
     gates:
         input  in;
         output out;

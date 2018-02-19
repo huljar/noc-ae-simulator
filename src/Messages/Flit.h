@@ -13,19 +13,30 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-cplusplus {{
+#ifndef MESSAGES_FLIT_H_
+#define MESSAGES_FLIT_H_
+
 #include <Messages/Flit_m.h>
-}}
 
-namespace HaecComm::Messages;
+namespace HaecComm { namespace Messages {
 
-packet Flit;
+class Flit : public Flit_Base {
+public:
+    Flit(const char *name=nullptr, short kind=0) : Flit_Base(name,kind) {}
+    Flit(const Flit& other) : Flit_Base(other) {copy(other);}
+    Flit& operator=(const Flit& other) {if (this==&other) return *this; Flit_Base::operator=(other); copy(other); return *this;}
+    virtual Flit *dup() const override {return new Flit(*this);}
 
-//
-// Implementation of small Flits. Adds a 64 bit payload to the headers
-// specified in ~Flit.
-//
-packet FlitSmall extends Flit {
-    uint8_t payload[8]; // 64 bit payload, represented as a byte array.
-    bitLength = 153;
-}
+    // ADD CODE HERE to redefine and implement pure virtual functions from Flit_Base
+
+    // Other helper methods
+    bool isArq() const;
+
+private:
+    void copy(const Flit& other);
+
+};
+
+}} //namespace
+
+#endif /* MESSAGES_FLIT_H_ */

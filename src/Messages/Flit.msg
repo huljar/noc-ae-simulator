@@ -21,6 +21,8 @@ namespace HaecComm::Messages;
 
 class noncobject Address2D;
 enum Mode;
+enum Status;
+enum NC;
 
 //
 // Base class representing a HAEC flit. This class contains only the headers
@@ -28,26 +30,49 @@ enum Mode;
 // for actual messages.
 //
 packet Flit {
-    bool burst; // Burst bit. Marks this flit as part of a burst of several flits.
-    Address2D source; // Address of the sender of this flit.
-    Address2D target; // Address of the destination of this flit.
-    uint8_t mode @enum(Mode); // Flags which specify the type of flit and how memAddress is used.
-    uint32_t memAddress; // 32 bit memory address marking a region to be read from/written to, depending on mode.
-    //# TODO: how exactly is this field used?
+    @customize(true);
+    
+    // Burst bit. Marks this flit as part of a burst of several flits.
+    bool burst = false;
+    
+    // Address of the sender of this flit.
+    Address2D source;
+    
+    // Address of the destination of this flit.
+    Address2D target;
+    
+    // Flags which specify the type of flit and how memAddress is used.
+    uint8_t mode @enum(Mode) = MODE_DATA;
+    
+    // 32 bit memory address marking a region to be read from/written to, depending on mode.
+    uint32_t memAddress; //# TODO: how exactly is this field used?
     
     // For encoded flits: Generation ID. Specifies the generation that this flit belongs to.
     // For decoded/uncoded flits: Flit ID.
-    uint32_t gid;
-    //# TODO: assert 24 bit size
-    uint16_t gev; // Global Encoding Vector. Only used in network coding combinations.
-    //# TODO: assert 12 bit size
+    uint32_t gidOrFid; //# TODO: assert 24 bit size
+    
+    // Global Encoding Vector. Only used in network coding combinations.
+    uint16_t gev = 0; //# TODO: assert 12 bit size
+    
+    // Payload, represented as a byte array.
+    uint8_t payload[8];
+    
+    // Specify the bit length of the flit (not modifyable from C++)
+    bitLength = 153;
     
     //# The following fields are helpers which are not "officially" part of the
     //# message (and thus should not be considered when setting the bit length
     //# of the flit).
-    uint8_t hopCount; // Hop count (how many nodes were visited before reaching the destination)
-    // For encoded flits: the packet IDs from which the generation was formed
-    // Note: As of OMNeT++ 5.2, arrays cannot be resized to a smaller value than the old array, so we can't reduce the
-    // array size to 1.
+    
+    // Hop count (how many nodes were visited before reaching the destination)
+    uint8_t hopCount = 0;
+    
+    // For encoded flits: the flit IDs from which the generation was formed
     long originalIds[];
+    
+    // Flit markers for correct distribution inside the network interface
+    uint8_t status @enum(Status) = STATUS_NONE;
+    
+    // Flit marker for the network coding mode
+    uint8_t ncMode @enum(NC) = NC_UNCODED;
 }

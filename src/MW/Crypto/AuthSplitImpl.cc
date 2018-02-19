@@ -13,19 +13,32 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-cplusplus {{
-#include <Messages/Flit_m.h>
-}}
+#include "AuthSplitImpl.h"
 
-namespace HaecComm::Messages;
+#include <Messages/Flit.h>
 
-packet Flit;
+using namespace HaecComm::Messages;
 
-//
-// Implementation of large Flits. Adds a 128 bit payload to the headers
-// specified in ~Flit.
-//
-packet FlitLarge extends Flit {
-    uint8_t payload[16]; // 128 bit payload, represented as a byte array.
-    bitLength = 217;
+namespace HaecComm { namespace MW { namespace Crypto {
+
+Define_Module(AuthSplitImpl);
+
+void AuthSplitImpl::initialize() {
+	MiddlewareBase::initialize();
 }
+
+void AuthSplitImpl::handleMessage(cMessage* msg) {
+	// Confirm that this is a flit
+	Flit* flit = dynamic_cast<Flit*>(msg);
+	if(!flit) {
+		EV_WARN << "Received a message that is not a flit. Discarding it." << std::endl;
+		delete msg;
+		return;
+	}
+
+	// TODO: actual MAC computations
+
+	send(flit, "out");
+}
+
+}}} //namespace

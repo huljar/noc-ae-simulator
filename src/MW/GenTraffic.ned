@@ -31,8 +31,7 @@ simple GenTraffic like IMiddlewareBase {
         @signal[pktgenerate](type=unsigned long);
         @statistic[flitIds](source=pktgenerate; record=vector; title="Flits generated");
         @display("i=block/departure");
-        double injectionProb = default(0.5);
-        bool makeLargeFlits;
+        double injectionProb = default(0.2);
     gates:
         input  in @loose;
         output out;

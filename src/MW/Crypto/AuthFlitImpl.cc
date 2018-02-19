@@ -14,7 +14,7 @@
 // 
 
 #include "AuthFlitImpl.h"
-#include <Messages/Flit_m.h>
+#include <Messages/Flit.h>
 
 using namespace HaecComm::Messages;
 
@@ -28,24 +28,20 @@ void AuthFlitImpl::initialize() {
 
 void AuthFlitImpl::handleMessage(cMessage* msg) {
 	// Confirm that this is a flit
-	Flit* dataFlit = dynamic_cast<Flit*>(msg);
-	if(!dataFlit) {
+	Flit* flit = dynamic_cast<Flit*>(msg);
+	if(!flit) {
 		EV_WARN << "Received a message that is not a flit. Discarding it." << std::endl;
 		delete msg;
 		return;
 	}
 
-	// Duplicate the flit (because MAC flit has the same headers)
-	Flit* macFlit = dataFlit->dup();
-
 	// Set mode flag that this is a MAC flit
-	macFlit->setMode(MODE_MAC);
+	flit->setMode(MODE_MAC);
 
 	// TODO: do actual MAC computation
 
-	// Send out data flit first, then MAC
-	send(dataFlit, "out");
-	send(macFlit, "out");
+	// Send out mac flit
+	send(flit, "out");
 }
 
 }}} //namespace

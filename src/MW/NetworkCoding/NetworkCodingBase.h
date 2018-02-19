@@ -17,6 +17,7 @@
 #define __HAECCOMM_NETWORKCODINGBASE_H_
 
 #include <omnetpp.h>
+#include <Buffers/PacketQueueBase.h>
 #include <MW/MiddlewareBase.h>
 
 using namespace omnetpp;
@@ -34,6 +35,8 @@ protected:
 
     int generationSize;
     int numCombinations;
+
+    Buffers::PacketQueueBase* inputQueue;
 };
 
 }}} //namespace

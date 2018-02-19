@@ -20,7 +20,10 @@ package HaecComm.Routers;
 // Routers used in the HaecNode compound module must implement this interface.
 //
 moduleinterface IRouter {
+    parameters:
+        string internalType;
+        int numPorts;
     gates:
         inout local;
-        inout port[];
+        inout port[numPorts];
 }

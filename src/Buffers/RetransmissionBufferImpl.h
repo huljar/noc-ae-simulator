@@ -13,36 +13,44 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __HAECCOMM_DECODER_H_
-#define __HAECCOMM_DECODER_H_
+#ifndef __HAECCOMM_RETRANSMISSIONBUFFER_H_
+#define __HAECCOMM_RETRANSMISSIONBUFFER_H_
 
 #include <omnetpp.h>
-#include <Messages/fieldtypes.h>
-#include <MW/NetworkCoding/NetworkCodingBase.h>
-#include <cinttypes>
+#include <Messages/Flit.h>
 #include <map>
-#include <utility>
+#include <queue>
+#include <tuple>
 
 using namespace omnetpp;
 
-namespace HaecComm { namespace MW { namespace NetworkCoding {
+namespace HaecComm { namespace Buffers {
 
 /**
  * TODO - Generated class
  */
-class Decoder : public NetworkCodingBase {
+class RetransmissionBufferImpl : public cSimpleModule {
 public:
-	Decoder();
-	virtual ~Decoder();
+    typedef std::pair<uint32_t, Messages::Mode> UcKey;
+    typedef std::map<UcKey, Messages::Flit*> UncodedFlitMap;
+    typedef std::tuple<uint32_t, uint16_t, Messages::Mode> NcKey;
+    typedef std::map<NcKey, Messages::Flit*> NetworkCodedFlitMap;
+
+	RetransmissionBufferImpl();
+	virtual ~RetransmissionBufferImpl();
 
 protected:
     virtual void initialize() override;
     virtual void handleMessage(cMessage* msg) override;
 
-private:
-    std::map<std::pair<Messages::Address2D, uint32_t>, cArray*> flitCache;
+    int bufSize;
+
+    UncodedFlitMap ucFlitCache;
+    NetworkCodedFlitMap ncFlitCache;
+    std::queue<UcKey> ucFlitQueue;
+    std::queue<NcKey> ncFlitQueue;
 };
 
-}}} //namespace
+}} //namespace
 
 #endif

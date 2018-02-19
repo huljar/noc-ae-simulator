@@ -13,20 +13,18 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package HaecComm.MW.Crypto;
-
-import HaecComm.MW.IMiddlewareBase;
+package HaecComm.MW.NetworkCoding;
 
 //
-// Authentication module implementing the half flit authentication scheme
-// as described in the paper. Each incoming flit is split into two flits,
-// with the first flit containing the first half of the payload and the
-// second one containing the second half. For each of these Flits, a short MAC is
-// computed and put into the (now empty) second half of the payload. Then,
-// both flits are sent out.
+// Simple module implementing network encoding. Flits with the same destination
+// are grouped into a generation. For each generation, a number of linear
+// combinations is computed, which are then sent out. On the receiver side,
+// a ~Decoder module is required to obtain the original flits.
 //
-simple AuthHalfFlitImpl like IMiddlewareBase {
+simple EncoderImpl like INetworkCodingBase {
     parameters:
+        int generationSize;
+        int numCombinations;
         @display("i=block/cogwheel");
     gates:
         input  in;

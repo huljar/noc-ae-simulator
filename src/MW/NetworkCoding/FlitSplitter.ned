@@ -13,38 +13,27 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package HaecComm.MW.Crypto;
+package HaecComm.MW.NetworkCoding;
 
+import HaecComm.MW.IMiddlewareBase;
 import HaecComm.Buffers.PacketQueue;
-import HaecComm.MW.*;
 
-//
-// Compound module wrapper around the ~AuthHalfFlitImpl simple module.
-// In addition to the authentication, a computation delay and
-// serialization (one packet per clock cycle) are performed.
-//
-module AuthHalfFlit like IAuthBase {
+module FlitSplitter like IMiddlewareBase {
     parameters:
-        int computeCycles;
-        @display("i=block/encrypt");
+        @display("i=block/classifier2");
     gates:
         input  in;
         output out;
     submodules:
-        auth: AuthHalfFlitImpl {
-            @display("p=60,60");
-        }
-        delay: Delay {
-            @display("p=160,60");
-            waitCycles = computeCycles;
+        flitSplitterImpl: FlitSplitterImpl {
+            @display("p=80,100");
         }
         serializer: PacketQueue {
-            @display("p=260,60");
+            @display("p=180,100;i=block/transport");
             syncFirstPacket = false;
         }
     connections:
-        in --> auth.in;
-        auth.out --> delay.in;
-        delay.out --> serializer.in;
+        in --> flitSplitterImpl.in;
+        serializer.in <-- flitSplitterImpl.out;
         serializer.out --> out;
 }

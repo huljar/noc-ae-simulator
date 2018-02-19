@@ -20,7 +20,7 @@ package HaecComm.Routers;
 // It provides a simple XY router with no additional processing performed
 // on the packets.
 //
-simple RouterXY like IRouter {
+simple RouterXY like IRouterBase {
     parameters:
         @signal[pktsend](type=cPacket);
         @signal[pktreceive](type=cPacket);

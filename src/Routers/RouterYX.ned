@@ -20,7 +20,7 @@ package HaecComm.Routers;
 // It provides a simple YX router with no additional processing performed
 // on the packets.
 //
-simple RouterYX like IRouter {
+simple RouterYX like IRouterBase {
     parameters:
         @display("i=block/routing");
     gates:

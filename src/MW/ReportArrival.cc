@@ -14,7 +14,7 @@
 // 
 
 #include "ReportArrival.h"
-#include <Messages/Flit_m.h>
+#include <Messages/Flit.h>
 
 using namespace HaecComm::Messages;
 
@@ -30,10 +30,10 @@ void ReportArrival::initialize() {
 
 void ReportArrival::handleMessage(cMessage* msg) {
 	if(Flit* flit = dynamic_cast<Flit*>(msg)) {
-		emit(pktconsumeSignal, flit->getGid()); // TODO: take into account lost packets
+		emit(pktconsumeSignal, flit->getGidOrFid()); // TODO: take into account lost packets
 		EV << "Received flit \"" << flit->getName() << "\" from " << flit->getSource().str()
 		   << " at " << flit->getTarget().str() << " with hop count " << +flit->getHopCount()
-		   << " (flit ID: " << flit->getGid() << ")" << std::endl;
+		   << " (flit ID: " << flit->getGidOrFid() << ")" << std::endl;
 	}
 	else {
 		EV << "Received message \"" << msg->getName() << "\"" << std::endl;

@@ -13,36 +13,18 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __HAECCOMM_NETWORKCODINGENCODER_H_
-#define __HAECCOMM_NETWORKCODINGENCODER_H_
+#include "VerifyGeneration.h"
 
-#include <omnetpp.h>
-#include <Messages/fieldtypes.h>
-#include <MW/NetworkCoding/NetworkCodingBase.h>
-#include <cinttypes>
-#include <map>
+namespace HaecComm { namespace MW { namespace Crypto {
 
-using namespace omnetpp;
+Define_Module(VerifyGeneration);
 
-namespace HaecComm { namespace MW { namespace NetworkCoding {
+void VerifyGeneration::initialize() {
+    // TODO - Generated method body
+}
 
-/**
- * TODO - Generated class
- */
-class Encoder : public NetworkCodingBase {
-public:
-	Encoder();
-	virtual ~Encoder();
-
-protected:
-    virtual void initialize() override;
-    virtual void handleMessage(cMessage* msg) override;
-
-private:
-    std::map<Messages::Address2D, cArray*> flitCache;
-    uint32_t gidCounter;
-};
+void VerifyGeneration::handleMessage(cMessage* msg) {
+    // TODO - Generated method body
+}
 
 }}} //namespace
-
-#endif

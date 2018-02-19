@@ -45,13 +45,14 @@ protected:
     virtual void receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) override;
 
     double injectionProb;
-    bool makeLargeFlits;
 
     int gridRows;
     int gridColumns;
     int nodeId;
     int nodeX;
     int nodeY;
+
+    uint32_t fidCounter;
 
     simsignal_t pktgenerateSignal;
 };

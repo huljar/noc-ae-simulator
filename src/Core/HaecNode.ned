@@ -15,6 +15,7 @@
 
 package HaecComm.Core;
 
+import HaecComm.NetworkInterfaces.INetworkInterface;
 import HaecComm.Routers.IRouter;
 import HaecComm.Buffers.PacketQueue;
 
@@ -27,56 +28,29 @@ import HaecComm.Buffers.PacketQueue;
 module HaecNode like IHaecNode {
     parameters:
         int id;
+        int numPorts;
         string appType;
         string niType;
         string routerType;
         @display("i=block/network");
     gates:
-        inout port[];
+        inout port[numPorts];
     submodules:
         app: <appType> like IApp {
-            @display("p=100,255");
-        }
-        appNiQueue: PacketQueue {
-            @display("p=300,205");
-        }
-        niAppQueue: PacketQueue {
-            @display("p=200,305");
+            @display("p=80,100");
         }
         ni: <niType> like INetworkInterface {
-            @display("p=400,255");
-        }
-        niRouterQueue: PacketQueue {
-            @display("p=600,205");
-            awaitSendRequests = true;
-        }
-        routerNiQueue: PacketQueue {
-            @display("p=500,305");
+            @display("p=180,100");
         }
         router: <routerType> like IRouter {
-            @display("p=700,255");
-            gates: port[sizeof(port)];
-        }
-        routerInputQueue[sizeof(port)]: PacketQueue {
-            @display("p=850,105,column,100");
-            awaitSendRequests = true;
+            @display("p=280,100");
+            numPorts = numPorts;
         }
     connections:
-        app.net$i <-- niAppQueue.out;
-        app.net$o --> appNiQueue.in;
+        app.net <--> ni.app;
+        ni.router <--> router.local;
         
-        ni.app$i <-- appNiQueue.out;
-        ni.app$o --> niAppQueue.in;
-        
-        ni.router$i <-- routerNiQueue.out;
-        ni.router$o --> niRouterQueue.in;
-        
-        router.local$i <-- niRouterQueue.out;
-        router.local$o --> routerNiQueue.in;
-        
-        for i=0..sizeof(port)-1 {
-            router.port$i[i] <-- routerInputQueue[i].out;
-            router.port$o[i] --> port$o[i];
-            port$i[i] --> routerInputQueue[i].in;
+        for i=0..numPorts-1 {
+            router.port[i] <--> port[i];
         }
 }

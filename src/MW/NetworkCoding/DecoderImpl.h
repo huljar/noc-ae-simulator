@@ -13,14 +13,36 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package HaecComm.Core;
+#ifndef __HAECCOMM_DECODER_H_
+#define __HAECCOMM_DECODER_H_
 
-//
-// Module interface for Network Interface modules.
-// Network Interfaces used in the HaecNode compound module must implement this interface.
-//
-moduleinterface INetworkInterface {
-    gates:
-        inout app;
-        inout router;
-}
+#include <omnetpp.h>
+#include <Messages/fieldtypes.h>
+#include <MW/NetworkCoding/NetworkCodingBase.h>
+#include <cinttypes>
+#include <map>
+#include <utility>
+
+using namespace omnetpp;
+
+namespace HaecComm { namespace MW { namespace NetworkCoding {
+
+/**
+ * TODO - Generated class
+ */
+class DecoderImpl : public NetworkCodingBase {
+public:
+	DecoderImpl();
+	virtual ~DecoderImpl();
+
+protected:
+    virtual void initialize() override;
+    virtual void handleMessage(cMessage* msg) override;
+
+private:
+    std::map<std::pair<Messages::Address2D, uint32_t>, cArray*> flitCache;
+};
+
+}}} //namespace
+
+#endif

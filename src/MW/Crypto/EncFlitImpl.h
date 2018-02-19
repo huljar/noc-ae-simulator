@@ -13,17 +13,25 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include "RetransmissionBuffer.h"
+#ifndef __HAECCOMM_ENCFLIT_H_
+#define __HAECCOMM_ENCFLIT_H_
 
-namespace HaecComm { namespace Buffers {
+#include <omnetpp.h>
+#include <MW/MiddlewareBase.h>
 
-Define_Module(RetransmissionBuffer);
+using namespace omnetpp;
 
-void RetransmissionBuffer::initialize() {
-}
+namespace HaecComm { namespace MW { namespace Crypto {
 
-void RetransmissionBuffer::handleMessage(cMessage* msg) {
-    send(msg, "out");
-}
+/**
+ * TODO - Generated class
+ */
+class EncFlitImpl : public MiddlewareBase {
+protected:
+    virtual void initialize() override;
+    virtual void handleMessage(cMessage* msg) override;
+};
 
-}} //namespace
+}}} //namespace
+
+#endif

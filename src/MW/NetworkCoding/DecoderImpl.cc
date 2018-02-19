@@ -13,28 +13,28 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include "Decoder.h"
-#include <Messages/Flit_m.h>
+#include "DecoderImpl.h"
+#include <Messages/Flit.h>
 
 using namespace HaecComm::Messages;
 
 namespace HaecComm { namespace MW { namespace NetworkCoding {
 
-Define_Module(Decoder);
+Define_Module(DecoderImpl);
 
-Decoder::Decoder() {
+DecoderImpl::DecoderImpl() {
 }
 
-Decoder::~Decoder() {
+DecoderImpl::~DecoderImpl() {
 	for(auto it = flitCache.begin(); it != flitCache.end(); ++it)
 		delete it->second;
 }
 
-void Decoder::initialize() {
+void DecoderImpl::initialize() {
     NetworkCodingBase::initialize();
 }
 
-void Decoder::handleMessage(cMessage* msg) {
+void DecoderImpl::handleMessage(cMessage* msg) {
 	// Confirm that this is a flit
 	Flit* flit = dynamic_cast<Flit*>(msg);
 	if(!flit) {
@@ -45,7 +45,7 @@ void Decoder::handleMessage(cMessage* msg) {
 
 	if(flit->getMode() == MODE_DATA) {
 		// Insert flit into cache (indexed by source address and generation ID)
-		auto key = std::make_pair(flit->getSource(), flit->getGid());
+		auto key = std::make_pair(flit->getSource(), flit->getGidOrFid());
 		cArray*& combinations = flitCache[key];
 		if(!combinations)
 			combinations = new cArray;
@@ -61,9 +61,19 @@ void Decoder::handleMessage(cMessage* msg) {
 
 				// Remove network coding metadata
 				decoded->setGev(0);
+				decoded->setNcMode(NC_UNCODED);
 
-				// Restore original flit ID into the GID field using the originalIds vector
-				decoded->setGid(static_cast<uint32_t>(static_cast<Flit*>(combinations->get(0))->getOriginalIds(i)));
+				// Get original flit ID
+				uint32_t fid = static_cast<uint32_t>(decoded->getOriginalIds(i));
+
+				// Restore original flit ID
+				decoded->setGidOrFid(fid);
+
+                // Set name
+                std::ostringstream packetName;
+                packetName << "uc-" << fid << "-" << "-s" << decoded->getSource().str()
+                           << "-t" << decoded->getTarget().str();
+                decoded->setName(packetName.str().c_str());
 
 				// Send the decoded flit
 				send(decoded, "out");

@@ -14,8 +14,7 @@
 // 
 
 #include "GenTraffic.h"
-#include <Messages/FlitSmall_m.h>
-#include <Messages/FlitLarge_m.h>
+#include <Messages/Flit.h>
 #include <sstream>
 
 using namespace HaecComm::Messages;
@@ -25,13 +24,13 @@ namespace HaecComm { namespace MW {
 Define_Module(GenTraffic);
 
 GenTraffic::GenTraffic()
-	: injectionProb(0.0)
-	, makeLargeFlits(false)
-	, gridRows(1)
-	, gridColumns(1)
-	, nodeId(0)
-	, nodeX(0)
-	, nodeY(0)
+    : injectionProb(0.0)
+    , gridRows(1)
+    , gridColumns(1)
+    , nodeId(0)
+    , nodeX(0)
+    , nodeY(0)
+    , fidCounter(0)
 {
 }
 
@@ -47,8 +46,6 @@ void GenTraffic::initialize() {
 	injectionProb = par("injectionProb");
 	if(injectionProb < 0.0 || injectionProb > 1.0)
 		throw cRuntimeError(this, "Injection probability must be between 0 and 1, but is %f", injectionProb);
-
-	makeLargeFlits = par("makeLargeFlits");
 
 	gridRows = getAncestorPar("rows");
 	gridColumns = getAncestorPar("columns");
@@ -85,28 +82,29 @@ void GenTraffic::receiveSignal(cComponent* source, simsignal_t signalID, unsigne
 			int targetX = targetNodeId % gridColumns;
 			int targetY = targetNodeId / gridColumns;
 
+			Address2D source(nodeX, nodeY);
+			Address2D target(targetX, targetY);
+
 			// Build packet name
 			std::ostringstream packetName;
-			packetName << "flit-s" << nodeId << "-t" << targetNodeId << "-c" << l;
+			packetName << "uc-" << fidCounter << "-s" << source.str() << "-t" << target.str();
 
 			// Create the flit
-			// TODO: use a FlitFactory class or factory method?
-			Flit* flit;
-			if(makeLargeFlits)
-				flit = new FlitLarge(packetName.str().c_str());
-			else
-				flit = new FlitSmall(packetName.str().c_str());
+			Flit* flit = new Flit(packetName.str().c_str());
 			take(flit);
 
 			// Set header fields
-			flit->setSource(Address2D(nodeX, nodeY));
-			flit->setTarget(Address2D(targetX, targetY));
-			flit->setGid(static_cast<uint32_t>(flit->getId()));
+			flit->setSource(source);
+			flit->setTarget(target);
+			flit->setGidOrFid(fidCounter);
 
-			emit(pktgenerateSignal, flit->getGid());
+			emit(pktgenerateSignal, flit->getGidOrFid());
 			EV << "Sending flit \"" << flit->getName() << "\" from " << flit->getSource().str()
-			   << " to " << flit->getTarget().str() << " (ID: " << flit->getId() << ")" << std::endl;
+			   << " to " << flit->getTarget().str() << " (ID: " << flit->getGidOrFid() << ")" << std::endl;
 			send(flit, "out");
+
+			// Increment Flit ID counter
+			++fidCounter;
 		}
 	}
 }
