@@ -47,7 +47,7 @@ module NetworkInterface like INetworkInterface {
         }
     connections:
         app$i --> appInputQueue.in;
-        retransmissionBuffer.in <-- appInputQueue.out;
+        retransmissionBuffer.dataIn <-- appInputQueue.out;
         retransmissionBuffer.out --> router$o;
         
         arqSplitter.in <-- router$i;

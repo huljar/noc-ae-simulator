@@ -126,7 +126,7 @@ module NetworkInterfaceNcEncAuthFlit like INetworkInterface
             authUnit[i].out --> exitGuard.authIn[i];
         }
 
-        exitGuard.netOut --> retransmissionBuffer.in;
+        exitGuard.netOut --> retransmissionBuffer.dataIn;
         router$o <-- retransmissionBuffer.out;
 
         router$i --> routerInputQueue.in;

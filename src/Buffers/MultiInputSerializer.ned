@@ -13,26 +13,14 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package HaecComm.MW;
+package HaecComm.Buffers;
 
 //
-// Middleware to simulate work which takes a certain amount of
-// time. All packets passing through this module will be held
-// for the configured time and then sent out unmodified.
-// This can e.g. be used to simulate encryption algorithms
-// which take a predefined number of clock cycles to execute.
+// TODO auto-generated module
 //
-// The delay is measured in clock cycles and determined by the
-// <em>waitCycles</em> parameter.
-//
-// The Delay middleware does not enforce any restrictions on how many
-// messages can be held back at the same time.
-//
-simple Delay like IMiddlewareBase {
+simple MultiInputSerializer extends MultiInputPacketQueue {
     parameters:
-        @display("i=block/delay");
-        int waitCycles;
-    gates:
-        input  in;
-        output out;
+        @display("i=block/transport");
+        awaitSendRequests = false;
+        syncFirstPacket = false;
 }

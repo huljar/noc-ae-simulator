@@ -74,7 +74,7 @@ void ExitGuardFlitImpl::handleMessage(cMessage* msg) {
             ucFlitCache.erase(id);
         }
         else {
-            auto key = std::make_pair(id, flit->getGev());
+            NcKey key = std::make_pair(id, flit->getGev());
             cached = ncFlitCache.at(key);
             ncFlitCache.erase(key);
         }

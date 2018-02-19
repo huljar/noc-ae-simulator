@@ -20,6 +20,7 @@
 #include <Messages/Flit.h>
 #include <map>
 #include <queue>
+#include <tuple>
 
 using namespace omnetpp;
 
@@ -28,12 +29,15 @@ namespace HaecComm { namespace Buffers {
 /**
  * TODO - Generated class
  */
-class RetransmissionBuffer : public cSimpleModule {
+class RetransmissionBufferImpl : public cSimpleModule {
 public:
-	typedef long int FlitKey;
+    typedef std::pair<uint32_t, Messages::Mode> UcKey;
+    typedef std::map<UcKey, Messages::Flit*> UncodedFlitMap;
+    typedef std::tuple<uint32_t, uint16_t, Messages::Mode> NcKey;
+    typedef std::map<NcKey, Messages::Flit*> NetworkCodedFlitMap;
 
-	RetransmissionBuffer();
-	virtual ~RetransmissionBuffer();
+	RetransmissionBufferImpl();
+	virtual ~RetransmissionBufferImpl();
 
 protected:
     virtual void initialize() override;
@@ -41,8 +45,10 @@ protected:
 
     int bufSize;
 
-    std::map<FlitKey, Messages::Flit*> flitCache;
-    std::queue<FlitKey> flitQueue;
+    UncodedFlitMap ucFlitCache;
+    NetworkCodedFlitMap ncFlitCache;
+    std::queue<UcKey> ucFlitQueue;
+    std::queue<NcKey> ncFlitQueue;
 };
 
 }} //namespace
