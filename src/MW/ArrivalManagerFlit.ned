@@ -13,24 +13,18 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __HAECCOMM_VERIFYGENERATION_H_
-#define __HAECCOMM_VERIFYGENERATION_H_
+package HaecComm.MW;
 
-#include <omnetpp.h>
-
-using namespace omnetpp;
-
-namespace HaecComm { namespace MW { namespace Crypto {
-
-/**
- * TODO - Generated class
- */
-class VerifyGeneration : public cSimpleModule {
-protected:
-    virtual void initialize() override;
-    virtual void handleMessage(cMessage* msg) override;
-};
-
-}}} //namespace
-
-#endif
+//
+// TODO auto-generated module
+//
+simple ArrivalManagerFlit {
+    parameters:
+        @display("i=block/decrypt");
+    gates:
+        input  netIn;
+        input  cryptoIn;
+        output appOut;
+        output cryptoOut;
+        output arqOut;
+}

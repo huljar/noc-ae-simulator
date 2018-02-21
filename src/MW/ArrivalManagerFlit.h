@@ -13,17 +13,24 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include "VerifyFlit.h"
+#ifndef __HAECCOMM_ARRIVALMANAGERFLIT_H_
+#define __HAECCOMM_ARRIVALMANAGERFLIT_H_
 
-namespace HaecComm { namespace MW { namespace Crypto {
+#include <omnetpp.h>
 
-Define_Module(VerifyFlit);
+using namespace omnetpp;
 
-void VerifyFlit::initialize() {
-}
+namespace HaecComm { namespace MW {
 
-void VerifyFlit::handleMessage(cMessage* msg) {
-    delete msg; // TODO: do something useful
-}
+/**
+ * TODO - Generated class
+ */
+class ArrivalManagerFlit : public cSimpleModule {
+protected:
+    virtual void initialize() override;
+    virtual void handleMessage(cMessage* msg) override;
+};
 
-}}} //namespace
+}} //namespace
+
+#endif

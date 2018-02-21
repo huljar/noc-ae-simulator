@@ -83,6 +83,10 @@ module NetworkInterfaceNcEncAuthFlit like INetworkInterface
         retransmissionBuffer: RetransmissionBuffer {
             @display("p=800,120");
         }
+        netStream: MultiInputSerializer {
+            @display("p=920,120");
+            gates: in[2];
+        }
 
         //# net->app
         routerInputQueue: PacketQueue {
@@ -91,15 +95,12 @@ module NetworkInterfaceNcEncAuthFlit like INetworkInterface
         arqSplitter: ArqSplitter {
             @display("p=680,420");
         }
-        macSplitter: MacSplitter { //# TODO: replace MAC splitter by some sort of ArrivalManager, which is able to issue ARQs
-            @display("p=560,420");
+        arrivalManager: ArrivalManagerFlit {
+            @display("p=500,420");
         }
         netCryptoQueue: PacketQueue {
             @display("p=320,300");
             awaitSendRequests = true;
-        }
-        verifier: VerifyFlit {
-            @display("p=440,420");
         }
         decoderQueue: PacketQueue {
             @display("p=320,420");
@@ -127,18 +128,20 @@ module NetworkInterfaceNcEncAuthFlit like INetworkInterface
         }
 
         exitGuard.netOut --> retransmissionBuffer.dataIn;
-        router$o <-- retransmissionBuffer.out;
+        netStream.in[0] <-- retransmissionBuffer.out;
+        netStream.out --> router$o;
 
         router$i --> routerInputQueue.in;
         arqSplitter.in <-- routerInputQueue.out;
-        arqSplitter.arqOut --> retransmissionBuffer.arqIn;
-        arqSplitter.othersOut --> macSplitter.in;
-        macSplitter.macOut --> verifier.macIn;
-        macSplitter.othersOut --> netCryptoQueue.in;
-        entryGuard.netIn <-- netCryptoQueue.out;
-        exitGuard.appOut --> verifier.othersIn;
-        exitGuard.entryOut --> authCryptoQueue.in;
-        verifier.out --> decoderQueue.in;
+        arqSplitter.othersOut --> arrivalManager.netIn;
+        arrivalManager.cryptoOut --> netCryptoQueue.in;
+        arrivalManager.appOut --> decoderQueue.in;
         decoder.in <-- decoderQueue.out;
         decoder.out --> app$o;
+
+        arqSplitter.arqOut --> retransmissionBuffer.arqIn;
+        exitGuard.appOut --> arrivalManager.cryptoIn;
+        arrivalManager.arqOut --> netStream.in[1];
+        entryGuard.netIn <-- netCryptoQueue.out;
+        exitGuard.entryOut --> authCryptoQueue.in;
 }

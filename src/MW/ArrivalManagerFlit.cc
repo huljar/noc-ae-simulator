@@ -13,18 +13,19 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include "VerifyGeneration.h"
+#include "ArrivalManagerFlit.h"
 
-namespace HaecComm { namespace MW { namespace Crypto {
+namespace HaecComm { namespace MW {
 
-Define_Module(VerifyGeneration);
+Define_Module(ArrivalManagerFlit);
 
-void VerifyGeneration::initialize() {
+void ArrivalManagerFlit::initialize() {
     // TODO - Generated method body
 }
 
-void VerifyGeneration::handleMessage(cMessage* msg) {
+void ArrivalManagerFlit::handleMessage(cMessage* msg) {
+    delete msg;
     // TODO - Generated method body
 }
 
-}}} //namespace
+}} //namespace
