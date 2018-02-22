@@ -31,6 +31,7 @@ network Mesh2D {
         int rows;                       // number of grid rows
         string nodeType;                // NED type of the nodes (must implement IHaecNode)
         string channelType;             // NED type of the channels between nodes (must implement IHaecChannel)
+        double clockPeriod @unit(s);    // Clock speed
     submodules:
         //
         // The global clock module. It is used by nodes to synchronize message
@@ -38,6 +39,7 @@ network Mesh2D {
         //
         clock: Clock {
             @display("p=30,80");
+            inter = clockPeriod;
         }
         //
         // The nodes of the network. They must implement the IHaecNode interface.

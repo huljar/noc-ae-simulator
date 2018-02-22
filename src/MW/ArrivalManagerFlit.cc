@@ -15,17 +15,41 @@
 
 #include "ArrivalManagerFlit.h"
 
+using namespace HaecComm::Messages;
+
 namespace HaecComm { namespace MW {
 
 Define_Module(ArrivalManagerFlit);
 
 void ArrivalManagerFlit::initialize() {
-    // TODO - Generated method body
+    arqLimit = par("arqLimit");
+    if(arqLimit < 1)
+        throw cRuntimeError(this, "arqLimit must be greater than 0");
+
+    arqIssueTimeout = par("arqIssueTimeout");
+    if(arqIssueTimeout < 1)
+        throw cRuntimeError(this, "arqIssueTimeout must be greater than 0");
+
+    arqResendTimeout = par("arqResendTimeout");
+    if(arqResendTimeout < 1)
+        throw cRuntimeError(this, "arqResendTimeout must be greater than 0");
 }
 
 void ArrivalManagerFlit::handleMessage(cMessage* msg) {
-    delete msg;
-    // TODO - Generated method body
+    if(msg->isSelfMessage()) {
+        // ARQ timeout
+    }
+    else {
+        // Confirm that this is a flit
+        Flit* flit = dynamic_cast<Flit*>(msg);
+        if(!flit) {
+            EV_WARN << "Received a message that is not a flit. Discarding it." << std::endl;
+            delete msg;
+            return;
+        }
+
+        delete flit;
+    }
 }
 
 }} //namespace

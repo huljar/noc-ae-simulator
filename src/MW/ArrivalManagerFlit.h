@@ -17,6 +17,11 @@
 #define __HAECCOMM_ARRIVALMANAGERFLIT_H_
 
 #include <omnetpp.h>
+#include <Messages/Flit.h>
+#include <Util/ShiftRegister.h>
+#include <cinttypes>
+#include <set>
+#include <vector>
 
 using namespace omnetpp;
 
@@ -26,9 +31,28 @@ namespace HaecComm { namespace MW {
  * TODO - Generated class
  */
 class ArrivalManagerFlit : public cSimpleModule {
+public:
+    typedef uint32_t UcKey;
+    typedef std::pair<uint32_t, uint16_t> NcKey;
+
 protected:
     virtual void initialize() override;
     virtual void handleMessage(cMessage* msg) override;
+
+    int arqLimit;
+    int arqIssueTimeout;
+    int arqResendTimeout;
+
+    /// Track currently active FIDs/GIDs for each sender (to recognize redundant retransmissions)
+    std::map<Messages::Address2D, std::set<uint32_t>> activeIds;
+
+    std::map<uint32_t, Messages::Flit*> ucDecryptedDataCache;
+    std::map<uint32_t, Messages::Flit*> ucComputedMacCache;
+    std::map<uint32_t, Messages::Flit*> ucReceivedMacCache;
+
+    std::map<uint32_t, std::map<uint16_t, Messages::Flit*>> ncDecryptedDataCache;
+    std::map<uint32_t, std::map<uint16_t, Messages::Flit*>> ncComputedMacCache;
+    std::map<uint32_t, std::map<uint16_t, Messages::Flit*>> ncReceivedMacCache;
 };
 
 }} //namespace

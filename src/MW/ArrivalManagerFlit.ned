@@ -21,6 +21,9 @@ package HaecComm.MW;
 simple ArrivalManagerFlit {
     parameters:
         @display("i=block/decrypt");
+        int arqLimit;
+        int arqIssueTimeout;
+        int arqResendTimeout;
     gates:
         input  netIn;
         input  cryptoIn;

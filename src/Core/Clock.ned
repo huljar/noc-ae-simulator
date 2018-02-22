@@ -23,5 +23,5 @@ simple Clock {
     parameters:
         @signal[clock](type=unsigned long);
         @display("i=device/clock");
-        double inter @unit(s) = default(1s); // The interval between two clock signal emissions
+        double inter @unit(s); // The interval between two clock signal emissions
 }

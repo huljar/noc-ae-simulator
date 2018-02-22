@@ -113,6 +113,7 @@ void RetransmissionBufferImpl::handleMessage(cMessage* msg) {
                 delete cachedMac;
             }
         }
+        // TODO: handle ARQs where GEV of missing flit(s) is not known
 
         // Delete ARQ flit
         delete flit;
