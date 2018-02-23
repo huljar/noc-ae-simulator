@@ -82,8 +82,6 @@ void ArrivalManagerFlit::handleNetMessage(Flit* flit) {
     uint32_t id = flit->getGidOrFid();
     Address2D source = flit->getSource();
 
-    if(source == Address2D(0, 2) && nodeX == 1 && nodeY == 2)
-        EV << "Break here" << std::endl;
     // Check if this is an active or new ID (might be a repeat attack)
     IdSet& activeIdSet = activeIds[source];
     if(!highestKnownIds.count(source)) {
