@@ -13,22 +13,14 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package HaecComm.MW;
+namespace HaecComm::Messages;
 
 //
-// TODO auto-generated module
+// TODO generated message class
 //
-simple ArrivalManagerFlit {
-    parameters:
-        @display("i=block/decrypt");
-        int arqLimit;
-        int arqIssueTimeout;
-        int arqResendTimeout;
-        int outOfOrderIdGracePeriod = default(2);
-    gates:
-        input  netIn;
-        input  cryptoIn;
-        output appOut;
-        output cryptoOut;
-        output arqOut;
+message ArqTimer {
+    int someField;
+    string anotherField;
+    double arrayField1[];
+    double arrayField2[10];
 }

@@ -17,6 +17,7 @@
 #define __HAECCOMM_ARRIVALMANAGERFLIT_H_
 
 #include <omnetpp.h>
+#include <Messages/ArqTimer_m.h>
 #include <Messages/Flit.h>
 #include <Util/ShiftRegister.h>
 #include <cinttypes>
@@ -32,8 +33,15 @@ namespace HaecComm { namespace MW {
  */
 class ArrivalManagerFlit : public cSimpleModule {
 public:
-    typedef uint32_t UcKey;
-    typedef std::pair<uint32_t, uint16_t> NcKey;
+    typedef std::set<uint32_t> IdSet;
+    typedef std::pair<uint32_t, Messages::Address2D> IdSourceKey;
+    typedef std::tuple<uint32_t, Messages::Address2D, uint16_t> IdSourceGevKey;
+    typedef std::map<IdSourceKey, Messages::Flit*> FlitCache;
+    typedef std::map<uint16_t, Messages::Flit*> GevCache;
+    typedef std::map<IdSourceKey, GevCache> GenCache;
+
+    ArrivalManagerFlit();
+    virtual ~ArrivalManagerFlit();
 
 protected:
     virtual void initialize() override;
@@ -42,17 +50,49 @@ protected:
     int arqLimit;
     int arqIssueTimeout;
     int arqResendTimeout;
+    int outOfOrderIdGracePeriod;
 
-    /// Track currently active FIDs/GIDs for each sender (to recognize redundant retransmissions)
-    std::map<Messages::Address2D, std::set<uint32_t>> activeIds;
+    int gridColumns;
+    int nodeId;
+    int nodeX;
+    int nodeY;
 
-    std::map<uint32_t, Messages::Flit*> ucDecryptedDataCache;
-    std::map<uint32_t, Messages::Flit*> ucComputedMacCache;
-    std::map<uint32_t, Messages::Flit*> ucReceivedMacCache;
+    // Track currently active FIDs/GIDs for each sender (to recognize redundant retransmissions)
+    std::map<Messages::Address2D, IdSet> activeIds;
+    std::map<Messages::Address2D, uint32_t> highestKnownIds;
 
-    std::map<uint32_t, std::map<uint16_t, Messages::Flit*>> ncDecryptedDataCache;
-    std::map<uint32_t, std::map<uint16_t, Messages::Flit*>> ncComputedMacCache;
-    std::map<uint32_t, std::map<uint16_t, Messages::Flit*>> ncReceivedMacCache;
+    // Track amount of issued ARQs
+    std::map<IdSourceKey, int> issuedArqs;
+
+    // Cache successful MAC verifications
+    std::set<IdSourceKey> ucVerified;
+    std::set<IdSourceGevKey> ncVerified;
+
+    // Cache arriving flits for uncoded variant
+    FlitCache ucReceivedDataCache;
+    FlitCache ucReceivedMacCache;
+    FlitCache ucDecryptedDataCache;
+    FlitCache ucComputedMacCache;
+
+    // Cache arriving flits for network coded variant
+    GenCache ncReceivedDataCache;
+    GenCache ncReceivedMacCache;
+    GenCache ncDecryptedDataCache;
+    GenCache ncComputedMacCache;
+
+private:
+    void handleNetMessage(Messages::Flit* flit);
+    void handleCryptoMessage(Messages::Flit* flit);
+    void handleArqTimer(Messages::ArqTimer* timer);
+
+    void ucStartDecryptAndAuth(const IdSourceKey& key);
+    void ucTryVerification(const IdSourceKey& key);
+    void ucTrySendToApp(const IdSourceKey& key);
+
+    void ucCleanUp(const IdSourceKey& key);
+    void ncCleanUp(const IdSourceKey& key);
+
+    void generateArq(const IdSourceKey& key, Messages::Mode mode); // TODO: more mode options
 };
 
 }} //namespace

@@ -75,6 +75,16 @@ inline bool operator<(const Address2D& lhs, const Address2D& rhs) {
 	return lhs.x() == rhs.x() ? lhs.y() < rhs.y() : lhs.x() < rhs.x();
 }
 
+/// Equality operator
+inline bool operator==(const Address2D& lhs, const Address2D& rhs) {
+    return lhs.x() == rhs.x() && lhs.y() == rhs.y();
+}
+
+/// Stream insertion operator
+inline std::ostream& operator<<(std::ostream& os, const Address2D& address) {
+    return os << address.str();
+}
+
 /**
  * Enumerator which contains the possible values for the <em>mode</em>
  * field in flits. <b>ARQ</b> stands for <b>A</b>utomatic <b>R</b>e-transmission
