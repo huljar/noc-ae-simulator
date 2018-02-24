@@ -291,7 +291,7 @@ void ArrivalManagerFlit::ncCleanUp(const IdSourceKey& key) {
 
 void ArrivalManagerFlit::generateArq(const IdSourceKey& key, Messages::Mode mode) {
     // TODO: more detailed ARQ payload (HAVE + available (GEVs/)modes or DON'T HAVE + required (GEVs/)modes)
-    static const Address2D source(nodeX, nodeY);
+    Address2D source(nodeX, nodeY);
 
     // Build packet name
     std::ostringstream packetName;

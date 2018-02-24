@@ -111,7 +111,7 @@ void GenTraffic::receiveSignal(cComponent* source, simsignal_t signalID, unsigne
 }
 
 void GenTraffic::generateFlit(int targetX, int targetY) {
-    static const Address2D source(nodeX, nodeY);
+    Address2D source(nodeX, nodeY);
     Address2D target(targetX, targetY);
 
     // Build packet name
