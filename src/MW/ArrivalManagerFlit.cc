@@ -26,7 +26,27 @@ ArrivalManagerFlit::ArrivalManagerFlit() {
 }
 
 ArrivalManagerFlit::~ArrivalManagerFlit() {
-    // TODO: delete any remaining flits in the maps
+    for(auto it = ucReceivedDataCache.begin(); it != ucReceivedDataCache.end(); ++it)
+        delete it->second;
+    for(auto it = ucReceivedMacCache.begin(); it != ucReceivedMacCache.end(); ++it)
+        delete it->second;
+    for(auto it = ucDecryptedDataCache.begin(); it != ucDecryptedDataCache.end(); ++it)
+        delete it->second;
+    for(auto it = ucComputedMacCache.begin(); it != ucComputedMacCache.end(); ++it)
+        delete it->second;
+
+    for(auto it = ncReceivedDataCache.begin(); it != ncReceivedDataCache.end(); ++it)
+        for(auto jt = it->second.begin(); jt != it->second.end(); ++jt)
+            delete jt->second;
+    for(auto it = ncReceivedMacCache.begin(); it != ncReceivedMacCache.end(); ++it)
+        for(auto jt = it->second.begin(); jt != it->second.end(); ++jt)
+            delete jt->second;
+    for(auto it = ncDecryptedDataCache.begin(); it != ncDecryptedDataCache.end(); ++it)
+        for(auto jt = it->second.begin(); jt != it->second.end(); ++jt)
+            delete jt->second;
+    for(auto it = ncComputedMacCache.begin(); it != ncComputedMacCache.end(); ++it)
+        for(auto jt = it->second.begin(); jt != it->second.end(); ++jt)
+            delete jt->second;
 }
 
 void ArrivalManagerFlit::initialize() {
