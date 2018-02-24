@@ -34,8 +34,8 @@ namespace HaecComm { namespace MW {
 class ArrivalManagerFlit : public cSimpleModule {
 public:
     typedef std::set<uint32_t> IdSet;
+    typedef std::set<uint16_t> GevSet;
     typedef std::pair<uint32_t, Messages::Address2D> IdSourceKey;
-    typedef std::tuple<uint32_t, Messages::Address2D, uint16_t> IdSourceGevKey;
     typedef std::map<IdSourceKey, Messages::Flit*> FlitCache;
     typedef std::map<uint16_t, Messages::Flit*> GevCache;
     typedef std::map<IdSourceKey, GevCache> GenCache;
@@ -59,14 +59,11 @@ protected:
 
     // Track currently active FIDs/GIDs for each sender (to recognize redundant retransmissions)
     std::map<Messages::Address2D, IdSet> activeIds;
+    // TODO: finished IDs inside the grace period
     std::map<Messages::Address2D, uint32_t> highestKnownIds;
 
     // Track amount of issued ARQs
     std::map<IdSourceKey, int> issuedArqs;
-
-    // Cache successful MAC verifications
-    std::set<IdSourceKey> ucVerified;
-    std::set<IdSourceGevKey> ncVerified;
 
     // Cache arriving flits for uncoded variant
     FlitCache ucReceivedDataCache;
@@ -80,6 +77,13 @@ protected:
     GenCache ncDecryptedDataCache;
     GenCache ncComputedMacCache;
 
+    // Cache successful MAC verifications
+    std::set<IdSourceKey> ucVerified;
+    std::map<IdSourceKey, GevSet> ncVerified; // TODO: after 2 successful verifications, gen is finished (also discard arriving from crypto)
+
+    // Network coding only: cache which (and how many) GEVs from a generation have been sent to the app
+    std::map<IdSourceKey, GevSet> ncDispatchedGevs;
+
 private:
     void handleNetMessage(Messages::Flit* flit);
     void handleCryptoMessage(Messages::Flit* flit);
@@ -88,9 +92,17 @@ private:
     void ucStartDecryptAndAuth(const IdSourceKey& key);
     void ucTryVerification(const IdSourceKey& key);
     void ucTrySendToApp(const IdSourceKey& key);
-
     void ucCleanUp(const IdSourceKey& key);
+    void ucDeleteFromCache(FlitCache& cache, const IdSourceKey& key);
+
+    void ncStartDecryptAndAuth(const IdSourceKey& key, uint16_t gev);
+    void ncTryVerification(const IdSourceKey& key, uint16_t gev);
+    void ncTrySendToApp(const IdSourceKey& key, uint16_t gev);
+    void ncCheckGenerationDone(const IdSourceKey& key, unsigned short generationSize = 2);
     void ncCleanUp(const IdSourceKey& key);
+    void ncDeleteFromCache(GenCache& cache, const IdSourceKey& key);
+    void ncDeleteFromCache(GenCache& cache, const IdSourceKey& key, uint16_t gev);
+    // TODO: NC: do not send ARQ immediately on verification fail if we have more redundant GEVs to verify
 
     void generateArq(const IdSourceKey& key, Messages::Mode mode); // TODO: more mode options
 };

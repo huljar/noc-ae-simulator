@@ -19,6 +19,7 @@ namespace HaecComm::Messages;
 // TODO generated message class
 //
 message ArqTimer {
+    //@customize(true);
     int someField;
     string anotherField;
     double arrayField1[];

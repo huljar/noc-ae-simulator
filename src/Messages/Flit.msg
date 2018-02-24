@@ -75,4 +75,7 @@ packet Flit {
     
     // Flit marker for the network coding mode
     uint8_t ncMode @enum(NC) = NC_UNCODED;
+
+    // Flag to specify that this flit was modified by an attacker
+    bool modified @getter(isModified) = false;
 }
