@@ -300,7 +300,14 @@ void ArrivalManagerFlit::handleCryptoMessage(Flit* flit) {
     else { // ncMode != uncoded
         // Get parameters
         uint16_t gev = flit->getGev();
-        // TODO: check if this generation is already finished
+
+        // Check if this generation is already finished
+        IdSet& activeIdSet = activeIds[source];
+        if(!activeIdSet.count(id)) {
+            EV << "Received a decrypted/authenticated flit from an already finished generation" << std::endl;
+            delete flit;
+            return;
+        }
 
         // Check flit mode
         if(mode == MODE_DATA) {

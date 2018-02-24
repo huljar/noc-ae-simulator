@@ -51,7 +51,7 @@ void DecoderImpl::handleMessage(cMessage* msg) {
 			combinations = new cArray;
 		combinations->add(flit);
 
-		if(combinations->size() == numCombinations) {
+		if(combinations->size() == generationSize) {
 			// TODO: do actual network decoding
 
 			// right now we just copy the first flit a few times because
@@ -71,7 +71,7 @@ void DecoderImpl::handleMessage(cMessage* msg) {
 
                 // Set name
                 std::ostringstream packetName;
-                packetName << "uc-" << fid << "-" << "-s" << decoded->getSource().str()
+                packetName << "uc-" << fid << "-s" << decoded->getSource().str()
                            << "-t" << decoded->getTarget().str();
                 decoded->setName(packetName.str().c_str());
 
