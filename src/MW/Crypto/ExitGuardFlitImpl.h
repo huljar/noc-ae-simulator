@@ -29,8 +29,9 @@ namespace HaecComm { namespace MW { namespace Crypto {
  */
 class ExitGuardFlitImpl : public cSimpleModule {
 public:
-    typedef std::map<uint32_t, Messages::Flit*> UncodedFlitMap;
-    typedef std::pair<uint32_t, uint16_t> NcKey;
+    typedef std::pair<uint32_t, Messages::Address2D> UcKey;
+    typedef std::tuple<uint32_t, uint16_t, Messages::Address2D> NcKey;
+    typedef std::map<UcKey, Messages::Flit*> UncodedFlitMap;
     typedef std::map<NcKey, Messages::Flit*> NetworkCodedFlitMap;
 
     ExitGuardFlitImpl();
@@ -40,7 +41,6 @@ protected:
     virtual void initialize() override;
     virtual void handleMessage(cMessage* msg) override;
 
-    int mode;
     UncodedFlitMap ucFlitCache;
     NetworkCodedFlitMap ncFlitCache;
 };

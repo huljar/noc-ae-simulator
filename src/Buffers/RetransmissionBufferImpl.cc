@@ -52,21 +52,24 @@ void RetransmissionBufferImpl::handleMessage(cMessage* msg) {
     if(flit->isArq()) {
         ASSERT(strcmp(flit->getArrivalGate()->getName(), "arqIn") == 0);
 
+        // Get parameters
+        uint32_t id = flit->getGidOrFid();
+        const Address2D& target = flit->getSource(); // ARQ source is retransmission target
+
         // Check what kind of ARQ we have
         Mode mode = static_cast<Mode>(flit->getMode());
         if(mode == MODE_ARQ_DATA || mode == MODE_ARQ_MAC || mode == MODE_ARQ_SPLIT_1 || mode == MODE_ARQ_SPLIT_2) {
             // Find and copy the requested flit
             Flit* cached = nullptr;
-            uint32_t id = flit->getGidOrFid();
 
             if(flit->getNcMode() == NC_UNCODED) {
-                UcKey key = std::make_pair(id, mode);
+                UcKey key = std::make_tuple(id, target, mode);
                 auto res = ucFlitCache.find(key);
                 if(res != ucFlitCache.end())
                     cached = res->second->dup();
             }
             else {
-                NcKey key = std::make_tuple(id, flit->getGev(), mode);
+                NcKey key = std::make_tuple(id, flit->getGev(), target, mode);
                 auto res = ncFlitCache.find(key);
                 if(res != ncFlitCache.end())
                     cached = res->second->dup();
@@ -80,24 +83,23 @@ void RetransmissionBufferImpl::handleMessage(cMessage* msg) {
             // Find and copy the requested flits
             Flit* cachedData = nullptr;
             Flit* cachedMac = nullptr;
-            uint32_t id = flit->getGidOrFid();
 
             if(flit->getNcMode() == NC_UNCODED) {
-                UcKey key = std::make_pair(id, MODE_DATA);
+                UcKey key = std::make_tuple(id, target, MODE_DATA);
                 auto res = ucFlitCache.find(key);
                 if(res != ucFlitCache.end())
                     cachedData = res->second->dup();
-                key = std::make_pair(id, MODE_MAC);
+                key = std::make_tuple(id, target, MODE_MAC);
                 res = ucFlitCache.find(key);
                 if(res != ucFlitCache.end())
                     cachedMac = res->second->dup();
             }
             else {
-                NcKey key = std::make_tuple(id, flit->getGev(), MODE_DATA);
+                NcKey key = std::make_tuple(id, flit->getGev(), target, MODE_DATA);
                 auto res = ncFlitCache.find(key);
                 if(res != ncFlitCache.end())
                     cachedData = res->second->dup();
-                key = std::make_tuple(id, flit->getGev(), MODE_MAC);
+                key = std::make_tuple(id, flit->getGev(), target, MODE_MAC);
                 res = ncFlitCache.find(key);
                 if(res != ncFlitCache.end())
                     cachedMac = res->second->dup();
@@ -123,12 +125,12 @@ void RetransmissionBufferImpl::handleMessage(cMessage* msg) {
 
         // Add copy to cache
         if(flit->getNcMode() == NC_UNCODED) {
-            UcKey key = std::make_pair(flit->getGidOrFid(), static_cast<Mode>(flit->getMode()));
+            UcKey key = std::make_tuple(flit->getGidOrFid(), flit->getTarget(), static_cast<Mode>(flit->getMode()));
             ucFlitCache.emplace(key, flit->dup());
             ucFlitQueue.push(key);
         }
         else {
-            NcKey key = std::make_tuple(flit->getGidOrFid(), flit->getGev(), static_cast<Mode>(flit->getMode()));
+            NcKey key = std::make_tuple(flit->getGidOrFid(), flit->getGev(), flit->getTarget(), static_cast<Mode>(flit->getMode()));
             ncFlitCache.emplace(key, flit->dup());
             ncFlitQueue.push(key);
         }

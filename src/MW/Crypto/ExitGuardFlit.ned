@@ -31,7 +31,6 @@ module ExitGuardFlit {
     submodules:
         exitGuard: ExitGuardFlitImpl {
             @display("p=80,120");
-            mode = busyCyclesEnc - busyCyclesAuth;
             gates:
                 encIn[sizeof(encIn)];
                 authIn[sizeof(authIn)];

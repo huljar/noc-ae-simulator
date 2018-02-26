@@ -21,9 +21,7 @@ namespace HaecComm { namespace MW { namespace Crypto {
 
 Define_Module(ExitGuardFlitImpl);
 
-ExitGuardFlitImpl::ExitGuardFlitImpl()
-    : mode(0)
-{
+ExitGuardFlitImpl::ExitGuardFlitImpl() {
 }
 
 ExitGuardFlitImpl::~ExitGuardFlitImpl() {
@@ -34,7 +32,6 @@ ExitGuardFlitImpl::~ExitGuardFlitImpl() {
 }
 
 void ExitGuardFlitImpl::initialize() {
-    mode = par("mode");
 }
 
 void ExitGuardFlitImpl::handleMessage(cMessage* msg) {
@@ -46,16 +43,21 @@ void ExitGuardFlitImpl::handleMessage(cMessage* msg) {
         return;
     }
 
+    // Get parameters
+    uint32_t id = flit->getGidOrFid();
+    uint16_t gev = flit->getGev();
+    const Address2D& target = flit->getTarget();
+
     // Check flit status flag
     if(flit->getStatus() == STATUS_ENCRYPTING) {
         ASSERT(strcmp(flit->getArrivalGate()->getName(), "encIn") == 0);
 
         // Store encrypted flit (select cache based on network coding mode)
         if(flit->getNcMode() == NC_UNCODED) {
-            ucFlitCache.emplace(flit->getGidOrFid(), flit);
+            ucFlitCache.emplace(std::make_pair(id, target), flit);
         }
         else {
-            ncFlitCache.emplace(std::make_pair(flit->getGidOrFid(), flit->getGev()), flit);
+            ncFlitCache.emplace(std::make_tuple(id, gev, target), flit);
         }
 
         // Send back a copy for authentication
@@ -68,13 +70,13 @@ void ExitGuardFlitImpl::handleMessage(cMessage* msg) {
 
         // Retrieve corresponding encrypted flit, send both out to the network
         Flit* cached;
-        uint32_t id = flit->getGidOrFid();
         if(flit->getNcMode() == NC_UNCODED) {
-            cached = ucFlitCache.at(id);
-            ucFlitCache.erase(id);
+            UcKey key = std::make_pair(id, target);
+            cached = ucFlitCache.at(key);
+            ucFlitCache.erase(key);
         }
         else {
-            NcKey key = std::make_pair(id, flit->getGev());
+            NcKey key = std::make_tuple(id, gev, target);
             cached = ncFlitCache.at(key);
             ncFlitCache.erase(key);
         }

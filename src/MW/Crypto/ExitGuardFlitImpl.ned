@@ -21,7 +21,6 @@ package HaecComm.MW.Crypto;
 simple ExitGuardFlitImpl {
     parameters:
         @display("i=block/cogwheel");
-        int mode; // <0: auth units take longer, ==0: both take the same time, >0: enc units take longer
     gates:
         input  encIn[];
         input  authIn[];

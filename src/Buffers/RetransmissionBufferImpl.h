@@ -31,9 +31,9 @@ namespace HaecComm { namespace Buffers {
  */
 class RetransmissionBufferImpl : public cSimpleModule {
 public:
-    typedef std::pair<uint32_t, Messages::Mode> UcKey;
+    typedef std::tuple<uint32_t, Messages::Address2D, Messages::Mode> UcKey;
     typedef std::map<UcKey, Messages::Flit*> UncodedFlitMap;
-    typedef std::tuple<uint32_t, uint16_t, Messages::Mode> NcKey;
+    typedef std::tuple<uint32_t, uint16_t, Messages::Address2D, Messages::Mode> NcKey;
     typedef std::map<NcKey, Messages::Flit*> NetworkCodedFlitMap;
 
 	RetransmissionBufferImpl();

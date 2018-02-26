@@ -17,7 +17,10 @@
 #define __HAECCOMM_GENTRAFFIC_H_
 
 #include <omnetpp.h>
+#include <Messages/fieldtypes.h>
 #include <MW/MiddlewareBase.h>
+#include <cinttypes>
+#include <map>
 
 using namespace omnetpp;
 
@@ -55,7 +58,7 @@ protected:
     int nodeX;
     int nodeY;
 
-    uint32_t fidCounter;
+    std::map<Messages::Address2D, uint32_t> fidCounter;
 
     bool useCachedTarget;
     int cachedTargetX;

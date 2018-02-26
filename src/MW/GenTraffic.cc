@@ -30,7 +30,6 @@ GenTraffic::GenTraffic()
     , nodeId(0)
     , nodeX(0)
     , nodeY(0)
-    , fidCounter(0)
     , useCachedTarget(false)
     , cachedTargetX(0)
     , cachedTargetY(0)
@@ -111,12 +110,14 @@ void GenTraffic::receiveSignal(cComponent* source, simsignal_t signalID, unsigne
 }
 
 void GenTraffic::generateFlit(int targetX, int targetY) {
+    // Get parameters
     Address2D source(nodeX, nodeY);
     Address2D target(targetX, targetY);
+    uint32_t& fid = fidCounter[target];
 
     // Build packet name
     std::ostringstream packetName;
-    packetName << "uc-" << fidCounter << "-s" << source << "-t" << target;
+    packetName << "uc-" << fid << "-s" << source << "-t" << target;
 
     // Create the flit
     Flit* flit = new Flit(packetName.str().c_str());
@@ -125,7 +126,7 @@ void GenTraffic::generateFlit(int targetX, int targetY) {
     // Set header fields
     flit->setSource(source);
     flit->setTarget(target);
-    flit->setGidOrFid(fidCounter);
+    flit->setGidOrFid(fid);
 
     emit(pktgenerateSignal, flit->getGidOrFid());
     EV << "Sending flit \"" << flit->getName() << "\" from " << flit->getSource()
@@ -133,7 +134,7 @@ void GenTraffic::generateFlit(int targetX, int targetY) {
     send(flit, "out");
 
     // Increment Flit ID counter
-    ++fidCounter;
+    ++fid;
 }
 
 }} //namespace

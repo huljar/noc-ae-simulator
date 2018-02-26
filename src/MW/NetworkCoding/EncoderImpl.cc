@@ -24,9 +24,7 @@ namespace HaecComm { namespace MW { namespace NetworkCoding {
 
 Define_Module(EncoderImpl);
 
-EncoderImpl::EncoderImpl()
-	: gidCounter(0)
-{
+EncoderImpl::EncoderImpl() {
 }
 
 EncoderImpl::~EncoderImpl() {
@@ -52,20 +50,23 @@ void EncoderImpl::handleMessage(cMessage* msg) {
 	Mode mode = static_cast<Mode>(flit->getMode());
 
 	if(mode == MODE_DATA) {
-		// Insert flit into cache (indexed by target address)
-		Address2D target = flit->getTarget();
+	    // Get parameters
+		const Address2D& target = flit->getTarget();
 		FlitVector& generation = flitCache[target];
+		uint32_t& gid = gidCounter[target];
+
+        // Insert flit into cache (indexed by target address)
 		generation.push_back(flit);
 
-		EV_DEBUG << "Caching flit " << flit->getName() << " for encoding (destination: " << flit->getTarget() << ")" << std::endl;
-		EV_DEBUG << "We now have " << generation.size() << "flit" << (generation.size() != 1 ? "s" : "") << " cached for " << flit->getTarget() << std::endl;
+		EV_DEBUG << "Caching flit " << flit->getName() << " for encoding (destination: " << target << ")" << std::endl;
+		EV_DEBUG << "We now have " << generation.size() << "flit" << (generation.size() != 1 ? "s" : "") << " cached for " << target << std::endl;
 
 		// Check if we have enough flits to create a generation
 		if(generation.size() == static_cast<size_t>(generationSize)) {
 			// TODO: do actual network coding
 
 			// Logging
-		    EV << "Creating new generation (ID: " << gidCounter << ", " << flit->getSource() << "->" << flit->getTarget() << ") from flit IDs ";
+		    EV << "Creating new generation (ID: " << gid << ", " << flit->getSource() << "->" << target << ") from flit IDs ";
 		    for(int i = 0; i < generationSize - 1; ++i)
 		        EV << generation[i]->getGidOrFid() << "+";
 		    EV << generation[generationSize-1]->getGidOrFid() << std::endl;
@@ -82,7 +83,7 @@ void EncoderImpl::handleMessage(cMessage* msg) {
                 }
 
 				// Set network coding metadata
-				combination->setGidOrFid(gidCounter);
+				combination->setGidOrFid(gid);
 				combination->setGev(static_cast<uint16_t>(i));
 
 				if(generationSize == 2 && numCombinations == 3)
@@ -94,7 +95,7 @@ void EncoderImpl::handleMessage(cMessage* msg) {
 
 				// Set name
 	            std::ostringstream packetName;
-	            packetName << "nc-" << gidCounter << "-" << i << "-s" << combination->getSource().str()
+	            packetName << "nc-" << gid << "-" << i << "-s" << combination->getSource().str()
 	                       << "-t" << combination->getTarget().str();
 	            combination->setName(packetName.str().c_str());
 
@@ -108,11 +109,11 @@ void EncoderImpl::handleMessage(cMessage* msg) {
 			generation.clear();
 
 			// Increment GID counter
-			++gidCounter;
+			++gid;
 		}
 	}
 	else if(mode == MODE_MAC) {
-		flit->setGidOrFid(gidCounter - 1); // -1 because the counter contains the ID of the next generation
+		flit->setGidOrFid(gidCounter[flit->getTarget()] - 1); // -1 because the counter contains the ID of the next generation
 		send(flit, "out");
 	}
 	else if(mode == MODE_SPLIT_1) {

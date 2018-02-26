@@ -43,7 +43,7 @@ protected:
 
 private:
     std::map<Messages::Address2D, FlitVector> flitCache;
-    uint32_t gidCounter;
+    std::map<Messages::Address2D, uint32_t> gidCounter;
 };
 
 }}} //namespace
