@@ -41,19 +41,19 @@ module NetworkInterfaceNcEncAuthFlit like INetworkInterface {
     submodules:
         //# app->net
         appInputQueue: PacketQueue {
-            @display("p=80,120");
+            @display("p=80,280");
         }
         encoder: Encoder {
-            @display("p=200,120");
+            @display("p=180,280");
             generationSize = generationSize;
             numCombinations = numCombinations;
         }
         appCryptoQueue: PacketQueue {
-            @display("p=320,120");
+            @display("p=280,280");
             awaitSendRequests = true;
         }
         entryGuard: EntryGuardFlit {
-            @display("p=440,120");
+            @display("p=380,300");
             busyCyclesEnc = encCycles;
             busyCyclesAuth = authCycles;
             gates:
@@ -61,15 +61,15 @@ module NetworkInterfaceNcEncAuthFlit like INetworkInterface {
                 authOut[authUnits];
         }
         encUnit[encUnits]: EncFlit {
-            @display("p=500,40,column,80");
+            @display("p=150,80,row,80");
             computeCycles = encCycles;
         }
         authUnit[authUnits]: AuthFlit {
-            @display("p=560,40,column,80");
+            @display("p=150,160,row,80");
             computeCycles = authCycles;
         }
         exitGuard: ExitGuardFlit {
-            @display("p=680,120");
+            @display("p=550,300");
             busyCyclesEnc = encCycles;
             busyCyclesAuth = authCycles;
             gates:
@@ -77,36 +77,36 @@ module NetworkInterfaceNcEncAuthFlit like INetworkInterface {
                 authIn[authUnits];
         }
         authCryptoQueue: PacketQueue {
-            @display("p=320,200");
+            @display("p=465,320");
             awaitSendRequests = true;
         }
         retransmissionBuffer: RetransmissionBuffer {
-            @display("p=800,120");
+            @display("p=650,280");
         }
         netStream: MultiInputSerializer {
-            @display("p=920,120");
+            @display("p=750,320");
             gates: in[2];
         }
 
         //# net->app
         routerInputQueue: PacketQueue {
-            @display("p=800,420");
+            @display("p=750,450");
         }
         arqSplitter: ArqSplitter {
-            @display("p=680,420");
+            @display("p=650,450");
         }
         arrivalManager: ArrivalManagerFlit {
-            @display("p=500,420");
+            @display("p=500,450");
         }
         netCryptoQueue: PacketQueue {
-            @display("p=320,300");
+            @display("p=400,380");
             awaitSendRequests = true;
         }
         decoderQueue: PacketQueue {
-            @display("p=320,420");
+            @display("p=280,450");
         }
         decoder: Decoder {
-            @display("p=200,420");
+            @display("p=180,450");
             generationSize = generationSize;
             numCombinations = numCombinations;
         }
