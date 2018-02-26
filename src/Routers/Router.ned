@@ -20,6 +20,7 @@ import HaecComm.Buffers.PacketQueue;
 module Router like IRouter {
     parameters:
         @display("i=block/routing");
+        int id;
         string internalType;
         int numPorts;
     gates:

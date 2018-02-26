@@ -27,12 +27,13 @@ import HaecComm.Util.*;
 //
 module NetworkInterfaceNcEncAuthSplit like INetworkInterface {
     parameters:
+        @display("i=block/control");
+        int id;
         int ncGenerationSize;
         int ncNumCombinations;
         int authMode;
         int authCryptoUnits;
         int authCycles;
-        @display("i=block/control");
     gates:
         inout app;
         inout router;

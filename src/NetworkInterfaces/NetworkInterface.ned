@@ -26,6 +26,7 @@ import HaecComm.Util.ArqSplitter;
 module NetworkInterface like INetworkInterface {
     parameters:
         @display("i=block/control");
+        int id;
     gates:
         inout app;
         inout router;

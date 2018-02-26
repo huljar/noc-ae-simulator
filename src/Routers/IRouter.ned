@@ -21,6 +21,7 @@ package HaecComm.Routers;
 //
 moduleinterface IRouter {
     parameters:
+        int id;
         string internalType;
         int numPorts;
     gates:

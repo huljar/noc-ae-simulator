@@ -18,8 +18,10 @@
 package HaecComm.simulations;
 
 import HaecComm.Core.Clock;
-import HaecComm.Core.IHaecNode;
+import HaecComm.Core.IApp;
 import HaecComm.Core.IHaecChannel;
+import HaecComm.NetworkInterfaces.INetworkInterface;
+import HaecComm.Routers.IRouter;
 
 //
 // A network with a 2D grid layout of nodes. In addition, a global clock
@@ -29,7 +31,9 @@ network Mesh2D {
     parameters:
         int columns;                    // number of grid columns
         int rows;                       // number of grid rows
-        string nodeType;                // NED type of the nodes (must implement IHaecNode)
+        string appType;                 // NED type of the app (processing element) (must implement IApp)
+        string niType;                  // NED type of the network interface (must implement INetworkInterface)
+        string routerType;              // NED type of the router (must implement IRouter)
         string channelType;             // NED type of the channels between nodes (must implement IHaecChannel)
         double clockPeriod @unit(s);    // Clock speed
     submodules:
@@ -42,18 +46,36 @@ network Mesh2D {
             inter = clockPeriod;
         }
         //
-        // The nodes of the network. They must implement the IHaecNode interface.
-        // To set the actual type, use the nodeType string parameter.
+        // The processing elements of the network. They must implement the IApp interface.
+        // To set the actual type, use the appType string parameter.
         //
-        node[columns*rows]: <nodeType> like IHaecNode {
-            @display("p=120,80,matrix,$columns,100,100");
+        app[columns*rows]: <appType> like IApp {
+            @display("p=120,80,matrix,$columns,200,200");
+            id = index;
+        }
+        //
+        // The network interfaces of the network. They must implement the INetworkInterface interface.
+        // To set the actual type, use the niType string parameter.
+        //
+        ni[columns*rows]: <niType> like INetworkInterface {
+            @display("p=170,130,matrix,$columns,200,200");
+            id = index;
+        }
+        //
+        // The routers of the network. They must implement the IRouter interface.
+        // To set the actual type, use the routerType string parameter.
+        //
+        router[columns*rows]: <routerType> like IRouter {
+            @display("p=220,180,matrix,$columns,200,200");
             id = index;
             numPorts = 4;
         }
     connections allowunconnected:
         // port indices: top=0, right=1, bottom=2, left=3
         for i=0..rows-1, for j=0..columns-1 {
-            node[i*columns+j].port[2] <--> <channelType> like IHaecChannel <--> node[(i+1)*columns+j].port[0] if i!=rows-1;  // top-bottom connections
-            node[i*columns+j].port[1] <--> <channelType> like IHaecChannel <--> node[i*columns+j+1].port[3] if j!=columns-1; // left-right connections
+            app[i*columns+j].net <--> ni[i*columns+j].app; // app-ni connections
+            ni[i*columns+j].router <--> router[i*columns+j].local; // ni-router connections
+            router[i*columns+j].port[2] <--> <channelType> like IHaecChannel <--> router[(i+1)*columns+j].port[0] if i!=rows-1;  // top-bottom connections
+            router[i*columns+j].port[1] <--> <channelType> like IHaecChannel <--> router[i*columns+j+1].port[3] if j!=columns-1; // left-right connections
         }
 }

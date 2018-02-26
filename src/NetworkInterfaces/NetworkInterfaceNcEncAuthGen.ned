@@ -27,11 +27,12 @@ import HaecComm.Util.*;
 //
 module NetworkInterfaceNcEncAuthGen like INetworkInterface {
     parameters:
+        @display("i=block/control");
+        int id;
         int generationSize;
         int numCombinations;
         int authUnits;
         int authCycles;
-        @display("i=block/control");
     gates:
         inout app;
         inout router;

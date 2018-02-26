@@ -25,10 +25,10 @@ import HaecComm.Util.*;
 // Default implementation of the Network Interface from the HAEC project.
 // It contains a network encoder and decoder.
 //
-module NetworkInterfaceNcEncAuthFlit like INetworkInterface
-{
+module NetworkInterfaceNcEncAuthFlit like INetworkInterface {
     parameters:
         @display("i=block/control");
+        int id;
         int generationSize;
         int numCombinations;
         int encUnits;

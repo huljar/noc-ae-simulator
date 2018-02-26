@@ -26,6 +26,7 @@ import HaecComm.Buffers.PacketQueue;
 module App like IApp {
     parameters:
         @display("i=block/app2");
+        int id;
     gates:
         inout net;
     submodules:

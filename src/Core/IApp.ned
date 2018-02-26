@@ -20,6 +20,8 @@ package HaecComm.Core;
 // Apps used in the HaecNode compound module must implement this interface.
 //
 moduleinterface IApp {
+    parameters:
+        int id;
     gates:
         inout net;
 }

@@ -20,6 +20,8 @@ package HaecComm.NetworkInterfaces;
 // Network Interfaces used in the HaecNode compound module must implement this interface.
 //
 moduleinterface INetworkInterface {
+    parameters:
+        int id;
     gates:
         inout app;
         inout router;
