@@ -31,7 +31,8 @@ EncoderImpl::EncoderImpl()
 
 EncoderImpl::~EncoderImpl() {
 	for(auto it = flitCache.begin(); it != flitCache.end(); ++it)
-		delete it->second;
+	    for(auto jt = it->second.begin(); jt != it->second.end(); ++jt)
+	        delete *jt;
 }
 
 void EncoderImpl::initialize() {
@@ -47,26 +48,37 @@ void EncoderImpl::handleMessage(cMessage* msg) {
 		return;
 	}
 
-	if(flit->getMode() == MODE_DATA) {
+	// Get parameters
+	Mode mode = static_cast<Mode>(flit->getMode());
+
+	if(mode == MODE_DATA) {
 		// Insert flit into cache (indexed by target address)
 		Address2D target = flit->getTarget();
-		cArray*& generation = flitCache[target];
-		if(!generation)
-			generation = new cArray;
-		generation->add(flit);
+		FlitVector& generation = flitCache[target];
+		generation.push_back(flit);
 
-		if(generation->size() == generationSize) {
+		EV_DEBUG << "Caching flit " << flit->getName() << " for encoding (destination: " << flit->getTarget() << ")" << std::endl;
+		EV_DEBUG << "We now have " << generation.size() << "flit" << (generation.size() != 1 ? "s" : "") << " cached for " << flit->getTarget() << std::endl;
+
+		// Check if we have enough flits to create a generation
+		if(generation.size() == static_cast<size_t>(generationSize)) {
 			// TODO: do actual network coding
 
-			// right now we just copy the first flit a few times because
-			// there is no payload yet
+			// Logging
+		    EV << "Creating new generation (ID: " << gidCounter << ", " << flit->getSource() << "->" << flit->getTarget() << ") from flit IDs ";
+		    for(int i = 0; i < generationSize - 1; ++i)
+		        EV << generation[i]->getGidOrFid() << "+";
+		    EV << generation[generationSize-1]->getGidOrFid() << std::endl;
+
+		    // right now we just copy the first flit a few times because
+            // there is no payload yet
 			for(int i = 0; i < numCombinations; ++i) {
-				Flit* combination = static_cast<Flit*>(generation->get(0))->dup();
+				Flit* combination = generation[0]->dup();
 
                 // Set original IDs vector
                 combination->setOriginalIdsArraySize(generationSize);
                 for(int j = 0; j < generationSize; ++j) {
-                    combination->setOriginalIds(j, static_cast<Flit*>(generation->get(j))->getGidOrFid());
+                    combination->setOriginalIds(j, generation[j]->getGidOrFid());
                 }
 
 				// Set network coding metadata
@@ -89,16 +101,21 @@ void EncoderImpl::handleMessage(cMessage* msg) {
 				// Send the encoded flit
 				send(combination, "out");
 			}
-			delete generation;
-			flitCache.erase(target);
+
+			// Clean up uncoded flits
+			for(auto it = generation.begin(); it != generation.end(); ++it)
+			    delete *it;
+			generation.clear();
+
+			// Increment GID counter
 			++gidCounter;
 		}
 	}
-	else if(flit->getMode() == MODE_MAC) {
+	else if(mode == MODE_MAC) {
 		flit->setGidOrFid(gidCounter - 1); // -1 because the counter contains the ID of the next generation
 		send(flit, "out");
 	}
-	else if(flit->getMode() == MODE_SPLIT_1) {
+	else if(mode == MODE_SPLIT_1) {
 		// TODO: network coding for half-flits
 		send(flit, "out");
 	}

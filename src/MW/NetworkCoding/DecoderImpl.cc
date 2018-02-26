@@ -27,7 +27,8 @@ DecoderImpl::DecoderImpl() {
 
 DecoderImpl::~DecoderImpl() {
 	for(auto it = flitCache.begin(); it != flitCache.end(); ++it)
-		delete it->second;
+        for(auto jt = it->second.begin(); jt != it->second.end(); ++jt)
+            delete *jt;
 }
 
 void DecoderImpl::initialize() {
@@ -43,21 +44,35 @@ void DecoderImpl::handleMessage(cMessage* msg) {
 		return;
 	}
 
-	if(flit->getMode() == MODE_DATA) {
-		// Insert flit into cache (indexed by source address and generation ID)
-		auto key = std::make_pair(flit->getSource(), flit->getGidOrFid());
-		cArray*& combinations = flitCache[key];
-		if(!combinations)
-			combinations = new cArray;
-		combinations->add(flit);
+    // Get parameters
+    Mode mode = static_cast<Mode>(flit->getMode());
 
-		if(combinations->size() == generationSize) {
+	if(mode == MODE_DATA) {
+	    // Get parameters
+	    uint32_t gid = flit->getGidOrFid();
+	    const Address2D& source = flit->getSource();
+        IdSourceKey key = std::make_pair(gid, flit->getSource());
+
+		// Insert flit into cache (indexed by source address and generation ID)
+		FlitVector& combinations = flitCache[key];
+		combinations.push_back(flit);
+
+        EV_DEBUG << "Caching flit " << flit->getName() << " for decoding (GID: " << gid << ", source: " << source << ")" << std::endl;
+        EV_DEBUG << "We now have " << combinations.size() << "flit" << (combinations.size() != 1 ? "s" : "") << " cached for " << gid << "/" << source << std::endl;
+
+		if(combinations.size() == static_cast<size_t>(generationSize)) {
 			// TODO: do actual network decoding
+
+            // Logging
+            EV << "Decoding generation (ID: " << gid << ", " << source << "->" << flit->getTarget() << ") containing flit IDs ";
+            for(int i = 0; i < generationSize - 1; ++i)
+                EV << combinations[0]->getOriginalIds(i) << "+";
+            EV << combinations[0]->getOriginalIds(generationSize-1) << std::endl;
 
 			// right now we just copy the first flit a few times because
 			// there is no payload yet
 			for(int i = 0; i < generationSize; ++i) {
-				Flit* decoded = static_cast<Flit*>(combinations->get(0))->dup();
+				Flit* decoded = combinations[0]->dup();
 
 				// Remove network coding metadata
 				decoded->setGev(0);
@@ -78,11 +93,14 @@ void DecoderImpl::handleMessage(cMessage* msg) {
 				// Send the decoded flit
 				send(decoded, "out");
 			}
-			delete combinations;
+
+			// Clean up encoded flits
+			for(auto it = combinations.begin(); it != combinations.end(); ++it)
+			    delete *it;
 			flitCache.erase(key);
 		}
 	}
-	else if(flit->getMode() == MODE_MAC) {
+	else if(mode == MODE_MAC) {
 		delete flit;
 		// TODO: implement MAC validation in separate module (afterwards, MACs shouldn't arrive here)
 	}

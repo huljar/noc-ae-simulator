@@ -17,10 +17,11 @@
 #define __HAECCOMM_NETWORKCODINGENCODER_H_
 
 #include <omnetpp.h>
-#include <Messages/fieldtypes.h>
+#include <Messages/Flit.h>
 #include <MW/NetworkCoding/NetworkCodingBase.h>
 #include <cinttypes>
 #include <map>
+#include <vector>
 
 using namespace omnetpp;
 
@@ -31,6 +32,8 @@ namespace HaecComm { namespace MW { namespace NetworkCoding {
  */
 class EncoderImpl : public NetworkCodingBase {
 public:
+    typedef std::vector<Messages::Flit*> FlitVector;
+
 	EncoderImpl();
 	virtual ~EncoderImpl();
 
@@ -39,7 +42,7 @@ protected:
     virtual void handleMessage(cMessage* msg) override;
 
 private:
-    std::map<Messages::Address2D, cArray*> flitCache;
+    std::map<Messages::Address2D, FlitVector> flitCache;
     uint32_t gidCounter;
 };
 
