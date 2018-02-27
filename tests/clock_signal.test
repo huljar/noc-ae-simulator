@@ -1,0 +1,34 @@
+%description:
+Test signal emissions of the clock module
+
+%network: Test
+
+%inifile: omnetpp.ini
+[General]
+**.clock.inter = 2ns
+
+%file: test.ned
+import HaecComm.Core.Clock;
+
+network Test {
+    submodules:
+        clock: Clock;
+        tester: TestModule;
+}
+
+%file: testmodule.ned
+simple TestModule {
+}
+
+%file: testmodule.h
+class TestModule : public cSimpleModule {
+protected:
+    virtual void initialize() override {
+        EV << "Hello world" << std::endl;
+    }
+};
+
+Define_Module(TestModule);
+
+%contains: stdout
+Hello world

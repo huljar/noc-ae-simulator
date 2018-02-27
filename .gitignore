@@ -20,3 +20,6 @@ src/Messages/*_m.cc
 
 # statistics collection directory
 simulations/results/
+
+# opp_test work directory
+tests/work

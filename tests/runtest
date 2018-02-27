@@ -1,0 +1,13 @@
+#! /bin/sh
+if [ ! -d work ];  then mkdir work; fi
+
+export NEDPATH=.:../../../src
+
+MAKE="make MODE=debug"
+EXEC_NAME="work_dbg"
+
+opp_test gen -v *.test || exit 1
+(cd work; opp_makemake -f --deep -lHaecComm_dbg -L../../src -P . --no-deep-includes -I../../../src; $MAKE) || exit 1
+opp_test run -v -p $EXEC_NAME *.test
+
+echo Results can be found in ./work
