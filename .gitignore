@@ -13,6 +13,8 @@ simulations/.qtenvrc
 src/Makefile
 src/HaecComm
 src/HaecComm_dbg
+src/libHaecComm.so
+src/libHaecComm_dbg.so
 src/Messages/*_m.h
 src/Messages/*_m.cc
 
