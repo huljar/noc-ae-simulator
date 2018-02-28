@@ -1,34 +1,37 @@
 %description:
 Test signal emissions of the clock module
 
-%network: Test
-
 %inifile: omnetpp.ini
 [General]
+sim-time-limit = 10ns
+
 **.clock.inter = 2ns
 
 %file: test.ned
 import HaecComm.Core.Clock;
+import HaecCommTest.ClockTestApp;
 
 network Test {
     submodules:
         clock: Clock;
-        tester: TestModule;
+        testapp: ClockTestApp;
 }
 
-%file: testmodule.ned
-simple TestModule {
-}
+%contains-regex: stdout
+Clock cycle 0
+.*
+Clock cycle 1
+.*
+Clock cycle 2
+.*
+Clock cycle 3
+.*
+Clock cycle 4
+.*
+Clock cycle 5
 
-%file: testmodule.h
-class TestModule : public cSimpleModule {
-protected:
-    virtual void initialize() override {
-        EV << "Hello world" << std::endl;
-    }
-};
+%not-contains: stdout
+undisposed object:
 
-Define_Module(TestModule);
-
-%contains: stdout
-Hello world
+%not-contains: stdout
+-- check module destructor
