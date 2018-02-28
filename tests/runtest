@@ -6,6 +6,7 @@ EXEC_NAME="work_dbg"
 
 if [ ! -d work ];  then mkdir work; fi
 
+echo Copying test library lib/ to work/lib...
 cp -a lib work/
 
 opp_test gen -v *.test || exit 1
