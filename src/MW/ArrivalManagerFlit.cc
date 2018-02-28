@@ -58,9 +58,9 @@ void ArrivalManagerFlit::initialize() {
     if(arqIssueTimeout < 1)
         throw cRuntimeError(this, "arqIssueTimeout must be greater than 0");
 
-    arqResendTimeout = par("arqResendTimeout");
-    if(arqResendTimeout < 1)
-        throw cRuntimeError(this, "arqResendTimeout must be greater than 0");
+    arqAnswerTimeout = par("arqAnswerTimeout");
+    if(arqAnswerTimeout < 1)
+        throw cRuntimeError(this, "arqAnswerTimeout must be greater than 0");
 
     outOfOrderIdGracePeriod = par("outOfOrderIdGracePeriod");
     if(outOfOrderIdGracePeriod < 0)
@@ -97,13 +97,6 @@ void ArrivalManagerFlit::handleMessage(cMessage* msg) {
     }
 }
 
-// There is a possibility for flit handling errors in the case
-// where decryption takes significantly longer than authentication.
-// To be precise, if flit authentication + ARQ round trip is faster than
-// decryption, then the wrong decrypted data flit will be sent to the app.
-// However, this case should not occur in practice because decryption and
-// authentication should be very similar in speed. Still, one should keep
-// this in mind when setting NED parameters.
 void ArrivalManagerFlit::handleNetMessage(Flit* flit) {
     // Get parameters
     uint32_t id = flit->getGidOrFid();
@@ -168,6 +161,7 @@ void ArrivalManagerFlit::handleNetMessage(Flit* flit) {
             }
 
             // We don't have this flit yet, cache it
+            EV_DEBUG << "Caching data flit \"" << flit->getName() << "\" from " << source << " with ID " << id << std::endl;
             ucReceivedDataCache.emplace(key, flit);
 
             // We only need the data flit to start decryption and authentication,
@@ -185,6 +179,7 @@ void ArrivalManagerFlit::handleNetMessage(Flit* flit) {
             }
 
             // We don't have this flit yet, cache it
+            EV_DEBUG << "Caching MAC flit \"" << flit->getName() << "\" from " << source << " with ID " << id << std::endl;
             ucReceivedMacCache.emplace(key, flit);
 
             // Try to verify the flit (in case the computed MAC is already there)
@@ -221,6 +216,7 @@ void ArrivalManagerFlit::handleNetMessage(Flit* flit) {
             }
 
             // We can safely cache the flit now
+            EV_DEBUG << "Caching data flit \"" << flit->getName() << "\" from " << source << " with ID " << id << " and GEV " << gev << std::endl;
             gevCache.emplace(gev, flit);
 
             // We only need the data flit to start decryption and authentication,
@@ -249,6 +245,7 @@ void ArrivalManagerFlit::handleNetMessage(Flit* flit) {
             }
 
             // We can safely cache the flit now
+            EV_DEBUG << "Caching MAC flit \"" << flit->getName() << "\" from " << source << " with ID " << id << " and GEV " << gev << std::endl;
             gevCache.emplace(gev, flit);
 
             // Try to verify the flit (in case the computed MAC is already there)
@@ -276,7 +273,17 @@ void ArrivalManagerFlit::handleCryptoMessage(Flit* flit) {
             // Assert that the decrypted flit cache does not contain a flit
             ASSERT(!ucDecryptedDataCache.count(key));
 
+            // Check if we have to discard this flit (because corruption was detected on MAC verification)
+            if(ucDiscardDecrypting[key] > 0) {
+                EV_DEBUG << "Discarding corrupted decrypted data flit \"" << flit->getName()
+                         << "\" (source: " << source << ", ID: " << id << ")" << std::endl;
+                --ucDiscardDecrypting[key];
+                delete flit;
+                return;
+            }
+
             // Insert decrypted flit into the cache
+            EV_DEBUG << "Caching decrypted data flit \"" << flit->getName() << "\" from " << source << " with ID " << id << std::endl;
             ucDecryptedDataCache.emplace(key, flit);
 
             // Try to send out the decrypted flit
@@ -288,6 +295,7 @@ void ArrivalManagerFlit::handleCryptoMessage(Flit* flit) {
             ASSERT(!ucComputedMacCache.count(key));
 
             // We don't have this flit yet, cache it
+            EV_DEBUG << "Caching computed MAC flit \"" << flit->getName() << "\" from " << source << " with ID " << id << std::endl;
             ucComputedMacCache.emplace(key, flit);
 
             // Try to verify the flit (in case the received MAC is already there)
@@ -304,7 +312,7 @@ void ArrivalManagerFlit::handleCryptoMessage(Flit* flit) {
         // Check if this generation is already finished
         IdSet& activeIdSet = activeIds[source];
         if(!activeIdSet.count(id)) {
-            EV << "Received a decrypted/authenticated flit from an already finished generation" << std::endl;
+            EV_DEBUG << "Received a decrypted/authenticated flit for finished GID " << id << " (GEV " << gev << ")" << std::endl;
             delete flit;
             return;
         }
@@ -318,7 +326,17 @@ void ArrivalManagerFlit::handleCryptoMessage(Flit* flit) {
             // Assert that the decrypted data cache does not contain a flit with this GEV
             ASSERT(!gevCache.count(gev));
 
+            // Check if we have to discard this flit (because corruption was detected on MAC verification)
+            if(ncDiscardDecrypting[key][gev] > 0) {
+                EV_DEBUG << "Discarding corrupted decrypted data flit \"" << flit->getName()
+                         << "\" (source: " << source << ", ID: " << id << ", GEV: " << gev << ")" << std::endl;
+                --ncDiscardDecrypting[key][gev];
+                delete flit;
+                return;
+            }
+
             // We can safely cache the flit now
+            EV_DEBUG << "Caching decrypted data flit \"" << flit->getName() << "\" from " << source << " with ID " << id << " and GEV " << gev << std::endl;
             gevCache.emplace(gev, flit);
 
             // Try to send out the decrypted flit
@@ -333,6 +351,7 @@ void ArrivalManagerFlit::handleCryptoMessage(Flit* flit) {
             ASSERT(!gevCache.count(gev));
 
             // We can safely cache the flit now
+            EV_DEBUG << "Caching computed MAC flit \"" << flit->getName() << "\" from " << source << " with ID " << id << " and GEV " << gev << std::endl;
             gevCache.emplace(gev, flit);
 
             // Try to verify the flit (in case the received MAC is already there)
@@ -348,14 +367,12 @@ void ArrivalManagerFlit::handleArqTimer(ArqTimer* timer) {
 }
 
 void ArrivalManagerFlit::ucStartDecryptAndAuth(const IdSourceKey& key) {
-    // Clear any previously decrypted flits
-    // This is to prevent accidentally sending the wrong flit to the app
-    ucDeleteFromCache(ucDecryptedDataCache, key);
-
     // Retrieve the requested flit from the cache and send a copy out
     // for decryption and authentication
     // We use a copy here so that we don't have to remove the flit from the cache,
     // which is still used to check if the flit has already arrived
+    EV_DEBUG << "Starting flit decryption for \"" << ucReceivedDataCache.at(key)->getName()
+             << "\" (source: " << key.second << ", ID: " << key.first << ")" << std::endl;
     Flit* copy = ucReceivedDataCache.at(key)->dup();
     send(copy, "cryptoOut");
 }
@@ -373,6 +390,8 @@ void ArrivalManagerFlit::ucTryVerification(const IdSourceKey& key) {
         // Examine verification result
         if(equal) {
             // Verification was successful, insert into success cache
+            EV_DEBUG << "Successfully verified MAC \"" << recvMac->second->getName() << "\" (source: " << key.second
+                     << ", ID: " << key.first << ")" << std::endl;
             ucVerified.insert(key);
 
             // Try to send out the decrypted flit
@@ -380,19 +399,28 @@ void ArrivalManagerFlit::ucTryVerification(const IdSourceKey& key) {
         }
         else {
             // Verification was not successful
+            EV_DEBUG << "MAC verification failed for \"" << recvMac->second->getName() << "\" (source: " << key.second
+                     << ", ID: " << key.first << ")" << std::endl;
+
             // Check if we have reached the ARQ limit
-            if(issuedArqs[key] >= arqLimit) {
+            if(issuedArqs[key] >= static_cast<unsigned int>(arqLimit)) {
                 // We have failed completely, clean up everything and discard flits from this ID
+                EV_DEBUG << "ARQ limit reached for source " << key.second << ", ID " << key.first << std::endl;
                 ucCleanUp(key);
                 return;
             }
 
             // Send out ARQ
-            generateArq(key, MODE_DATA); // TODO: do this right
+            generateArq(key, MODE_ARQ_DATA_MAC); // TODO: do this right
 
             // Clear received cache to ensure we can receive the retransmission
             ucDeleteFromCache(ucReceivedDataCache, key);
             ucDeleteFromCache(ucReceivedMacCache, key);
+
+            // Also clear the decrypted data flit or, in case it has not arrived yet,
+            // mark that it will be discarded on arrival
+            if(!ucDeleteFromCache(ucDecryptedDataCache, key))
+                ++ucDiscardDecrypting[key];
 
             // Also clear the computed MAC to ensure that we don't compare the next
             // received MAC against the wrong computed one
@@ -407,6 +435,7 @@ void ArrivalManagerFlit::ucTrySendToApp(const IdSourceKey& key) {
     if(decData != ucDecryptedDataCache.end() && ucVerified.count(key)) {
         // Send out a copy of the decrypted data flit
         // We use a copy here to avoid potential conflicts with cleanup
+        EV_DEBUG << "Sending out decrypted data flit: source " << key.second << ", ID " << key.first << std::endl;
         Flit* copy = decData->second->dup();
         send(copy, "appOut");
 
@@ -417,6 +446,8 @@ void ArrivalManagerFlit::ucTrySendToApp(const IdSourceKey& key) {
 
 void ArrivalManagerFlit::ucCleanUp(const IdSourceKey& key) {
     // Clean up all information related to this ID/address
+    EV_DEBUG << "Fully cleaning up: source " << key.second << ", ID " << key.first << std::endl;
+
     // Clear data/MAC caches
     ucDeleteFromCache(ucReceivedDataCache, key);
     ucDeleteFromCache(ucReceivedMacCache, key);
@@ -429,29 +460,32 @@ void ArrivalManagerFlit::ucCleanUp(const IdSourceKey& key) {
     // Clear number of issued ARQs
     issuedArqs.erase(key);
 
+    // Clear corrupted decryption counter
+    ucDiscardDecrypting.erase(key);
+
     // Remove ID from active ID set
     activeIds.at(key.second).erase(key.first);
 
     // TODO: check if this ID needs to be inserted into the finished ID set for the grace period
 }
 
-void ArrivalManagerFlit::ucDeleteFromCache(FlitCache& cache, const IdSourceKey& key) {
+bool ArrivalManagerFlit::ucDeleteFromCache(FlitCache& cache, const IdSourceKey& key) {
     FlitCache::iterator element = cache.find(key);
     if(element != cache.end()) {
         delete element->second;
         cache.erase(element);
+        return true;
     }
+    return false;
 }
 
 void ArrivalManagerFlit::ncStartDecryptAndAuth(const IdSourceKey& key, uint16_t gev) {
-    // Clear any previously decrypted flits
-    // This is to prevent accidentally sending the wrong flit to the app
-    ncDeleteFromCache(ncDecryptedDataCache, key, gev);
-
     // Retrieve the requested flit from the cache and send a copy out
     // for decryption and authentication
     // We use a copy here so that we don't have to remove the flit from the cache,
     // which is still used to check if the flit has already arrived
+    EV_DEBUG << "Starting flit decryption for \"" << ncReceivedDataCache.at(key).at(gev)->getName()
+             << "\" (source: " << key.second << ", ID: " << key.first << ", GEV: " << gev << ")" << std::endl;
     Flit* copy = ncReceivedDataCache.at(key).at(gev)->dup();
     send(copy, "cryptoOut");
 }
@@ -473,6 +507,8 @@ void ArrivalManagerFlit::ncTryVerification(const IdSourceKey& key, uint16_t gev)
         // Examine verification result
         if(equal) {
             // Verification was successful, insert into success cache
+            EV_DEBUG << "Successfully verified MAC \"" << recvMac->second->getName() << "\" (source: " << key.second
+                     << ", ID: " << key.first << ", GEV: " << gev << ")" << std::endl;
             ncVerified[key].insert(gev);
 
             // Try to send out the decrypted flit
@@ -480,9 +516,13 @@ void ArrivalManagerFlit::ncTryVerification(const IdSourceKey& key, uint16_t gev)
         }
         else {
             // Verification was not successful
+            EV_DEBUG << "MAC verification failed for \"" << recvMac->second->getName() << "\" (source: " << key.second
+                     << ", ID: " << key.first << ", GEV: " << gev << ")" << std::endl;
+
             // Check if we have reached the ARQ limit
-            if(issuedArqs[key] >= arqLimit) {
+            if(issuedArqs[key] >= static_cast<unsigned int>(arqLimit)) {
                 // We have failed completely, clean up everything and discard flits from this ID
+                EV_DEBUG << "ARQ limit reached for source " << key.second << ", ID " << key.first << std::endl;
                 ncCleanUp(key);
                 return;
             }
@@ -492,12 +532,17 @@ void ArrivalManagerFlit::ncTryVerification(const IdSourceKey& key, uint16_t gev)
             //generateArq(key, MODE_DATA); // TODO: do this right
 
             // Clear received cache to ensure we can receive the retransmission
-            //ncDeleteFromCache(ncReceivedDataCache, key);
-            //ncDeleteFromCache(ncReceivedMacCache, key);
+            ncDeleteFromCache(ncReceivedDataCache, key, gev);
+            ncDeleteFromCache(ncReceivedMacCache, key, gev);
+
+            // Also clear the decrypted data flit or, in case it has not arrived yet,
+            // mark that it will be discarded on arrival
+            if(!ncDeleteFromCache(ncDecryptedDataCache, key, gev))
+                ++ncDiscardDecrypting[key][gev];
 
             // Also clear the computed MAC to ensure that we don't compare the next
             // received MAC against the wrong computed one
-            //ncDeleteFromCache(ncComputedMacCache, key);
+            ncDeleteFromCache(ncComputedMacCache, key, gev);
         }
     }
 }
@@ -511,6 +556,7 @@ void ArrivalManagerFlit::ncTrySendToApp(const IdSourceKey& key, uint16_t gev) {
     if(decData != decDataCache.end() && ncVerified[key].count(gev)) {
         // Send out a copy of the decrypted data flit
         // We use a copy here to avoid potential conflicts with cleanup
+        EV_DEBUG << "Sending out decrypted data flit: source " << key.second << ", ID " << key.first << ", GEV " << gev << std::endl;
         Flit* copy = decData->second->dup();
         send(copy, "appOut");
 
@@ -536,6 +582,8 @@ void ArrivalManagerFlit::ncCheckGenerationDone(const IdSourceKey& key, unsigned 
 
 void ArrivalManagerFlit::ncCleanUp(const IdSourceKey& key) {
     // Clean up all information related to this ID/address
+    EV_DEBUG << "Fully cleaning up: source " << key.second << ", ID " << key.first << std::endl;
+
     // Clear data/MAC caches
     ncDeleteFromCache(ncReceivedDataCache, key);
     ncDeleteFromCache(ncReceivedMacCache, key);
@@ -551,52 +599,63 @@ void ArrivalManagerFlit::ncCleanUp(const IdSourceKey& key) {
     // Clear dispatched GEV set
     ncDispatchedGevs.erase(key);
 
+    // Clear corrupted decryption counter
+    ncDiscardDecrypting.erase(key);
+
     // Remove ID from active ID set
     activeIds.at(key.second).erase(key.first);
 }
 
-void ArrivalManagerFlit::ncDeleteFromCache(GenCache& cache, const IdSourceKey& key) {
+bool ArrivalManagerFlit::ncDeleteFromCache(GenCache& cache, const IdSourceKey& key) {
     GenCache::iterator actualCacheIter = cache.find(key);
     if(actualCacheIter != cache.end()) {
+        bool ret = false;
         GevCache& actualCache = actualCacheIter->second;
-        for(auto it = actualCache.begin(); it != actualCache.end(); ++it)
+        for(auto it = actualCache.begin(); it != actualCache.end(); ++it) {
             delete it->second;
+            ret = true;
+        }
         cache.erase(actualCacheIter);
+        return ret;
     }
+    return false;
 }
 
-void ArrivalManagerFlit::ncDeleteFromCache(GenCache& cache, const IdSourceKey& key, uint16_t gev) {
+bool ArrivalManagerFlit::ncDeleteFromCache(GenCache& cache, const IdSourceKey& key, uint16_t gev) {
     GenCache::iterator outerIter = cache.find(key);
     if(outerIter != cache.end()) {
         GevCache::iterator innerIter = outerIter->second.find(gev);
         if(innerIter != outerIter->second.end()) {
             delete innerIter->second;
             outerIter->second.erase(innerIter);
+            return true;
         }
     }
+    return false;
 }
 
 void ArrivalManagerFlit::generateArq(const IdSourceKey& key, Messages::Mode mode) {
     // TODO: more detailed ARQ payload (HAVE + available (GEVs/)modes or DON'T HAVE + required (GEVs/)modes)
-    Address2D source(nodeX, nodeY);
+    Address2D self(nodeX, nodeY);
 
     // Build packet name
     std::ostringstream packetName;
-    packetName << "arq-" << key.first << "-s" << source << "-t" << key.second;
+    packetName << "arq-" << key.first << "-s" << self << "-t" << key.second;
 
     // Create the flit
     Flit* arq = new Flit(packetName.str().c_str());
     take(arq);
 
     // Set header fields
-    arq->setSource(source);
+    arq->setSource(self);
     arq->setTarget(key.second);
     arq->setGidOrFid(key.first);
+    arq->setMode(mode);
 
     //emit(pktgenerateSignal, flit->getGidOrFid());
     EV << "Sending ARQ \"" << arq->getName() << "\" from " << arq->getSource()
        << " to " << arq->getTarget() << " (ID: " << arq->getGidOrFid() << ")" << std::endl;
-    send(arq, "out");
+    send(arq, "arqOut");
 
     // Increment ARQ counter
     ++issuedArqs[key];

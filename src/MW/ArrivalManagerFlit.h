@@ -49,7 +49,7 @@ protected:
 
     int arqLimit;
     int arqIssueTimeout;
-    int arqResendTimeout;
+    int arqAnswerTimeout;
     int outOfOrderIdGracePeriod;
 
     int gridColumns;
@@ -63,7 +63,7 @@ protected:
     std::map<Messages::Address2D, uint32_t> highestKnownIds;
 
     // Track amount of issued ARQs
-    std::map<IdSourceKey, int> issuedArqs;
+    std::map<IdSourceKey, unsigned int> issuedArqs;
 
     // Cache arriving flits for uncoded variant
     FlitCache ucReceivedDataCache;
@@ -79,7 +79,11 @@ protected:
 
     // Cache successful MAC verifications
     std::set<IdSourceKey> ucVerified;
-    std::map<IdSourceKey, GevSet> ncVerified; // TODO: after 2 successful verifications, gen is finished (also discard arriving from crypto)
+    std::map<IdSourceKey, GevSet> ncVerified;
+
+    // Track amount of flits that are currently undergoing decryption, but have to be discarded on arrival
+    std::map<IdSourceKey, unsigned int> ucDiscardDecrypting;
+    std::map<IdSourceKey, std::map<uint16_t, unsigned int>> ncDiscardDecrypting;
 
     // Network coding only: cache which (and how many) GEVs from a generation have been sent to the app
     std::map<IdSourceKey, GevSet> ncDispatchedGevs;
@@ -93,15 +97,15 @@ private:
     void ucTryVerification(const IdSourceKey& key);
     void ucTrySendToApp(const IdSourceKey& key);
     void ucCleanUp(const IdSourceKey& key);
-    void ucDeleteFromCache(FlitCache& cache, const IdSourceKey& key);
+    bool ucDeleteFromCache(FlitCache& cache, const IdSourceKey& key);
 
     void ncStartDecryptAndAuth(const IdSourceKey& key, uint16_t gev);
     void ncTryVerification(const IdSourceKey& key, uint16_t gev);
     void ncTrySendToApp(const IdSourceKey& key, uint16_t gev);
     void ncCheckGenerationDone(const IdSourceKey& key, unsigned short generationSize = 2);
     void ncCleanUp(const IdSourceKey& key);
-    void ncDeleteFromCache(GenCache& cache, const IdSourceKey& key);
-    void ncDeleteFromCache(GenCache& cache, const IdSourceKey& key, uint16_t gev);
+    bool ncDeleteFromCache(GenCache& cache, const IdSourceKey& key);
+    bool ncDeleteFromCache(GenCache& cache, const IdSourceKey& key, uint16_t gev);
     // TODO: NC: do not send ARQ immediately on verification fail if we have more redundant GEVs to verify
 
     void generateArq(const IdSourceKey& key, Messages::Mode mode); // TODO: more mode options

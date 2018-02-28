@@ -24,6 +24,7 @@ void DecoderTestApp::initialize() {
     f1->setOriginalIdsArraySize(2);
     f1->setOriginalIds(0, 222);
     f1->setOriginalIds(1, 333);
+    f1->setNcMode(NC_G2C3);
 
     Flit* f2 = f1->dup();
     f2->setName("flit2");

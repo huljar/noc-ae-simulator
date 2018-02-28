@@ -102,7 +102,9 @@ enum Mode { // not using "enum class" (scoped enumeration) here, because the OMN
 	MODE_ARQ_SPLIT_2,   //!< MODE_ARQ_SPLIT_2 Flit containing an ARQ, requesting the second half of a split.
 	// TODO: MODE_ARQ_COMPLETE? for authGen?
 };
-// TODO: make Mode a flag enum (bitwise-or allowed)?
+Register_Enum(Mode, (MODE_DATA, MODE_MAC, MODE_SPLIT_1, MODE_SPLIT_2,
+                     MODE_ARQ_DATA, MODE_ARQ_MAC, MODE_ARQ_DATA_MAC,
+                     MODE_ARQ_SPLIT_1, MODE_ARQ_SPLIT_2));
 
 enum Status {
     STATUS_NONE,
@@ -111,6 +113,8 @@ enum Status {
     STATUS_DECRYPTING,
     STATUS_VERIFYING
 };
+Register_Enum(Status, (STATUS_NONE, STATUS_ENCRYPTING, STATUS_AUTHENTICATING,
+                       STATUS_DECRYPTING, STATUS_VERIFYING));
 
 /**
  * Enumerator which contains the possible network coding methods.
@@ -121,6 +125,7 @@ enum NC {
     NC_G2C3,            //!< NC_G2C3 Network coding was applied with generation size 2 and 3 combinations.
     NC_G2C4             //!< NC_G2C4 Network coding was applied with generation size 2 and 4 combinations.
 };
+Register_Enum(NC, (NC_UNCODED, NC_G2C3, NC_G2C4));
 
 }} //namespace
 
