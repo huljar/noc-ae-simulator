@@ -1,0 +1,44 @@
+%description:
+Test network coding: decoder module
+
+%inifile: omnetpp.ini
+[General]
+sim-time-limit = 10ns
+
+**.clock.inter = 2ns
+
+**.decoder.generationSize = 2
+**.decoder.numCombinations = 3
+
+%file: test.ned
+import HaecComm.Core.Clock;
+import HaecComm.MW.NetworkCoding.Decoder;
+import HaecCommTest.DecoderTestApp;
+
+network Test {
+    submodules:
+        clock: Clock;
+        decoder: Decoder;
+        testapp: DecoderTestApp;
+    connections:
+        testapp.in <-- decoder.out;
+        testapp.out --> decoder.in;
+}
+
+%contains-regex: stdout
+Got flit uc-222-s\(0,0\)-t\(1,1\)
+Source \(0,0\)
+Target \(1,1\)
+FID 222
+.*
+Got flit uc-333-s\(0,0\)-t\(1,1\)
+Source \(0,0\)
+Target \(1,1\)
+FID 333
+.*
+
+%not-contains: stdout
+undisposed object:
+
+%not-contains: stdout
+-- check module destructor

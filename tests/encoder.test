@@ -1,0 +1,80 @@
+%description:
+Test network coding: encoder module (G2C3 and G2C4)
+
+%inifile: omnetpp.ini
+[General]
+sim-time-limit = 10ns
+
+**.clock.inter = 2ns
+
+**.encoder1.generationSize = 2
+**.encoder1.numCombinations = 3
+**.encoder2.generationSize = 2
+**.encoder2.numCombinations = 4
+
+%file: test.ned
+import HaecComm.Core.Clock;
+import HaecComm.MW.NetworkCoding.Encoder;
+import HaecCommTest.EncoderTestApp;
+
+network Test {
+    submodules:
+        clock: Clock;
+        encoder1: Encoder;
+        encoder2: Encoder;
+        testapp: EncoderTestApp;
+    connections:
+        testapp.in1 <-- encoder1.out;
+        testapp.out1 --> encoder1.in;
+        testapp.in2 <-- encoder2.out;
+        testapp.out2 --> encoder2.in;
+}
+
+%contains-regex: stdout
+Got flit nc-0-0-s\(0,0\)-t\(1,1\)
+Source \(0,0\)
+Target \(1,1\)
+GID 0
+GEV 0
+.*
+Got flit nc-0-0-s\(1,0\)-t\(2,0\)
+Source \(1,0\)
+Target \(2,0\)
+GID 0
+GEV 0
+.*
+Got flit nc-0-1-s\(0,0\)-t\(1,1\)
+Source \(0,0\)
+Target \(1,1\)
+GID 0
+GEV 1
+.*
+Got flit nc-0-1-s\(1,0\)-t\(2,0\)
+Source \(1,0\)
+Target \(2,0\)
+GID 0
+GEV 1
+.*
+Got flit nc-0-2-s\(0,0\)-t\(1,1\)
+Source \(0,0\)
+Target \(1,1\)
+GID 0
+GEV 2
+.*
+Got flit nc-0-2-s\(1,0\)-t\(2,0\)
+Source \(1,0\)
+Target \(2,0\)
+GID 0
+GEV 2
+.*
+Got flit nc-0-3-s\(1,0\)-t\(2,0\)
+Source \(1,0\)
+Target \(2,0\)
+GID 0
+GEV 3
+
+%not-contains: stdout
+undisposed object:
+
+%not-contains: stdout
+-- check module destructor

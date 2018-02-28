@@ -59,7 +59,7 @@ void EncoderImpl::handleMessage(cMessage* msg) {
 		generation.push_back(flit);
 
 		EV_DEBUG << "Caching flit " << flit->getName() << " for encoding (destination: " << target << ")" << std::endl;
-		EV_DEBUG << "We now have " << generation.size() << "flit" << (generation.size() != 1 ? "s" : "") << " cached for " << target << std::endl;
+		EV_DEBUG << "We now have " << generation.size() << " flit" << (generation.size() != 1 ? "s" : "") << " cached for " << target << std::endl;
 
 		// Check if we have enough flits to create a generation
 		if(generation.size() == static_cast<size_t>(generationSize)) {

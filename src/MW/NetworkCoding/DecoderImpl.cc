@@ -58,7 +58,7 @@ void DecoderImpl::handleMessage(cMessage* msg) {
 		combinations.push_back(flit);
 
         EV_DEBUG << "Caching flit " << flit->getName() << " for decoding (GID: " << gid << ", source: " << source << ")" << std::endl;
-        EV_DEBUG << "We now have " << combinations.size() << "flit" << (combinations.size() != 1 ? "s" : "") << " cached for " << gid << "/" << source << std::endl;
+        EV_DEBUG << "We now have " << combinations.size() << " flit" << (combinations.size() != 1 ? "s" : "") << " cached for " << gid << "/" << source << std::endl;
 
 		if(combinations.size() == static_cast<size_t>(generationSize)) {
 			// TODO: do actual network decoding
