@@ -34,6 +34,8 @@ public:
 	virtual cPacket* peek();
 	virtual void requestDrop();
 
+	virtual int getLength();
+
 protected:
     virtual void initialize() override;
     virtual void handleMessage(cMessage* msg) override;

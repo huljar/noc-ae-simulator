@@ -47,6 +47,10 @@ void PacketQueueBase::requestDrop() {
     }
 }
 
+int PacketQueueBase::getLength() {
+    return queue->getLength();
+}
+
 void PacketQueueBase::initialize() {
     // subscribe to clock signal
     getSimulation()->getSystemModule()->subscribe("clock", this);

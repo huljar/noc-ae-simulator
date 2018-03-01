@@ -20,6 +20,11 @@ package HaecComm.Buffers;
 //
 moduleinterface IPacketQueueBase {
     parameters:
+        @signal[qlen](type=long); // not using unsigned because queues return signed values for length
+        @signal[pktdrop](type=cPacket);
+        @signal[qfull](type=bool);
+        @statistic[queueLength](source=qlen; record=max,timeavg,vector?; title="Queue Length");
+        @statistic[dropCount](source=count(pktdrop); record=last; title="Packets dropped");
         bool awaitSendRequests;
         bool syncFirstPacket;
         int maxLength;
