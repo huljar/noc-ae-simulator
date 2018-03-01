@@ -1,0 +1,87 @@
+%description:
+Test network coding: decoder module
+
+%inifile: omnetpp.ini
+[General]
+sim-time-limit = 20ns
+**.cmdenv-log-level = debug
+
+**.clock.inter = 2ns
+
+**.router.id = 4
+**.router.internalType = "HaecComm.Routers.RouterXY"
+**.router.numPorts = 4
+
+%file: test.ned
+import HaecComm.Core.Clock;
+import HaecComm.Routers.Router;
+import HaecComm.Buffers.PacketQueue;
+import HaecCommTest.RouterXYFullTestApp;
+import HaecCommTest.AlwaysFullPacketQueue;
+
+network Test {
+    parameters:
+        int columns = 3;
+    submodules:
+        clock: Clock;
+        router: Router;
+        ql: PacketQueue;
+        q0: PacketQueue;
+        q1: AlwaysFullPacketQueue;
+        q2: PacketQueue;
+        q3: AlwaysFullPacketQueue;
+        testapp: RouterXYFullTestApp;
+    connections:
+        testapp.local$o --> router.local$i;
+        router.local$o --> ql.in;
+        ql.out --> testapp.local$i;
+
+        for i=0..3 {
+            testapp.port$o[i] --> router.port$i[i];
+        }
+        router.port$o[0] --> q0.in;
+        q0.out --> testapp.port$i[0];
+        router.port$o[1] --> q1.in;
+        q1.out --> testapp.port$i[1];
+        router.port$o[2] --> q2.in;
+        q2.out --> testapp.port$i[2];
+        router.port$o[3] --> q3.in;
+        q3.out --> testapp.port$i[3];
+}
+
+%contains-regex: stdout
+Got flit toLocalFromNorth
+.*
+Got flit toNorthFromEast
+.*
+Got flit toSouthFromLocal
+.*
+Router queue lengths
+rl: 0
+r0: 0
+r1: 0
+r2: 1
+r3: 3
+ql: 0
+q0: 0
+q1: 0
+q2: 0
+q3: 0
+
+%not-contains: stdout
+Got flit toWestFromSouth
+
+%not-contains: stdout
+Got flit toEastFromWest
+
+%not-contains: stdout
+Got flit toEastFromWest2
+
+%not-contains: stdout
+Got flit toEastFromWest3
+
+%not-contains: stdout
+undisposed object:
+
+%not-contains: stdout
+-- check module destructor
