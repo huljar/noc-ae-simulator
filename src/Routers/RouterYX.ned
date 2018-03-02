@@ -22,6 +22,12 @@ package HaecComm.Routers;
 //
 simple RouterYX like IRouterBase {
     parameters:
+        @signal[pktsend](type=cPacket);
+        @signal[pktreceive](type=cPacket);
+        @signal[pktroute](type=cPacket);
+        @statistic[sendCount](source=count(pktsend); record=last; title="Packets sent into the network");
+        @statistic[receiveCount](source=count(pktreceive); record=last; title="Packets arriving from the network");
+        @statistic[routeCount](source=count(pktroute); record=last; title="Packets routed between different nodes");
         @display("i=block/routing");
     gates:
         inout local;

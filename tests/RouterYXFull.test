@@ -1,5 +1,5 @@
 %description:
-Test XY Router: do not route flits if the receiving router's
+Test YX Router: do not route flits if the receiving router's
 input queue is full
 
 %inifile: omnetpp.ini
@@ -10,7 +10,7 @@ sim-time-limit = 20ns
 **.clock.inter = 2ns
 
 **.router.id = 4
-**.router.internalType = "HaecComm.Routers.RouterXY"
+**.router.internalType = "HaecComm.Routers.RouterYX"
 **.router.numPorts = 4
 
 %file: test.ned
