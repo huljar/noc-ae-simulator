@@ -36,8 +36,8 @@ public:
     typedef std::set<uint32_t> IdSet;
     typedef std::set<uint16_t> GevSet;
     typedef std::pair<uint32_t, Messages::Address2D> IdSourceKey;
-    typedef std::map<IdSourceKey, Messages::Flit*> FlitCache;
     typedef std::map<uint16_t, Messages::Flit*> GevCache;
+    typedef std::map<IdSourceKey, Messages::Flit*> FlitCache;
     typedef std::map<IdSourceKey, GevCache> GenCache;
 
     ArrivalManagerFlit();
@@ -108,7 +108,8 @@ private:
     bool ncDeleteFromCache(GenCache& cache, const IdSourceKey& key, uint16_t gev);
     // TODO: NC: do not send ARQ immediately on verification fail if we have more redundant GEVs to verify
 
-    void generateArq(const IdSourceKey& key, Messages::Mode mode); // TODO: more mode options
+    void generateArq(const IdSourceKey& key, Messages::Mode mode, Messages::ArqMode arqMode);
+    void generateArq(const IdSourceKey& key, Messages::Mode mode, const Messages::GevArqMap& arqModes, Messages::NcMode ncMode);
 };
 
 }} //namespace

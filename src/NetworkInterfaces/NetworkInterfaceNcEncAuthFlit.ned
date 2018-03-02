@@ -82,6 +82,7 @@ module NetworkInterfaceNcEncAuthFlit like INetworkInterface {
         }
         retransmissionBuffer: RetransmissionBuffer {
             @display("p=650,280");
+            implType = "HaecComm.Buffers.RetransmissionBufferImplFlit";
         }
         netStream: MultiInputSerializer {
             @display("p=750,320");

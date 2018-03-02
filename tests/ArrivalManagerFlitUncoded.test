@@ -92,13 +92,15 @@ Got ARQ arq-666-s\(0,0\)-t\(3,3\)
 Source \(0,0\)
 Target \(3,3\)
 FID 666
-Mode MODE_ARQ_DATA_MAC
+Mode MODE_ARQ_TELL_MISSING
+ARQ mode ARQ_DATA_MAC
 .*
 Got ARQ arq-777-s\(0,0\)-t\(3,3\)
 Source \(0,0\)
 Target \(3,3\)
 FID 777
-Mode MODE_ARQ_DATA_MAC
+Mode MODE_ARQ_TELL_MISSING
+ARQ mode ARQ_DATA_MAC
 .*
 Got flit flit3-new-dec
 Source \(3,3\)

@@ -47,14 +47,15 @@ void ArrivalManagerFlitUncodedTestApp::handleMessage(cMessage* msg) {
            << "Source " << f->getSource() << std::endl
            << "Target " << f->getTarget() << std::endl
            << "FID " << f->getGidOrFid() << std::endl
-           << "Mode " << cEnum::find("HaecComm::Messages::Mode")->getStringFor(f->getMode()) << std::endl;
+           << "Mode " << cEnum::get("HaecComm::Messages::Mode")->getStringFor(f->getMode()) << std::endl;
     }
     else if(strcmp(f->getArrivalGate()->getName(), "arqIn") == 0) {
         EV << "Got ARQ " << f->getName() << std::endl
            << "Source " << f->getSource() << std::endl
            << "Target " << f->getTarget() << std::endl
            << "FID " << f->getGidOrFid() << std::endl
-           << "Mode " << cEnum::find("HaecComm::Messages::Mode")->getStringFor(f->getMode()) << std::endl;
+           << "Mode " << cEnum::get("HaecComm::Messages::Mode")->getStringFor(f->getMode()) << std::endl
+           << "ARQ mode " << cEnum::get("HaecComm::Messages::ArqMode")->getStringFor(f->getUcArqs()) << std::endl;
 
         if(f->getGidOrFid() == 666) {
             // Answer to ARQ with unmodified flits

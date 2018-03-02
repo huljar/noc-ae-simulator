@@ -145,7 +145,7 @@ void ArrivalManagerFlit::handleNetMessage(Flit* flit) {
     // Get parameters
     IdSourceKey key = std::make_pair(id, source);
     Mode mode = static_cast<Mode>(flit->getMode());
-    NC ncMode = static_cast<NC>(flit->getNcMode());
+    NcMode ncMode = static_cast<NcMode>(flit->getNcMode());
 
     // Determine if we are network coding or not
     if(ncMode == NC_UNCODED) {
@@ -263,7 +263,7 @@ void ArrivalManagerFlit::handleCryptoMessage(Flit* flit) {
     Address2D source = flit->getSource();
     IdSourceKey key = std::make_pair(id, source);
     Mode mode = static_cast<Mode>(flit->getMode());
-    NC ncMode = static_cast<NC>(flit->getNcMode());
+    NcMode ncMode = static_cast<NcMode>(flit->getNcMode());
 
     // Check network coding mode
     if(ncMode == NC_UNCODED) {
@@ -411,7 +411,7 @@ void ArrivalManagerFlit::ucTryVerification(const IdSourceKey& key) {
             }
 
             // Send out ARQ
-            generateArq(key, MODE_ARQ_DATA_MAC); // TODO: do this right
+            generateArq(key, MODE_ARQ_TELL_MISSING, ARQ_DATA_MAC);
 
             // Clear received cache to ensure we can receive the retransmission
             ucDeleteFromCache(ucReceivedDataCache, key);
@@ -527,9 +527,8 @@ void ArrivalManagerFlit::ncTryVerification(const IdSourceKey& key, uint16_t gev)
                 return;
             }
 
-            // TODO: send out ARQ now or later? depending on ARQ limit
             // Send out ARQ
-            //generateArq(key, MODE_DATA); // TODO: do this right
+            generateArq(key, MODE_ARQ_TELL_MISSING, GevArqMap{{gev, ARQ_DATA_MAC}}, static_cast<NcMode>(recvMac->second->getNcMode()));
 
             // Clear received cache to ensure we can receive the retransmission
             ncDeleteFromCache(ncReceivedDataCache, key, gev);
@@ -634,8 +633,7 @@ bool ArrivalManagerFlit::ncDeleteFromCache(GenCache& cache, const IdSourceKey& k
     return false;
 }
 
-void ArrivalManagerFlit::generateArq(const IdSourceKey& key, Messages::Mode mode) {
-    // TODO: more detailed ARQ payload (HAVE + available (GEVs/)modes or DON'T HAVE + required (GEVs/)modes)
+void ArrivalManagerFlit::generateArq(const IdSourceKey& key, Mode mode, ArqMode arqMode) {
     Address2D self(nodeX, nodeY);
 
     // Build packet name
@@ -651,6 +649,44 @@ void ArrivalManagerFlit::generateArq(const IdSourceKey& key, Messages::Mode mode
     arq->setTarget(key.second);
     arq->setGidOrFid(key.first);
     arq->setMode(mode);
+
+    // Set ARQ payload
+    arq->setUcArqs(arqMode);
+
+    // Set meta fields
+    arq->setNcMode(NC_UNCODED);
+
+    //emit(pktgenerateSignal, flit->getGidOrFid());
+    EV << "Sending ARQ \"" << arq->getName() << "\" from " << arq->getSource()
+       << " to " << arq->getTarget() << " (ID: " << arq->getGidOrFid() << ")" << std::endl;
+    send(arq, "arqOut");
+
+    // Increment ARQ counter
+    ++issuedArqs[key];
+}
+
+void ArrivalManagerFlit::generateArq(const IdSourceKey& key, Mode mode, const GevArqMap& arqModes, NcMode ncMode) {
+    Address2D self(nodeX, nodeY);
+
+    // Build packet name
+    std::ostringstream packetName;
+    packetName << "arq-" << key.first << "-s" << self << "-t" << key.second;
+
+    // Create the flit
+    Flit* arq = new Flit(packetName.str().c_str());
+    take(arq);
+
+    // Set header fields
+    arq->setSource(self);
+    arq->setTarget(key.second);
+    arq->setGidOrFid(key.first);
+    arq->setMode(mode);
+
+    // Set ARQ payload
+    arq->setNcArqs(arqModes);
+
+    // Set meta fields
+    arq->setNcMode(ncMode);
 
     //emit(pktgenerateSignal, flit->getGidOrFid());
     EV << "Sending ARQ \"" << arq->getName() << "\" from " << arq->getSource()

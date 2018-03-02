@@ -18,7 +18,7 @@ package HaecComm.Buffers;
 //
 // TODO auto-generated module
 //
-simple RetransmissionBufferImpl {
+simple RetransmissionBufferImplFlit like IRetransmissionBufferImpl {
     parameters:
         @display("i=block/buffer");
         int bufSize; // Amount of flits that can be cached

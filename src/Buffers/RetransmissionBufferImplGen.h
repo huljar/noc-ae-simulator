@@ -13,14 +13,11 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __HAECCOMM_RETRANSMISSIONBUFFER_H_
-#define __HAECCOMM_RETRANSMISSIONBUFFER_H_
+#ifndef __HAECCOMM_RETRANSMISSIONBUFFERIMPLGEN_H_
+#define __HAECCOMM_RETRANSMISSIONBUFFERIMPLGEN_H_
 
 #include <omnetpp.h>
-#include <Messages/Flit.h>
-#include <map>
-#include <queue>
-#include <tuple>
+#include <Buffers/RetransmissionBufferImplBase.h>
 
 using namespace omnetpp;
 
@@ -29,26 +26,15 @@ namespace HaecComm { namespace Buffers {
 /**
  * TODO - Generated class
  */
-class RetransmissionBufferImpl : public cSimpleModule {
+class RetransmissionBufferImplGen : public RetransmissionBufferImplBase {
 public:
-    typedef std::tuple<uint32_t, Messages::Address2D, Messages::Mode> UcKey;
-    typedef std::map<UcKey, Messages::Flit*> UncodedFlitMap;
-    typedef std::tuple<uint32_t, uint16_t, Messages::Address2D, Messages::Mode> NcKey;
-    typedef std::map<NcKey, Messages::Flit*> NetworkCodedFlitMap;
-
-	RetransmissionBufferImpl();
-	virtual ~RetransmissionBufferImpl();
+	RetransmissionBufferImplGen();
+	virtual ~RetransmissionBufferImplGen();
 
 protected:
-    virtual void initialize() override;
-    virtual void handleMessage(cMessage* msg) override;
+    virtual void handleDataMessage(Messages::Flit* flit) override;
+    virtual void handleArqMessage(Messages::Flit* flit) override;
 
-    int bufSize;
-
-    UncodedFlitMap ucFlitCache;
-    NetworkCodedFlitMap ncFlitCache;
-    std::queue<UcKey> ucFlitQueue;
-    std::queue<NcKey> ncFlitQueue;
 };
 
 }} //namespace

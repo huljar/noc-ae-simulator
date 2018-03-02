@@ -9,8 +9,8 @@
 #define MESSAGES_FIELDTYPES_H_
 
 #include <omnetpp.h>
-#include <array>
 #include <cinttypes>
+#include <map>
 #include <sstream>
 #include <string>
 
@@ -90,23 +90,18 @@ inline std::ostream& operator<<(std::ostream& os, const Address2D& address) {
  * field in flits. <b>ARQ</b> stands for <b>A</b>utomatic <b>R</b>e-transmission
  * re<b>Q</b>uest.
  */
-enum Mode { // not using "enum class" (scoped enumeration) here, because the OMNeT++ msg compiler doesn't do it either
-	MODE_DATA,          //!< MODE_DATA Normal data flit. This is the default value.
-	MODE_MAC,           //!< MODE_MAC Flit containing a Message Authentication Code (MAC) for another flit.
-	MODE_SPLIT_1,       //!< MODE_SPLIT_1 Flit where the payload consists of half data and half MAC (first part).
-	MODE_SPLIT_2,       //!< MODE_SPLIT_2 Flit where the payload consists of half data and half MAC (second part).
-	MODE_ARQ_DATA,      //!< MODE_ARQ_DATA Flit containing an ARQ, requesting a data flit.
-	MODE_ARQ_MAC,       //!< MODE_ARQ_MAC Flit containing an ARQ, requesting a MAC flit.
-	MODE_ARQ_DATA_MAC,  //!< MODE_ARQ_DATA_MAC Flit containing an ARQ, requesting both data and MAC flit.
-	MODE_ARQ_SPLIT_1,   //!< MODE_ARQ_SPLIT_1 Flit containing an ARQ, requesting the first half of a split.
-	MODE_ARQ_SPLIT_2,   //!< MODE_ARQ_SPLIT_2 Flit containing an ARQ, requesting the second half of a split.
-	// TODO: MODE_ARQ_COMPLETE? for authGen?
+enum Mode : uint8_t { // not using "enum class" (scoped enumeration) here, because the OMNeT++ msg compiler doesn't do it either
+	MODE_DATA,              //!< MODE_DATA Normal data flit. This is the default value.
+	MODE_MAC,               //!< MODE_MAC Flit containing a Message Authentication Code (MAC) for another flit.
+	MODE_SPLIT_1,           //!< MODE_SPLIT_1 Flit where the payload consists of half data and half MAC (first part).
+	MODE_SPLIT_2,           //!< MODE_SPLIT_2 Flit where the payload consists of half data and half MAC (second part).
+	MODE_ARQ_TELL_RECEIVED, //!< MODE_ARQ_RECEIVED Flit containing an ARQ, specifying what flits have been received from a transmission unit.
+	MODE_ARQ_TELL_MISSING   //!< MODE_ARQ_MISSING Flit containing an ARQ, specifying what flits are still missing from a transmission unit.
 };
 Register_Enum(Mode, (MODE_DATA, MODE_MAC, MODE_SPLIT_1, MODE_SPLIT_2,
-                     MODE_ARQ_DATA, MODE_ARQ_MAC, MODE_ARQ_DATA_MAC,
-                     MODE_ARQ_SPLIT_1, MODE_ARQ_SPLIT_2));
+                     MODE_ARQ_TELL_RECEIVED, MODE_ARQ_TELL_MISSING));
 
-enum Status {
+enum Status : uint8_t {
     STATUS_NONE,
     STATUS_ENCRYPTING,
     STATUS_AUTHENTICATING,
@@ -120,12 +115,29 @@ Register_Enum(Status, (STATUS_NONE, STATUS_ENCRYPTING, STATUS_AUTHENTICATING,
  * Enumerator which contains the possible network coding methods.
  * This is used as a meta field in flits.
  */
-enum NC {
-    NC_UNCODED,         //!< NC_UNCODED No network coding was applied to this flit.
-    NC_G2C3,            //!< NC_G2C3 Network coding was applied with generation size 2 and 3 combinations.
-    NC_G2C4             //!< NC_G2C4 Network coding was applied with generation size 2 and 4 combinations.
+enum NcMode : uint8_t {
+    NC_UNCODED,     //!< NC_UNCODED No network coding was applied to this flit.
+    NC_G2C3,        //!< NC_G2C3 Network coding was applied with generation size 2 and 3 combinations.
+    NC_G2C4         //!< NC_G2C4 Network coding was applied with generation size 2 and 4 combinations.
 };
-Register_Enum(NC, (NC_UNCODED, NC_G2C3, NC_G2C4));
+Register_Enum(NcMode, (NC_UNCODED, NC_G2C3, NC_G2C4));
+
+/**
+ * Enumerator which contains the specification of flit types requested
+ * in an ARQ. There is a separate method for the MAC of a whole generation
+ * (required in case of authentication method 2)
+ */
+enum ArqMode : uint8_t {
+    ARQ_DATA,           //!< ARQ_DATA
+    ARQ_MAC,            //!< ARQ_MAC
+    ARQ_DATA_MAC,       //!< ARQ_DATA_MAC
+    ARQ_SPLIT_1,        //!< ARQ_SPLIT_1
+    ARQ_SPLIT_2,        //!< ARQ_SPLIT_2
+    ARQ_SPLITS_BOTH     //!< ARQ_SPLITS_BOTH
+};
+Register_Enum(ArqMode, (ARQ_DATA, ARQ_MAC, ARQ_DATA_MAC, ARQ_SPLIT_1, ARQ_SPLIT_2, ARQ_SPLITS_BOTH));
+
+typedef std::map<uint16_t, ArqMode> GevArqMap;
 
 }} //namespace
 

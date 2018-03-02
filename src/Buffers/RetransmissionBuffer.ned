@@ -22,12 +22,13 @@ module RetransmissionBuffer {
         @display("i=block/buffer");
         int bufSize; // Amount of flits that can be cached
         int bufLookupCycles = default(1);
+        string implType;
     gates:
         input  dataIn;
         input  arqIn;
         output out;
     submodules:
-        retransBuf: RetransmissionBufferImpl {
+        retransBuf: <implType> like IRetransmissionBufferImpl {
             @display("p=80,120");
             bufSize = bufSize;
         }

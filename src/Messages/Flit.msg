@@ -20,14 +20,15 @@ cplusplus {{
 namespace HaecComm::Messages;
 
 class noncobject Address2D;
+class noncobject GevArqMap;
 enum Mode;
 enum Status;
-enum NC;
+enum NcMode;
+enum ArqMode;
 
 //
-// Base class representing a HAEC flit. This class contains only the headers
-// that are specified in the paper. Use subclasses like ~FlitLarge and ~FlitSmall
-// for actual messages.
+// Main packet class representing a HAEC flit. This class contains the headers
+// that are specified in the paper and some additional fields for meta information.
 //
 packet Flit {
     @customize(true);
@@ -52,13 +53,22 @@ packet Flit {
     uint32_t gidOrFid; //# TODO: assert 24 bit size
     
     // Global Encoding Vector. Only used in network coding combinations.
-    uint16_t gev = 0; //# TODO: assert 12 bit size
+    uint16_t gev = 0; //# TODO: this should be 8 bit (uint8_t)
     
-    // Payload, represented as a byte array.
-    uint8_t payload[8];
+    //# There is a payload of 64 bit. In the simulation, it is only used for ARQs to specify
+    //# missing/available flits, so we implement it for this purpose.
     
-    // Specify the bit length of the flit
-    bitLength = 153;
+    // When this is an ARQ for uncoded flits: specify the missing parts
+    uint8_t ucArqs @enum(ArqMode);
+    
+    // When this is an ARQ for network coded flits: specify the received or missing parts + GEVs
+    GevArqMap ncArqs;
+    
+    // When this is an ARQ for network coded flits using one MAC per generation: specify if we need/have this MAC
+    bool arqGenMac = false;
+    
+    // The bit length of the flit
+    bitLength = 149; //# TODO: this is not always true; UC flits are 8 bit shorter than NC flits (they don't have a GEV)
     
     //# The following fields are helpers which are not "officially" part of the
     //# message (and thus should not be considered when setting the bit length
@@ -74,7 +84,7 @@ packet Flit {
     uint8_t status @enum(Status) = STATUS_NONE;
     
     // Flit marker for the network coding mode
-    uint8_t ncMode @enum(NC) = NC_UNCODED;
+    uint8_t ncMode @enum(NcMode) = NC_UNCODED;
 
     // Flag to specify that this flit was modified by an attacker
     bool modified @getter(isModified) = false;

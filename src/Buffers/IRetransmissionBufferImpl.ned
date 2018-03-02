@@ -13,17 +13,14 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include "Flit.h"
+package HaecComm.Buffers;
 
-namespace HaecComm { namespace Messages {
-
-Register_Class(Flit);
-
-bool Flit::isArq() const {
-    return mode == MODE_ARQ_TELL_RECEIVED || mode == MODE_ARQ_TELL_MISSING;
+moduleinterface IRetransmissionBufferImpl {
+    parameters:
+        int bufSize; // Amount of flits that can be cached
+    gates:
+        input  dataIn;
+        input  arqIn;
+        output dataOut;
+        output arqOut;
 }
-
-void Flit::copy(const Flit& other) {
-}
-
-}} // namespace

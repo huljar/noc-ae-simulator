@@ -39,15 +39,9 @@ void FlitSplitterImpl::handleMessage(cMessage* msg) {
 		Flit* split = flit->dup();
         flit->setMode(MODE_SPLIT_1);
         split->setMode(MODE_SPLIT_2);
-		// TODO: set a sensible ID for the new flit (use omnet internal ID again?)
 
-        // Split payload
-        unsigned int payloadHalfSize = flit->getPayloadArraySize() / 2;
-        for(unsigned int i = 0; i < payloadHalfSize; ++i) {
-            split->setPayload(i, flit->getPayload(payloadHalfSize + i));
-            flit->setPayload(payloadHalfSize + i, 0);
-            split->setPayload(payloadHalfSize + i, 0);
-        }
+        send(flit, "out");
+        send(split, "out");
 	}
 	else {
 		EV_WARN << "Received an unexpected type of flit. Mode: " << flit->getMode() << ". Discarding it." << std::endl;
