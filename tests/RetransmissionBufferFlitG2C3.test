@@ -1,0 +1,116 @@
+%description:
+Test retransmission buffer: Network coded (G2C3) data/mac flit pairs
+
+%inifile: omnetpp.ini
+[General]
+sim-time-limit = 100ns
+**.cmdenv-log-level = debug
+
+**.clock.inter = 2ns
+
+**.rt.bufSize = 10
+**.rt.internalType = "HaecComm.Buffers.RetransmissionBufferImplFlit"
+
+%file: test.ned
+import HaecComm.Core.Clock;
+import HaecComm.Buffers.RetransmissionBuffer;
+import HaecCommTest.RetransmissionBufferFlitG2C3TestApp;
+
+network Test {
+    parameters:
+        int numCombinations = 3;
+    submodules:
+        clock: Clock;
+        rt: RetransmissionBuffer;
+        testapp: RetransmissionBufferFlitG2C3TestApp;
+    connections:
+        testapp.dataOut --> rt.dataIn;
+        testapp.arqOut --> rt.arqIn;
+        testapp.dataIn <-- rt.out;
+}
+
+%contains-regex: stdout
+1 Got flit data1
+Source \(3,3\)
+Target \(0,0\)
+GID 123
+GEV 2
+Mode MODE_DATA
+.*
+2 Got flit mac1
+Source \(3,3\)
+Target \(0,0\)
+GID 123
+GEV 2
+Mode MODE_MAC
+.*
+3 Got flit data2
+Source \(3,3\)
+Target \(0,0\)
+GID 123
+GEV 19
+Mode MODE_DATA
+.*
+4 Got flit mac2
+Source \(3,3\)
+Target \(0,0\)
+GID 123
+GEV 19
+Mode MODE_MAC
+.*
+5 Got flit mac1
+Source \(3,3\)
+Target \(0,0\)
+GID 123
+GEV 2
+Mode MODE_MAC
+.*
+6 Got flit data2
+Source \(3,3\)
+Target \(0,0\)
+GID 123
+GEV 19
+Mode MODE_DATA
+.*
+7 Got flit mac2
+Source \(3,3\)
+Target \(0,0\)
+GID 123
+GEV 19
+Mode MODE_MAC
+.*
+8 Got flit data1
+Source \(3,3\)
+Target \(0,0\)
+GID 123
+GEV 2
+Mode MODE_DATA
+.*
+9 Got flit data2
+Source \(3,3\)
+Target \(0,0\)
+GID 123
+GEV 19
+Mode MODE_DATA
+.*
+10 Got flit mac2
+Source \(3,3\)
+Target \(0,0\)
+GID 123
+GEV 19
+Mode MODE_MAC
+
+%contains: stdout
+Failed to answer ARQ - Specified GEV not in buffer any more
+
+%not-contains: stdout
+Target (1,0)
+
+%not-contains: stdout
+FID 124
+
+%not-contains: stdout
+undisposed object:
+
+%not-contains: stdout
+-- check module destructor
