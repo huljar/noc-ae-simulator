@@ -76,13 +76,15 @@ void RetransmissionBufferImplBase::handleDataMessage(Flit* flit) {
     // Add copy to cache
     if(flit->getNcMode() == NC_UNCODED) {
         // Uncoded flit
-        ucFlitCache[key].emplace(mode, flit);
+        if(!ucFlitCache[key].emplace(mode, flit).second)
+            throw cRuntimeError(this, "Unable to cache flit in the retransmission buffer!");
         ucFlitQueue.push(flit);
     }
     else {
         // Network coded flit
         uint16_t gev = flit->getGev();
-        ncFlitCache[key][gev].emplace(mode, flit);
+        if(!ncFlitCache[key][gev].emplace(mode, flit).second)
+            throw cRuntimeError(this, "Unable to cache flit in the retransmission buffer!");
         ncFlitQueue.push(flit);
     }
 

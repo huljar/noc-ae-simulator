@@ -1,0 +1,97 @@
+%description:
+Test retransmission buffer: Uncoded data/mac flit pairs
+
+%inifile: omnetpp.ini
+[General]
+sim-time-limit = 100ns
+**.cmdenv-log-level = debug
+
+**.clock.inter = 2ns
+
+**.rt.bufSize = 5
+**.rt.internalType = "HaecComm.Buffers.RetransmissionBufferImplFlit"
+
+%file: test.ned
+import HaecComm.Core.Clock;
+import HaecComm.Buffers.RetransmissionBuffer;
+import HaecCommTest.RetransmissionBufferFlitUncodedTestApp;
+
+network Test {
+    parameters:
+        int numCombinations = 3;
+    submodules:
+        clock: Clock;
+        rt: RetransmissionBuffer;
+        testapp: RetransmissionBufferFlitUncodedTestApp;
+    connections:
+        testapp.dataOut --> rt.dataIn;
+        testapp.arqOut --> rt.arqIn;
+        testapp.dataIn <-- rt.out;
+}
+
+%contains-regex: stdout
+1 Got flit data1
+Source \(3,3\)
+Target \(0,0\)
+FID 123
+Mode MODE_DATA
+.*
+2 Got flit mac1
+Source \(3,3\)
+Target \(0,0\)
+FID 123
+Mode MODE_MAC
+.*
+3 Got flit data2
+Source \(3,3\)
+Target \(1,3\)
+FID 234
+Mode MODE_DATA
+.*
+4 Got flit mac2
+Source \(3,3\)
+Target \(1,3\)
+FID 234
+Mode MODE_MAC
+.*
+5 Got flit data1
+Source \(3,3\)
+Target \(0,0\)
+FID 123
+Mode MODE_DATA
+.*
+6 Got flit mac1
+Source \(3,3\)
+Target \(0,0\)
+FID 123
+Mode MODE_MAC
+.*
+7 Got flit data3
+Source \(3,3\)
+Target \(2,2\)
+FID 345
+Mode MODE_DATA
+.*
+8 Got flit mac3
+Source \(3,3\)
+Target \(2,2\)
+FID 345
+Mode MODE_MAC
+.*
+9 Got flit mac1
+Source \(3,3\)
+Target \(0,0\)
+FID 123
+Mode MODE_MAC
+
+%not-contains: stdout
+Target (1,0)
+
+%not-contains: stdout
+FID 124
+
+%not-contains: stdout
+undisposed object:
+
+%not-contains: stdout
+-- check module destructor
