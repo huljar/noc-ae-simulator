@@ -24,7 +24,11 @@ namespace HaecComm { namespace MW {
 Define_Module(GenTraffic);
 
 GenTraffic::GenTraffic()
-    : injectionProb(0.0)
+    : enabled(true)
+    , injectionProb(0.0)
+    , generatePairs(false)
+    , singleTarget(false)
+    , singleTargetId(0)
     , gridRows(1)
     , gridColumns(1)
     , nodeId(0)
@@ -45,15 +49,22 @@ void GenTraffic::initialize() {
     // subscribe to clock signal
     getSimulation()->getSystemModule()->subscribe("clock", this);
 
+    enabled = par("enabled");
+
 	injectionProb = par("injectionProb");
 	if(injectionProb < 0.0 || injectionProb > 1.0)
 		throw cRuntimeError(this, "Injection probability must be between 0 and 1, but is %f", injectionProb);
 
 	generatePairs = par("generatePairs");
+	singleTarget = par("singleTarget");
 
 	gridRows = getAncestorPar("rows");
 	gridColumns = getAncestorPar("columns");
 	nodeId = getAncestorPar("id");
+
+    singleTargetId = par("singleTargetId");
+    if(singleTarget && (singleTargetId < 0 || singleTargetId >= gridRows * gridColumns))
+        throw cRuntimeError(this, "Single Target ID must be between 0 and %i, but is %i", gridRows * gridColumns - 1, singleTargetId);
 
 	nodeX = nodeId % gridColumns;
 	nodeY = nodeId / gridColumns;
@@ -68,6 +79,10 @@ void GenTraffic::handleMessage(cMessage* msg) {
 
 void GenTraffic::receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) {
 	if(signalID == registerSignal("clock")) {
+	    // Do nothing if the module is not enabled
+	    if(!enabled)
+	        return;
+
 	    // First, check if we need to serve the second flit of a pair
 	    if(useCachedTarget) {
 	        // Generate flit
@@ -78,18 +93,20 @@ void GenTraffic::receiveSignal(cComponent* source, simsignal_t signalID, unsigne
 	    }
 	    else {
             // Decide if we should generate a packet based on injection probability parameter
-            if(injectionProb == 0.0) // Explicit zero check because uniform(0.0, 1.0) can return 0
-                return;
-
             if(uniform(0.0, 1.0) < injectionProb) {
                 // Generate a flit
                 int targetNodeId;
 
-                // TODO create paramterized target selection class
-                // Uniform target selection
-                do {
-                    targetNodeId = static_cast<int>(intrand(gridRows * gridColumns));
-                } while(targetNodeId == nodeId);
+                // Check if single target is enabled
+                if(singleTarget) {
+                    targetNodeId = singleTargetId;
+                }
+                else {
+                    // Uniform target selection
+                    do {
+                        targetNodeId = static_cast<int>(intrand(gridRows * gridColumns));
+                    } while(targetNodeId == nodeId);
+                }
 
                 // Get target X and Y
                 int targetX = targetNodeId % gridColumns;

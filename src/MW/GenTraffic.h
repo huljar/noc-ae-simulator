@@ -49,8 +49,11 @@ protected:
 
     virtual void generateFlit(int targetX, int targetY);
 
+    bool enabled;
     double injectionProb;
     bool generatePairs;
+    bool singleTarget;
+    int singleTargetId;
 
     int gridRows;
     int gridColumns;
