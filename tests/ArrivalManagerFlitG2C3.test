@@ -1,0 +1,114 @@
+%description:
+Test arrival manager: network coded (G2C3) data/mac flit pairs
+
+%inifile: omnetpp.ini
+[General]
+sim-time-limit = 100ns
+**.cmdenv-log-level = debug
+
+**.clock.inter = 2ns
+
+**.am.arqLimit = 1
+**.am.arqIssueTimeout = 10
+**.am.arqAnswerTimeout = 20
+
+**.awaitSendRequests = true
+
+**.encUnits = 2
+**.authUnits = 2
+**.busyCyclesEnc = 5
+**.busyCyclesAuth = 5
+**.encUnit[*].computeCycles = 5
+**.authUnit[*].computeCycles = 5
+
+%file: test.ned
+import HaecComm.Core.Clock;
+import HaecComm.Buffers.PacketQueue;
+import HaecComm.MW.ArrivalManagerFlit;
+import HaecComm.MW.Crypto.*;
+import HaecCommTest.ArrivalManagerFlitG2C3TestApp;
+
+network Test {
+    parameters:
+        int columns = 1;
+        int id = 0;
+        int encUnits;
+        int authUnits;
+    submodules:
+        clock: Clock;
+        am: ArrivalManagerFlit;
+        appQ: PacketQueue;
+        authQ: PacketQueue;
+        netQ: PacketQueue;
+        entryGuard: EntryGuardFlit {
+            gates:
+                encOut[encUnits];
+                authOut[authUnits];
+        }
+        encUnit[encUnits]: EncFlit;
+        authUnit[authUnits]: AuthFlit;
+        exitGuard: ExitGuardFlit {
+            gates:
+                encIn[encUnits];
+                authIn[authUnits];
+        }
+        testapp: ArrivalManagerFlitG2C3TestApp;
+    connections:
+        testapp.appIn <-- am.appOut;
+        testapp.arqIn <-- am.arqOut;
+        testapp.netOut --> am.netIn;
+
+        am.cryptoOut --> netQ.in;
+        entryGuard.netIn <-- netQ.out;
+
+        testapp.appQOut --> appQ.in;
+        entryGuard.appIn <-- appQ.out;
+
+        exitGuard.entryOut --> authQ.in;
+        entryGuard.exitIn <-- authQ.out;
+
+        for i=0..encUnits-1 {
+            encUnit[i].in <-- entryGuard.encOut[i];
+            encUnit[i].out --> exitGuard.encIn[i];
+        }
+
+        for i=0..authUnits-1 {
+            authUnit[i].in <-- entryGuard.authOut[i];
+            authUnit[i].out --> exitGuard.authIn[i];
+        }
+
+        exitGuard.appOut --> am.cryptoIn;
+        exitGuard.netOut --> testapp.retBufIn;
+}
+
+%contains-regex: stdout
+Got flit flit1-dec
+Source \(3,3\)
+Target \(0,0\)
+GID 123
+GEV 123
+Mode MODE_DATA
+NC mode NC_G2C3
+.*
+Got ARQ arq-123-s\(0,0\)-t\(3,3\)
+Source \(0,0\)
+Target \(3,3\)
+GID 123
+GEV 0
+Mode MODE_ARQ_TELL_MISSING
+NC mode NC_G2C3
+ARQ modes \(321,ARQ_DATA_MAC\)
+.*
+Got flit flit3-new-dec
+Source \(3,3\)
+Target \(0,0\)
+GID 123
+GEV 321
+Mode MODE_DATA
+NC mode NC_G2C3
+
+%not-contains: stdout
+undisposed object:
+
+%not-contains: stdout
+-- check module destructor
