@@ -13,8 +13,8 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __HAECCOMM_ROUTERXY_H_
-#define __HAECCOMM_ROUTERXY_H_
+#ifndef __HAECCOMM_ROUTERRANDOMXORY_H_
+#define __HAECCOMM_ROUTERRANDOMXORY_H_
 
 #include <omnetpp.h>
 #include <Routers/RouterBase.h>
@@ -24,17 +24,11 @@ using namespace omnetpp;
 namespace HaecComm { namespace Routers {
 
 /**
- * \brief Router with an XY routing scheme.
- *
- * This router implementation should be used with a two-dimensional
- * grid network topology. It routes the packet horizontally (in X
- * direction) until the column of the destination node is reached.
- * Then, it is routed vertically (Y direction) until the destination
- * node is reached.
+ * TODO - Generated class
  */
-class RouterXY : public RouterBase {
+class RouterRandomXOrY : public RouterBase {
 protected:
-	virtual int computeDestinationPort(const Messages::Flit* flit) const override;
+    virtual int computeDestinationPort(const Messages::Flit* flit) const override;
 };
 
 }} //namespace

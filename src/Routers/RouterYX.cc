@@ -24,13 +24,7 @@ namespace HaecComm { namespace Routers {
 
 Define_Module(RouterYX);
 
-RouterYX::RouterYX() {
-}
-
-RouterYX::~RouterYX() {
-}
-
-int RouterYX::computeDestinationPort(const Messages::Flit* flit) const {
+int RouterYX::computeDestinationPort(const Flit* flit) const {
     // Get node information
     int targetX = flit->getTarget().x();
     int targetY = flit->getTarget().y();
@@ -40,14 +34,14 @@ int RouterYX::computeDestinationPort(const Messages::Flit* flit) const {
         // Move in Y direction
         return targetY < nodeY ? Constants::NORTH_PORT : Constants::SOUTH_PORT;
     }
-    else if(targetX != nodeX) {
+
+    if(targetX != nodeX) {
         // Move in X direction
         return targetX < nodeX ? Constants::WEST_PORT : Constants::EAST_PORT;
     }
-    else {
-        // This node is the destination
-        return -1;
-    }
+
+    // This node is the destination
+    return -1;
 }
 
 }} //namespace

@@ -33,10 +33,6 @@ namespace HaecComm { namespace Routers {
  * node is reached.
  */
 class RouterYX : public RouterBase {
-public:
-	RouterYX();
-	virtual ~RouterYX();
-
 protected:
 	virtual int computeDestinationPort(const Messages::Flit* flit) const override;
 };
