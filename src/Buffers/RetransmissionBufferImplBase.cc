@@ -40,7 +40,13 @@ void RetransmissionBufferImplBase::initialize() {
     if(bufSize < 0)
         throw cRuntimeError(this, "Retransmission buffer size must be greater or equal to 0, but received %i", bufSize);
 
-    numCombinations = getAncestorPar("numCombinations");
+    try {
+        numCombinations = getAncestorPar("numCombinations");
+    }
+    catch(const cRuntimeError& e) {
+        EV_DEBUG << "Retransmission buffer is not in a network coded environment" << std::endl;
+    }
+
     if(numCombinations < 2)
         throw cRuntimeError(this, "Number of combinations must be greater than 2, but received %i", numCombinations);
 }
@@ -73,7 +79,7 @@ void RetransmissionBufferImplBase::handleDataMessage(Flit* flit) {
     // Duplicate flit so we can store the original
     Flit* copy = flit->dup();
 
-    // Add copy to cache
+    // Add original to cache
     if(flit->getNcMode() == NC_UNCODED) {
         // Uncoded flit
         if(!ucFlitCache[key].emplace(mode, flit).second)
@@ -87,7 +93,6 @@ void RetransmissionBufferImplBase::handleDataMessage(Flit* flit) {
             throw cRuntimeError(this, "Unable to cache flit in the retransmission buffer!");
         ncFlitQueue.push(flit);
     }
-
 
     // Check if cache size was exceeded
     while(ucFlitQueue.size() > static_cast<size_t>(bufSize)) {

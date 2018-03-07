@@ -44,32 +44,32 @@ GenTraffic::~GenTraffic() {
 }
 
 void GenTraffic::initialize() {
-	MiddlewareBase::initialize();
+    MiddlewareBase::initialize();
 
     // subscribe to clock signal
     getSimulation()->getSystemModule()->subscribe("clock", this);
 
     enabled = par("enabled");
 
-	injectionProb = par("injectionProb");
-	if(injectionProb < 0.0 || injectionProb > 1.0)
-		throw cRuntimeError(this, "Injection probability must be between 0 and 1, but is %f", injectionProb);
+    injectionProb = par("injectionProb");
+    if(injectionProb < 0.0 || injectionProb > 1.0)
+        throw cRuntimeError(this, "Injection probability must be between 0 and 1, but is %f", injectionProb);
 
-	generatePairs = par("generatePairs");
-	singleTarget = par("singleTarget");
+    generatePairs = par("generatePairs");
+    singleTarget = par("singleTarget");
 
-	gridRows = getAncestorPar("rows");
-	gridColumns = getAncestorPar("columns");
-	nodeId = getAncestorPar("id");
+    gridRows = getAncestorPar("rows");
+    gridColumns = getAncestorPar("columns");
+    nodeId = getAncestorPar("id");
 
     singleTargetId = par("singleTargetId");
     if(singleTarget && (singleTargetId < 0 || singleTargetId >= gridRows * gridColumns))
         throw cRuntimeError(this, "Single Target ID must be between 0 and %i, but is %i", gridRows * gridColumns - 1, singleTargetId);
 
-	nodeX = nodeId % gridColumns;
-	nodeY = nodeId / gridColumns;
+    nodeX = nodeId % gridColumns;
+    nodeY = nodeId / gridColumns;
 
-	pktgenerateSignal = registerSignal("pktgenerate");
+    pktgenerateSignal = registerSignal("pktgenerate");
 }
 
 void GenTraffic::handleMessage(cMessage* msg) {
