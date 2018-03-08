@@ -14,6 +14,8 @@
 // 
 
 #include "ArrivalManagerFlit.h"
+#include <Messages/MessageFactory.h>
+#include <cmath>
 #include <sstream>
 
 using namespace HaecComm::Messages;
@@ -47,6 +49,8 @@ ArrivalManagerFlit::~ArrivalManagerFlit() {
     for(auto it = ncComputedMacCache.begin(); it != ncComputedMacCache.end(); ++it)
         for(auto jt = it->second.begin(); jt != it->second.end(); ++jt)
             delete jt->second;
+
+    // TODO: add remaining maps
 }
 
 void ArrivalManagerFlit::initialize() {
@@ -58,9 +62,11 @@ void ArrivalManagerFlit::initialize() {
     if(arqIssueTimeout < 1)
         throw cRuntimeError(this, "arqIssueTimeout must be greater than 0");
 
-    arqAnswerTimeout = par("arqAnswerTimeout");
-    if(arqAnswerTimeout < 1)
-        throw cRuntimeError(this, "arqAnswerTimeout must be greater than 0");
+    arqAnswerTimeoutBase = par("arqAnswerTimeoutBase");
+    if(arqAnswerTimeoutBase < 1)
+        throw cRuntimeError(this, "arqAnswerTimeoutBase must be greater than 0");
+
+    lastArqWaitForOngoingVerifications = par("lastArqWaitForOngoingVerifications");
 
     outOfOrderIdGracePeriod = par("outOfOrderIdGracePeriod");
     if(outOfOrderIdGracePeriod < 0)
@@ -71,6 +77,16 @@ void ArrivalManagerFlit::initialize() {
 
     nodeX = nodeId % gridColumns;
     nodeY = nodeId / gridColumns;
+
+    // Compute ARQ answer timeouts
+    int gridRows = getAncestorPar("rows");
+    for(int y = 0; y < gridRows; ++y) {
+        for(int x = 0; x < gridColumns; ++x) {
+            if(x != nodeX && y != nodeY) {
+                arqAnswerTimeouts[Address2D(x, y)] = arqAnswerTimeoutBase + 2 * (std::abs(x - nodeX) + std::abs(y - nodeY));
+            }
+        }
+    }
 }
 
 void ArrivalManagerFlit::handleMessage(cMessage* msg) {
@@ -164,6 +180,16 @@ void ArrivalManagerFlit::handleNetMessage(Flit* flit) {
             EV_DEBUG << "Caching data flit \"" << flit->getName() << "\" from " << source << " with ID " << id << std::endl;
             ucReceivedDataCache.emplace(key, flit);
 
+            // Check if the MAC flit has already arrived
+            if(ucReceivedMacCache.count(key)) {
+                // Cancel ARQ timer
+                cancelArqTimer(key);
+            }
+            else {
+                // Start/update ARQ timer
+                setArqTimer(key, ncMode);
+            }
+
             // We only need the data flit to start decryption and authentication,
             // so start it now
             ucStartDecryptAndAuth(key);
@@ -181,6 +207,16 @@ void ArrivalManagerFlit::handleNetMessage(Flit* flit) {
             // We don't have this flit yet, cache it
             EV_DEBUG << "Caching MAC flit \"" << flit->getName() << "\" from " << source << " with ID " << id << std::endl;
             ucReceivedMacCache.emplace(key, flit);
+
+            // Check if the data flit has already arrived
+            if(ucReceivedDataCache.count(key)) {
+                // Cancel ARQ timer
+                cancelArqTimer(key);
+            }
+            else {
+                // Start/update ARQ timer
+                setArqTimer(key, ncMode);
+            }
 
             // Try to verify the flit (in case the computed MAC is already there)
             ucTryVerification(key);
@@ -219,6 +255,9 @@ void ArrivalManagerFlit::handleNetMessage(Flit* flit) {
             EV_DEBUG << "Caching data flit \"" << flit->getName() << "\" from " << source << " with ID " << id << " and GEV " << gev << std::endl;
             gevCache.emplace(gev, flit);
 
+            // Start/update ARQ timer
+            setArqTimer(key, ncMode);
+
             // We only need the data flit to start decryption and authentication,
             // so start it now
             ncStartDecryptAndAuth(key, gev);
@@ -248,6 +287,9 @@ void ArrivalManagerFlit::handleNetMessage(Flit* flit) {
             EV_DEBUG << "Caching MAC flit \"" << flit->getName() << "\" from " << source << " with ID " << id << " and GEV " << gev << std::endl;
             gevCache.emplace(gev, flit);
 
+            // Start/update ARQ timer
+            setArqTimer(key, ncMode);
+
             // Try to verify the flit (in case the computed MAC is already there)
             ncTryVerification(key, gev);
         }
@@ -267,6 +309,14 @@ void ArrivalManagerFlit::handleCryptoMessage(Flit* flit) {
 
     // Check network coding mode
     if(ncMode == NC_UNCODED) {
+        // Check if this ID is already finished
+        IdSet& activeIdSet = activeIds[source];
+        if(!activeIdSet.count(id)) {
+            EV_DEBUG << "Received a decrypted/authenticated flit for finished FID " << id << std::endl;
+            delete flit;
+            return;
+        }
+
         // Check flit mode
         if(mode == MODE_DATA) {
             // This is a decrypted flit arriving from a crypto unit
@@ -364,6 +414,54 @@ void ArrivalManagerFlit::handleCryptoMessage(Flit* flit) {
 }
 
 void ArrivalManagerFlit::handleArqTimer(ArqTimer* timer) {
+    // Get parameters
+    uint32_t id = timer->getGidOrFid();
+    Address2D source = timer->getSource();
+    IdSourceKey key = std::make_pair(id, source);
+    NcMode ncMode = static_cast<NcMode>(timer->getNcMode());
+
+    EV_DEBUG << "ARQ timeout triggered for source " << key.second << ", ID " << key.first << std::endl;
+
+    // Check if we have reached the ARQ limit
+    if(issuedArqs[key] >= static_cast<unsigned int>(arqLimit)) {
+        // We have failed completely, clean up everything and discard flits from this ID
+        EV_DEBUG << "ARQ limit reached for source " << key.second << ", ID " << key.first << std::endl;
+        if(ncMode == NC_UNCODED)
+            ucCleanUp(key);
+        else
+            ncCleanUp(key);
+        return;
+    }
+
+    // Check network coding
+    if(ncMode == NC_UNCODED) {
+        ArqMode arqMode;
+
+        // Check what is missing
+        if(!ucReceivedDataCache.count(key) && !ucReceivedMacCache.count(key)) {
+            // Both flits are missing
+            arqMode = ARQ_DATA_MAC;
+        }
+        else if(ucReceivedDataCache.count(key) && !ucReceivedMacCache.count(key)) {
+            // Only MAC is missing
+            arqMode = ARQ_MAC;
+        }
+        else if(!ucReceivedDataCache.count(key) && ucReceivedMacCache.count(key)) {
+            // Only data is missing
+            arqMode = ARQ_DATA;
+        }
+        else {
+            // No flits are missing, this should never happen
+            throw cRuntimeError(this, "ARQ timeout triggered for source %s, ID %u, but no flits are missing", key.second.str().c_str(), key.first);
+        }
+
+        // Send the ARQ
+        ucIssueArq(key, MODE_ARQ_TELL_MISSING, arqMode);
+        // TODO: continue here?
+    }
+    else { // ncMode != uncoded
+
+    }
 }
 
 void ArrivalManagerFlit::ucStartDecryptAndAuth(const IdSourceKey& key) {
@@ -410,8 +508,8 @@ void ArrivalManagerFlit::ucTryVerification(const IdSourceKey& key) {
                 return;
             }
 
-            // Send out ARQ
-            generateArq(key, MODE_ARQ_TELL_MISSING, ARQ_DATA_MAC);
+            // Issue ARQ
+            ucIssueArq(key, MODE_ARQ_TELL_MISSING, ARQ_DATA_MAC);
 
             // Clear received cache to ensure we can receive the retransmission
             ucDeleteFromCache(ucReceivedDataCache, key);
@@ -444,6 +542,25 @@ void ArrivalManagerFlit::ucTrySendToApp(const IdSourceKey& key) {
     }
 }
 
+void ArrivalManagerFlit::ucIssueArq(const IdSourceKey& key, Mode mode, ArqMode arqMode) {
+    // Assert that we have not reached the maximum number of ARQs
+    ASSERT(issuedArqs[key] < static_cast<unsigned int>(arqLimit));
+
+    // Create ARQ
+    Flit* arq = generateArq(key, mode, arqMode);
+
+    // Send ARQ
+    EV << "Sending ARQ \"" << arq->getName() << "\" from " << arq->getSource()
+       << " to " << arq->getTarget() << " (ID: " << arq->getGidOrFid() << ")" << std::endl;
+    send(arq, "arqOut");
+
+    // Increment ARQ counter
+    ++issuedArqs[key];
+
+    // Set the ARQ timer
+    setArqTimer(key, NC_UNCODED, true);
+}
+
 void ArrivalManagerFlit::ucCleanUp(const IdSourceKey& key) {
     // Clean up all information related to this ID/address
     EV_DEBUG << "Fully cleaning up: source " << key.second << ", ID " << key.first << std::endl;
@@ -467,6 +584,20 @@ void ArrivalManagerFlit::ucCleanUp(const IdSourceKey& key) {
     activeIds.at(key.second).erase(key.first);
 
     // TODO: check if this ID needs to be inserted into the finished ID set for the grace period
+
+    // Cancel and delete any remaining ARQ timers
+    TimerCache::iterator timerIter = arqTimers.find(key);
+    if(timerIter != arqTimers.end()) {
+        cancelAndDelete(timerIter->second);
+        arqTimers.erase(timerIter);
+    }
+
+    // Delete any planned ARQs
+    FlitCache::iterator arqIter = plannedArqs.find(key);
+    if(arqIter != plannedArqs.end()) {
+        delete arqIter->second;
+        plannedArqs.erase(arqIter);
+    }
 }
 
 bool ArrivalManagerFlit::ucDeleteFromCache(FlitCache& cache, const IdSourceKey& key) {
@@ -567,6 +698,39 @@ void ArrivalManagerFlit::ncTrySendToApp(const IdSourceKey& key, uint16_t gev) {
     }
 }
 
+void ArrivalManagerFlit::ncInitiateArq(const IdSourceKey& key, Mode mode, ArqMode arqMode, bool forceImmediate) {
+    // Assert that we have not reached the maximum number of ARQs
+    ASSERT(issuedArqs[key] < static_cast<unsigned int>(arqLimit));
+
+    // Check if there is already a planned ARQ for this ID/source
+    FlitCache::iterator plannedIter = plannedArqs.find(key);
+    if(plannedIter == plannedArqs.end()) {
+        // Create a new ARQ and insert it into the planned ARQ map
+        plannedIter = plannedArqs.emplace(key, generateArq(key, mode, arqMode)).first;
+    }
+    else {
+        // Merge the planned ARQ with the new ARQ arguments
+    }
+
+    // Check if we can send out the ARQ now
+    if(forceImmediate) { // TODO: check if verifications are ongoing
+        // Get ARQ
+        Flit* arq = plannedIter->second;
+
+        // Send ARQ
+        //emit(pktgenerateSignal, flit->getGidOrFid());
+        EV << "Sending ARQ \"" << arq->getName() << "\" from " << arq->getSource()
+           << " to " << arq->getTarget() << " (ID: " << arq->getGidOrFid() << ")" << std::endl;
+        send(arq, "arqOut");
+
+        // Remove from planned ARQ map
+        plannedArqs.erase(plannedIter);
+
+        // Increment ARQ counter
+        ++issuedArqs[key];
+    }
+}
+
 void ArrivalManagerFlit::ncCheckGenerationDone(const IdSourceKey& key, unsigned short generationSize) {
     // Check if we have sent enough data flits to the app in order
     // to decode this generation
@@ -603,6 +767,13 @@ void ArrivalManagerFlit::ncCleanUp(const IdSourceKey& key) {
 
     // Remove ID from active ID set
     activeIds.at(key.second).erase(key.first);
+
+    // Cancel and delete any remaining ARQ timers
+    TimerCache::iterator timerIter = arqTimers.find(key);
+    if(timerIter != arqTimers.end()) {
+        cancelAndDelete(timerIter->second);
+        arqTimers.erase(timerIter);
+    }
 }
 
 bool ArrivalManagerFlit::ncDeleteFromCache(GenCache& cache, const IdSourceKey& key) {
@@ -633,7 +804,7 @@ bool ArrivalManagerFlit::ncDeleteFromCache(GenCache& cache, const IdSourceKey& k
     return false;
 }
 
-void ArrivalManagerFlit::generateArq(const IdSourceKey& key, Mode mode, ArqMode arqMode) {
+Flit* ArrivalManagerFlit::generateArq(const IdSourceKey& key, Mode mode, ArqMode arqMode) {
     Address2D self(nodeX, nodeY);
 
     // Build packet name
@@ -656,16 +827,11 @@ void ArrivalManagerFlit::generateArq(const IdSourceKey& key, Mode mode, ArqMode 
     // Set meta fields
     arq->setNcMode(NC_UNCODED);
 
-    //emit(pktgenerateSignal, flit->getGidOrFid());
-    EV << "Sending ARQ \"" << arq->getName() << "\" from " << arq->getSource()
-       << " to " << arq->getTarget() << " (ID: " << arq->getGidOrFid() << ")" << std::endl;
-    send(arq, "arqOut");
-
-    // Increment ARQ counter
-    ++issuedArqs[key];
+    // Return ARQ
+    return arq;
 }
 
-void ArrivalManagerFlit::generateArq(const IdSourceKey& key, Mode mode, const GevArqMap& arqModes, NcMode ncMode) {
+Flit* ArrivalManagerFlit::generateArq(const IdSourceKey& key, Mode mode, const GevArqMap& arqModes, NcMode ncMode) {
     Address2D self(nodeX, nodeY);
 
     // Build packet name
@@ -688,13 +854,53 @@ void ArrivalManagerFlit::generateArq(const IdSourceKey& key, Mode mode, const Ge
     // Set meta fields
     arq->setNcMode(ncMode);
 
-    //emit(pktgenerateSignal, flit->getGidOrFid());
-    EV << "Sending ARQ \"" << arq->getName() << "\" from " << arq->getSource()
-       << " to " << arq->getTarget() << " (ID: " << arq->getGidOrFid() << ")" << std::endl;
-    send(arq, "arqOut");
+    // Return ARQ
+    return arq;
+}
 
-    // Increment ARQ counter
-    ++issuedArqs[key];
+void ArrivalManagerFlit::setArqTimer(const IdSourceKey& key, NcMode ncMode, bool useAnswerTime, bool setToMax) {
+    // Check if there is already a timer for this ID/source
+    TimerCache::iterator timerIter = arqTimers.find(key);
+    if(timerIter == arqTimers.end()) {
+        // Create a new timer
+        std::ostringstream timerName;
+        timerName << "arqTimer-" << key.first << "-s" << key.second;
+        timerIter = arqTimers.emplace(key, MessageFactory::createArqTimer(timerName.str().c_str(), key.first, key.second, ncMode)).first;
+    }
+
+    // Get the timer
+    ArqTimer* timer = timerIter->second;
+
+    // Compute the desired arrival time
+    simtime_t zeroHour = simTime() + (useAnswerTime ? (arqAnswerTimeouts.at(key.second)) : (arqIssueTimeout)) * getAncestorPar("clockPeriod");
+
+    // Check if the timer is already scheduled (i.e. active and counting down)
+    if(timer->isScheduled()) {
+        // Check if we use the maximum of desired and scheduled time
+        if(setToMax) {
+            // Get arrival time
+            simtime_t oldZeroHour = timer->getArrivalTime();
+
+            // Compute maximum
+            if(oldZeroHour > zeroHour)
+                zeroHour = oldZeroHour;
+        }
+
+        // Cancel the timer
+        cancelEvent(timer);
+    }
+
+    // Set the new timer
+    scheduleAt(zeroHour, timer);
+}
+
+void ArrivalManagerFlit::cancelArqTimer(const IdSourceKey& key) {
+    // Check if there is a timer for this ID/source
+    TimerCache::iterator timerIter = arqTimers.find(key);
+    if(timerIter != arqTimers.end()) {
+        // Cancel the timer in case it is scheduled
+        cancelEvent(timerIter->second);
+    }
 }
 
 }} //namespace

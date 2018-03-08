@@ -17,7 +17,7 @@
 #define __HAECCOMM_ARRIVALMANAGERFLIT_H_
 
 #include <omnetpp.h>
-#include <Messages/ArqTimer_m.h>
+#include <Messages/ArqTimer.h>
 #include <Messages/Flit.h>
 #include <Util/ShiftRegister.h>
 #include <cinttypes>
@@ -39,6 +39,7 @@ public:
     typedef std::map<uint16_t, Messages::Flit*> GevCache;
     typedef std::map<IdSourceKey, Messages::Flit*> FlitCache;
     typedef std::map<IdSourceKey, GevCache> GenCache;
+    typedef std::map<IdSourceKey, Messages::ArqTimer*> TimerCache;
 
     ArrivalManagerFlit();
     virtual ~ArrivalManagerFlit();
@@ -49,13 +50,18 @@ protected:
 
     int arqLimit;
     int arqIssueTimeout;
-    int arqAnswerTimeout;
+    int arqAnswerTimeoutBase;
+    bool lastArqWaitForOngoingVerifications;
     int outOfOrderIdGracePeriod;
 
     int gridColumns;
     int nodeId;
     int nodeX;
     int nodeY;
+
+    // ARQ answer timeout for each network node
+    // The values differ because the round trip time differs
+    std::map<Messages::Address2D, int> arqAnswerTimeouts;
 
     // Track currently active FIDs/GIDs for each sender (to recognize redundant retransmissions)
     std::map<Messages::Address2D, IdSet> activeIds;
@@ -64,6 +70,9 @@ protected:
 
     // Track amount of issued ARQs
     std::map<IdSourceKey, unsigned int> issuedArqs;
+
+    // Track ARQ timeouts
+    TimerCache arqTimers;
 
     // Cache arriving flits for uncoded variant
     FlitCache ucReceivedDataCache;
@@ -88,6 +97,9 @@ protected:
     // Network coding only: cache which (and how many) GEVs from a generation have been sent to the app
     std::map<IdSourceKey, GevSet> ncDispatchedGevs;
 
+    // Network coding only: track planned ARQs (in case we delay an ARQ to wait for verifications to finish)
+    FlitCache ncPlannedArqs;
+
 private:
     void handleNetMessage(Messages::Flit* flit);
     void handleCryptoMessage(Messages::Flit* flit);
@@ -96,20 +108,25 @@ private:
     void ucStartDecryptAndAuth(const IdSourceKey& key);
     void ucTryVerification(const IdSourceKey& key);
     void ucTrySendToApp(const IdSourceKey& key);
+    void ucIssueArq(const IdSourceKey& key, Messages::Mode mode, Messages::ArqMode arqMode);
     void ucCleanUp(const IdSourceKey& key);
     bool ucDeleteFromCache(FlitCache& cache, const IdSourceKey& key);
 
     void ncStartDecryptAndAuth(const IdSourceKey& key, uint16_t gev);
     void ncTryVerification(const IdSourceKey& key, uint16_t gev);
     void ncTrySendToApp(const IdSourceKey& key, uint16_t gev);
+    void ncInitiateArq(const IdSourceKey& key, Messages::Mode mode, Messages::ArqMode arqMode, bool forceImmediate = false); // TODO: argument for NC, not UC
     void ncCheckGenerationDone(const IdSourceKey& key, unsigned short generationSize = 2);
     void ncCleanUp(const IdSourceKey& key);
     bool ncDeleteFromCache(GenCache& cache, const IdSourceKey& key);
     bool ncDeleteFromCache(GenCache& cache, const IdSourceKey& key, uint16_t gev);
     // TODO: NC: do not send ARQ immediately on verification fail if we have more redundant GEVs to verify
 
-    void generateArq(const IdSourceKey& key, Messages::Mode mode, Messages::ArqMode arqMode);
-    void generateArq(const IdSourceKey& key, Messages::Mode mode, const Messages::GevArqMap& arqModes, Messages::NcMode ncMode);
+    Messages::Flit* generateArq(const IdSourceKey& key, Messages::Mode mode, Messages::ArqMode arqMode);
+    Messages::Flit* generateArq(const IdSourceKey& key, Messages::Mode mode, const Messages::GevArqMap& arqModes, Messages::NcMode ncMode);
+
+    void setArqTimer(const IdSourceKey& key, Messages::NcMode ncMode, bool useAnswerTime = false, bool setToMax = true);
+    void cancelArqTimer(const IdSourceKey& key);
 };
 
 }} //namespace

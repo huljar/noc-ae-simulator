@@ -13,29 +13,13 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-cplusplus {{
-#include <Messages/fieldtypes.h>
-}};
+#include "ArqTimer.h"
 
-namespace HaecComm::Messages;
+namespace HaecComm { namespace Messages {
 
-class noncobject Address2D;
-enum Mode;
-enum NcMode;
+Register_Class(ArqTimer);
 
-//
-// TODO generated message class
-//
-message ArqTimer {
-    @customize(true);
-    
-    // For encoded flits: Generation ID. Specifies the generation that this ARQ belongs to.
-    // For decoded/uncoded flits: Flit ID.
-    uint32_t gidOrFid; //# TODO: assert 24 bit size
-    
-    // Address of the sender of the transmission unit that this ARQ belongs to.
-    Address2D source;
-    
-    // ARQ marker for the network coding mode
-    uint8_t ncMode @enum(NcMode) = NC_UNCODED;
+void ArqTimer::copy(const ArqTimer& other) {
 }
+
+}} //namespace

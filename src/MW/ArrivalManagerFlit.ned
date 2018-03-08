@@ -23,7 +23,8 @@ simple ArrivalManagerFlit {
         @display("i=block/decrypt");
         int arqLimit;
         int arqIssueTimeout;
-        int arqAnswerTimeout;
+        int arqAnswerTimeoutBase;
+        bool lastArqWaitForOngoingVerifications;
         int outOfOrderIdGracePeriod = default(2);
     gates:
         input  netIn;
