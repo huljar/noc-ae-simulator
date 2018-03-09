@@ -115,7 +115,7 @@ private:
     void ncStartDecryptAndAuth(const IdSourceKey& key, uint16_t gev);
     void ncTryVerification(const IdSourceKey& key, uint16_t gev);
     void ncTrySendToApp(const IdSourceKey& key, uint16_t gev);
-    void ncInitiateArq(const IdSourceKey& key, Messages::Mode mode, Messages::ArqMode arqMode, bool forceImmediate = false); // TODO: argument for NC, not UC
+    void ncIssueArq(const IdSourceKey& key, Messages::Mode mode, Messages::ArqMode arqMode, bool forceImmediate = false); // TODO: argument for NC, not UC
     void ncCheckGenerationDone(const IdSourceKey& key, unsigned short generationSize = 2);
     void ncCleanUp(const IdSourceKey& key);
     bool ncDeleteFromCache(GenCache& cache, const IdSourceKey& key);

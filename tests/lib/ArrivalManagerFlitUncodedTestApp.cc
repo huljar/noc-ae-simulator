@@ -120,14 +120,6 @@ void ArrivalManagerFlitUncodedTestApp::receiveSignal(cComponent* source, simsign
             send(f5, "netOut");
             send(f6, "netOut");
         }
-        else if(l == 5) {
-            // Test loss of mac (only data arrives)
-            // TODO
-        }
-        else if(l == 10) {
-            // Test loss of data (only mac arrives)
-            // TODO
-        }
     }
     else {
         throw cRuntimeError(this, "Unexpected signal!");

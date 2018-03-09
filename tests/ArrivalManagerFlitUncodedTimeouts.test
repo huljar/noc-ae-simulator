@@ -1,5 +1,5 @@
 %description:
-Test arrival manager: uncoded data/mac flit pairs
+Test arrival manager: uncoded data/mac flit pairs ARQ timeouts
 
 %inifile: omnetpp.ini
 [General]
@@ -25,7 +25,6 @@ import HaecComm.Core.Clock;
 import HaecComm.Buffers.PacketQueue;
 import HaecComm.MW.ArrivalManagerFlit;
 import HaecComm.MW.Crypto.*;
-import HaecCommTest.ArrivalManagerFlitUncodedTestApp;
 
 network Test {
     parameters:
@@ -53,7 +52,7 @@ network Test {
                 encIn[encUnits];
                 authIn[authUnits];
         }
-        testapp: ArrivalManagerFlitUncodedTestApp;
+        testapp: ArrivalManagerFlitUncodedTimeoutsTestApp;
     connections:
         testapp.appIn <-- am.appOut;
         testapp.arqIn <-- am.arqOut;
@@ -83,35 +82,19 @@ network Test {
 }
 
 %contains-regex: stdout
-Got flit flit1-dec
-Source \(3,3\)
-Target \(0,0\)
+8 Got ARQ arq-123-s\(0,0\)-t\(3,3\)
+Source \(0,0\)
+Target \(3,3\)
 FID 123
-Mode MODE_DATA
-.*
-Got ARQ arq-666-s\(0,0\)-t\(3,3\)
-Source \(0,0\)
-Target \(3,3\)
-FID 666
 Mode MODE_ARQ_TELL_MISSING
-ARQ mode ARQ_DATA_MAC
+ARQ mode ARQ_MAC
 .*
-Got ARQ arq-777-s\(0,0\)-t\(3,3\)
+9 Got ARQ arq-123-s\(0,0\)-t\(2,2\)
 Source \(0,0\)
-Target \(3,3\)
-FID 777
+Target \(2,2\)
+FID 123
 Mode MODE_ARQ_TELL_MISSING
-ARQ mode ARQ_DATA_MAC
-.*
-Got flit flit3-new-dec
-Source \(3,3\)
-Target \(0,0\)
-FID 666
-Mode MODE_DATA
-
-%contains: stdout
-ARQ timeout triggered for source (3,3), ID 777
-ARQ limit reached for source (3,3), ID 777
+ARQ mode ARQ_DATA
 
 %not-contains: stdout
 undisposed object:

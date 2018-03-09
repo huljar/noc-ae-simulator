@@ -28,6 +28,9 @@ ArrivalManagerFlit::ArrivalManagerFlit() {
 }
 
 ArrivalManagerFlit::~ArrivalManagerFlit() {
+    for(auto it = arqTimers.begin(); it != arqTimers.end(); ++it)
+        cancelAndDelete(it->second);
+
     for(auto it = ucReceivedDataCache.begin(); it != ucReceivedDataCache.end(); ++it)
         delete it->second;
     for(auto it = ucReceivedMacCache.begin(); it != ucReceivedMacCache.end(); ++it)
@@ -50,7 +53,8 @@ ArrivalManagerFlit::~ArrivalManagerFlit() {
         for(auto jt = it->second.begin(); jt != it->second.end(); ++jt)
             delete jt->second;
 
-    // TODO: add remaining maps
+    for(auto it = ncPlannedArqs.begin(); it != ncPlannedArqs.end(); ++it)
+        delete it->second;
 }
 
 void ArrivalManagerFlit::initialize() {
@@ -457,7 +461,6 @@ void ArrivalManagerFlit::handleArqTimer(ArqTimer* timer) {
 
         // Send the ARQ
         ucIssueArq(key, MODE_ARQ_TELL_MISSING, arqMode);
-        // TODO: continue here?
     }
     else { // ncMode != uncoded
 
@@ -591,13 +594,6 @@ void ArrivalManagerFlit::ucCleanUp(const IdSourceKey& key) {
         cancelAndDelete(timerIter->second);
         arqTimers.erase(timerIter);
     }
-
-    // Delete any planned ARQs
-    FlitCache::iterator arqIter = plannedArqs.find(key);
-    if(arqIter != plannedArqs.end()) {
-        delete arqIter->second;
-        plannedArqs.erase(arqIter);
-    }
 }
 
 bool ArrivalManagerFlit::ucDeleteFromCache(FlitCache& cache, const IdSourceKey& key) {
@@ -698,37 +694,37 @@ void ArrivalManagerFlit::ncTrySendToApp(const IdSourceKey& key, uint16_t gev) {
     }
 }
 
-void ArrivalManagerFlit::ncInitiateArq(const IdSourceKey& key, Mode mode, ArqMode arqMode, bool forceImmediate) {
-    // Assert that we have not reached the maximum number of ARQs
-    ASSERT(issuedArqs[key] < static_cast<unsigned int>(arqLimit));
-
-    // Check if there is already a planned ARQ for this ID/source
-    FlitCache::iterator plannedIter = plannedArqs.find(key);
-    if(plannedIter == plannedArqs.end()) {
-        // Create a new ARQ and insert it into the planned ARQ map
-        plannedIter = plannedArqs.emplace(key, generateArq(key, mode, arqMode)).first;
-    }
-    else {
-        // Merge the planned ARQ with the new ARQ arguments
-    }
-
-    // Check if we can send out the ARQ now
-    if(forceImmediate) { // TODO: check if verifications are ongoing
-        // Get ARQ
-        Flit* arq = plannedIter->second;
-
-        // Send ARQ
-        //emit(pktgenerateSignal, flit->getGidOrFid());
-        EV << "Sending ARQ \"" << arq->getName() << "\" from " << arq->getSource()
-           << " to " << arq->getTarget() << " (ID: " << arq->getGidOrFid() << ")" << std::endl;
-        send(arq, "arqOut");
-
-        // Remove from planned ARQ map
-        plannedArqs.erase(plannedIter);
-
-        // Increment ARQ counter
-        ++issuedArqs[key];
-    }
+void ArrivalManagerFlit::ncIssueArq(const IdSourceKey& key, Mode mode, ArqMode arqMode, bool forceImmediate) {
+//    // Assert that we have not reached the maximum number of ARQs
+//    ASSERT(issuedArqs[key] < static_cast<unsigned int>(arqLimit));
+//
+//    // Check if there is already a planned ARQ for this ID/source
+//    FlitCache::iterator plannedIter = plannedArqs.find(key);
+//    if(plannedIter == plannedArqs.end()) {
+//        // Create a new ARQ and insert it into the planned ARQ map
+//        plannedIter = plannedArqs.emplace(key, generateArq(key, mode, arqMode)).first;
+//    }
+//    else {
+//        // Merge the planned ARQ with the new ARQ arguments
+//    }
+//
+//    // Check if we can send out the ARQ now
+//    if(forceImmediate) { // TODO: check if verifications are ongoing
+//        // Get ARQ
+//        Flit* arq = plannedIter->second;
+//
+//        // Send ARQ
+//        //emit(pktgenerateSignal, flit->getGidOrFid());
+//        EV << "Sending ARQ \"" << arq->getName() << "\" from " << arq->getSource()
+//           << " to " << arq->getTarget() << " (ID: " << arq->getGidOrFid() << ")" << std::endl;
+//        send(arq, "arqOut");
+//
+//        // Remove from planned ARQ map
+//        plannedArqs.erase(plannedIter);
+//
+//        // Increment ARQ counter
+//        ++issuedArqs[key];
+//    }
 }
 
 void ArrivalManagerFlit::ncCheckGenerationDone(const IdSourceKey& key, unsigned short generationSize) {
@@ -774,6 +770,13 @@ void ArrivalManagerFlit::ncCleanUp(const IdSourceKey& key) {
         cancelAndDelete(timerIter->second);
         arqTimers.erase(timerIter);
     }
+
+    // Delete any planned ARQs
+//    FlitCache::iterator arqIter = plannedArqs.find(key);
+//    if(arqIter != plannedArqs.end()) {
+//        delete arqIter->second;
+//        plannedArqs.erase(arqIter);
+//    }
 }
 
 bool ArrivalManagerFlit::ncDeleteFromCache(GenCache& cache, const IdSourceKey& key) {
@@ -872,7 +875,12 @@ void ArrivalManagerFlit::setArqTimer(const IdSourceKey& key, NcMode ncMode, bool
     ArqTimer* timer = timerIter->second;
 
     // Compute the desired arrival time
-    simtime_t zeroHour = simTime() + (useAnswerTime ? (arqAnswerTimeouts.at(key.second)) : (arqIssueTimeout)) * getAncestorPar("clockPeriod");
+    simtime_t cycle = getAncestorPar("clockPeriod");
+    simtime_t offset = (useAnswerTime
+        ? arqAnswerTimeouts.at(key.second) * cycle
+        : arqIssueTimeout * cycle
+    );
+    simtime_t zeroHour = simTime() + offset;
 
     // Check if the timer is already scheduled (i.e. active and counting down)
     if(timer->isScheduled()) {

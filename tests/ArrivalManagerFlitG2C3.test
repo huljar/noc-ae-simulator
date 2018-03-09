@@ -6,11 +6,10 @@ Test arrival manager: network coded (G2C3) data/mac flit pairs
 sim-time-limit = 100ns
 **.cmdenv-log-level = debug
 
-**.clock.inter = 2ns
-
 **.am.arqLimit = 1
-**.am.arqIssueTimeout = 10
-**.am.arqAnswerTimeout = 20
+**.am.arqIssueTimeout = 8
+**.am.arqAnswerTimeoutBase = 5
+**.am.lastArqWaitForOngoingVerifications = true
 
 **.awaitSendRequests = true
 
@@ -30,12 +29,14 @@ import HaecCommTest.ArrivalManagerFlitG2C3TestApp;
 
 network Test {
     parameters:
-        int columns = 1;
+        int rows = 4;
+        int columns = 4;
         int id = 0;
         int encUnits;
         int authUnits;
+        double clockPeriod @unit(s) = 2ns;
     submodules:
-        clock: Clock;
+        clock: Clock { inter = clockPeriod; }
         am: ArrivalManagerFlit;
         appQ: PacketQueue;
         authQ: PacketQueue;
@@ -106,6 +107,9 @@ GID 123
 GEV 321
 Mode MODE_DATA
 NC mode NC_G2C3
+
+%not-contains: stdout
+ARQ timeout triggered
 
 %not-contains: stdout
 undisposed object:
