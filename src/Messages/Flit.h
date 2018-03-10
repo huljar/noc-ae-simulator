@@ -31,10 +31,19 @@ public:
 
     // Other helper methods
     bool isArq() const;
+    unsigned short getGenSize() const;
+    unsigned short getNumCombinations() const;
+
+    // ARQ merging
+    void mergeNcArqModesFlit(Mode newMode, const GevArqMap& newArqModes);
 
 private:
     void copy(const Flit& other);
 
+    // ARQ merging
+    void mergeNcArqModesFlitUnion(const GevArqMap& newArqModes);
+    void mergeNcArqModesFlitWithout(const GevArqMap& newArqModes);
+    GevArqMap invertNcArqModesFlit(const GevArqMap& toInvert, const std::set<uint16_t>& gevs);
 };
 
 }} //namespace

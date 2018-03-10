@@ -19,6 +19,26 @@ namespace HaecComm { namespace Messages {
 
 Register_Class(ArqTimer);
 
+unsigned short ArqTimer::getGenSize() const {
+    if(ncMode == NC_UNCODED)
+        return 1;
+    if(ncMode == NC_G2C3 || ncMode == NC_G2C4)
+        return 2;
+
+    throw cRuntimeError(this, "Unexpected NC mode: %s", cEnum::get("HaecComm::Messages::NcMode")->getStringFor(ncMode));
+}
+
+unsigned short ArqTimer::getNumCombinations() const {
+    if(ncMode == NC_UNCODED)
+        return 1;
+    if(ncMode == NC_G2C3)
+        return 3;
+    if(ncMode == NC_G2C4)
+        return 4;
+
+    throw cRuntimeError(this, "Unexpected NC mode: %s", cEnum::get("HaecComm::Messages::NcMode")->getStringFor(ncMode));
+}
+
 void ArqTimer::copy(const ArqTimer& other) {
 }
 

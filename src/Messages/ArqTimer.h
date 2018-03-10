@@ -29,6 +29,10 @@ public:
 
     // ADD CODE HERE to redefine and implement pure virtual functions from ArqTimer_Base
 
+    // Other helper methods
+    unsigned short getGenSize() const;
+    unsigned short getNumCombinations() const;
+
 private:
     void copy(const ArqTimer& other);
 };

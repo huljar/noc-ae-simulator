@@ -21,6 +21,7 @@
 #include <Messages/Flit.h>
 #include <Util/ShiftRegister.h>
 #include <cinttypes>
+#include <map>
 #include <set>
 #include <vector>
 
@@ -115,8 +116,9 @@ private:
     void ncStartDecryptAndAuth(const IdSourceKey& key, uint16_t gev);
     void ncTryVerification(const IdSourceKey& key, uint16_t gev);
     void ncTrySendToApp(const IdSourceKey& key, uint16_t gev);
-    void ncIssueArq(const IdSourceKey& key, Messages::Mode mode, Messages::ArqMode arqMode, bool forceImmediate = false); // TODO: argument for NC, not UC
-    void ncCheckGenerationDone(const IdSourceKey& key, unsigned short generationSize = 2);
+    void ncIssueArq(const IdSourceKey& key, Messages::Mode mode, const Messages::GevArqMap& arqModes, Messages::NcMode ncMode);
+    void ncTrySendPlannedArq(const IdSourceKey& key, bool forceImmediate = false);
+    void ncCheckGenerationDone(const IdSourceKey& key, unsigned short generationSize);
     void ncCleanUp(const IdSourceKey& key);
     bool ncDeleteFromCache(GenCache& cache, const IdSourceKey& key);
     bool ncDeleteFromCache(GenCache& cache, const IdSourceKey& key, uint16_t gev);
@@ -127,6 +129,9 @@ private:
 
     void setArqTimer(const IdSourceKey& key, Messages::NcMode ncMode, bool useAnswerTime = false, bool setToMax = true);
     void cancelArqTimer(const IdSourceKey& key);
+
+    bool ncCheckCompleteGenerationReceived(const IdSourceKey& key, unsigned short numCombinations);
+    bool ncCheckVerificationOngoing(const IdSourceKey& key) const;
 };
 
 }} //namespace
