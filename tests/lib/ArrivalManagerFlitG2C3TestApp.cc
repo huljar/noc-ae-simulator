@@ -1,5 +1,6 @@
 #include <omnetpp.h>
 #include <Messages/Flit.h>
+#include <Messages/MessageFactory.h>
 
 using namespace omnetpp;
 using namespace HaecComm::Messages;
@@ -19,19 +20,11 @@ void ArrivalManagerFlitG2C3TestApp::initialize() {
     getSimulation()->getSystemModule()->subscribe("clock", this);
 
     // Test unmodified data/mac pair
-    Flit* f1 = new Flit("flit1");
+    Flit* f1 = MessageFactory::createFlit("flit1", Address2D(3, 3), Address2D(0, 0), MODE_DATA, 123, 123, NC_G2C3);
     take(f1);
-    f1->setSource(Address2D(3, 3));
-    f1->setTarget(Address2D(0, 0));
-    f1->setGidOrFid(123);
-    f1->setGev(123);
-    f1->setMode(MODE_DATA);
-    f1->setNcMode(NC_G2C3);
 
-    Flit* f2 = f1->dup();
+    Flit* f2 = MessageFactory::createFlit("flit2", Address2D(3, 3), Address2D(0, 0), MODE_MAC, 123, 123, NC_G2C3);
     take(f2);
-    f2->setName("flit2");
-    f2->setMode(MODE_MAC);
 
     send(f1, "netOut");
     send(f2, "netOut");
@@ -68,19 +61,11 @@ void ArrivalManagerFlitG2C3TestApp::handleMessage(cMessage* msg) {
 
         if(f->getGidOrFid() == 123 && f->getNcArqs().count(321)) {
             // Answer to ARQ with unmodified flits
-            Flit* f3 = new Flit("flit3-new");
+            Flit* f3 = MessageFactory::createFlit("flit3-new", Address2D(3, 3), Address2D(0, 0), MODE_DATA, 123, 321, NC_G2C3);
             take(f3);
-            f3->setSource(Address2D(3, 3));
-            f3->setTarget(Address2D(0, 0));
-            f3->setGidOrFid(123);
-            f3->setGev(321);
-            f3->setMode(MODE_DATA);
-            f3->setNcMode(NC_G2C3);
 
-            Flit* f4 = f3->dup();
+            Flit* f4 = MessageFactory::createFlit("flit4-new", Address2D(3, 3), Address2D(0, 0), MODE_MAC, 123, 321, NC_G2C3);
             take(f4);
-            f4->setName("flit4-new");
-            f4->setMode(MODE_MAC);
 
             sendDelayed(f3, SimTime(2, SIMTIME_NS), "netOut");
             sendDelayed(f4, SimTime(2, SIMTIME_NS), "netOut");
@@ -96,20 +81,13 @@ void ArrivalManagerFlitG2C3TestApp::receiveSignal(cComponent* source, simsignal_
     if(signalID == registerSignal("clock")) {
         if(l == 2) {
             // Test modified data/mac pair
-            Flit* f3 = new Flit("flit3");
+            Flit* f3 = MessageFactory::createFlit("flit3", Address2D(3, 3), Address2D(0, 0), MODE_DATA, 123, 321, NC_G2C3);
             take(f3);
-            f3->setSource(Address2D(3, 3));
-            f3->setTarget(Address2D(0, 0));
-            f3->setGidOrFid(123);
-            f3->setGev(321);
-            f3->setMode(MODE_DATA);
-            f3->setNcMode(NC_G2C3);
             f3->setModified(true);
 
-            Flit* f4 = f3->dup();
+            Flit* f4 = MessageFactory::createFlit("flit4", Address2D(3, 3), Address2D(0, 0), MODE_MAC, 123, 321, NC_G2C3);
             take(f4);
-            f4->setName("flit4");
-            f4->setMode(MODE_MAC);
+            f4->setModified(true);
 
             send(f3, "netOut");
             send(f4, "netOut");

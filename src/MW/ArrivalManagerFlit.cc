@@ -14,6 +14,7 @@
 // 
 
 #include "ArrivalManagerFlit.h"
+#include <Messages/Flit.h>
 #include <Messages/MessageFactory.h>
 #include <cmath>
 #include <sstream>
@@ -887,20 +888,11 @@ Flit* ArrivalManagerFlit::generateArq(const IdSourceKey& key, Mode mode, ArqMode
     packetName << "arq-" << key.first << "-s" << self << "-t" << key.second;
 
     // Create the flit
-    Flit* arq = new Flit(packetName.str().c_str());
+    Flit* arq = MessageFactory::createFlit(packetName.str().c_str(), self, key.second, mode, key.first);
     take(arq);
-
-    // Set header fields
-    arq->setSource(self);
-    arq->setTarget(key.second);
-    arq->setGidOrFid(key.first);
-    arq->setMode(mode);
 
     // Set ARQ payload
     arq->setUcArqs(arqMode);
-
-    // Set meta fields
-    arq->setNcMode(NC_UNCODED);
 
     // Return ARQ
     return arq;
@@ -914,20 +906,11 @@ Flit* ArrivalManagerFlit::generateArq(const IdSourceKey& key, Mode mode, const G
     packetName << "arq-" << key.first << "-s" << self << "-t" << key.second;
 
     // Create the flit
-    Flit* arq = new Flit(packetName.str().c_str());
+    Flit* arq = MessageFactory::createFlit(packetName.str().c_str(), self, key.second, mode, key.first, 0, ncMode);
     take(arq);
-
-    // Set header fields
-    arq->setSource(self);
-    arq->setTarget(key.second);
-    arq->setGidOrFid(key.first);
-    arq->setMode(mode);
 
     // Set ARQ payload
     arq->setNcArqs(arqModes);
-
-    // Set meta fields
-    arq->setNcMode(ncMode);
 
     // Return ARQ
     return arq;

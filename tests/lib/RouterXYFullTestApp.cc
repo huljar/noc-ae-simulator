@@ -1,6 +1,7 @@
 #include <omnetpp.h>
 #include <Buffers/PacketQueueBase.h>
 #include <Messages/Flit.h>
+#include <Messages/MessageFactory.h>
 
 using namespace omnetpp;
 using namespace HaecComm::Buffers;
@@ -33,47 +34,33 @@ void RouterXYFullTestApp::handleMessage(cMessage* msg) {
 void RouterXYFullTestApp::receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) {
     if(signalID == registerSignal("clock")) {
         if(l == 1) {
-            Flit* f1 = new Flit("toLocalFromNorth");
+            Flit* f1 = MessageFactory::createFlit("toLocalFromNorth", Address2D(0, 0), Address2D(1, 1), MODE_DATA, 1);
             take(f1);
-            f1->setSource(Address2D(0, 0));
-            f1->setTarget(Address2D(1, 1));
             send(f1, "port$o", 0);
 
-            Flit* f2 = new Flit("toNorthFromEast");
+            Flit* f2 = MessageFactory::createFlit("toNorthFromEast", Address2D(2, 2), Address2D(1, 0), MODE_SPLIT_1, 2);
             take(f2);
-            f2->setSource(Address2D(2, 2));
-            f2->setTarget(Address2D(1, 0));
             send(f2, "port$o", 1);
 
-            Flit* f3 = new Flit("toWestFromSouth");
+            Flit* f3 = MessageFactory::createFlit("toWestFromSouth", Address2D(1, 2), Address2D(0, 1), MODE_SPLIT_2, 2);
             take(f3);
-            f3->setSource(Address2D(1, 2));
-            f3->setTarget(Address2D(0, 1));
             send(f3, "port$o", 2);
 
-            Flit* f4 = new Flit("toEastFromWest");
+            Flit* f4 = MessageFactory::createFlit("toEastFromWest", Address2D(0, 2), Address2D(2, 1), MODE_DATA, 10);
             take(f4);
-            f4->setSource(Address2D(0, 2));
-            f4->setTarget(Address2D(2, 1));
             send(f4, "port$o", 3);
 
-            Flit* f5 = new Flit("toSouthFromLocal");
+            Flit* f5 = MessageFactory::createFlit("toSouthFromLocal", Address2D(1, 1), Address2D(1, 2), MODE_MAC, 10);
             take(f5);
-            f5->setSource(Address2D(1, 1));
-            f5->setTarget(Address2D(1, 2));
             send(f5, "local$o");
         }
         else if(l == 4) {
-            Flit* f6 = new Flit("toEastFromWest2");
+            Flit* f6 = MessageFactory::createFlit("toEastFromWest2", Address2D(0, 2), Address2D(2, 1), MODE_SPLIT_1, 18);
             take(f6);
-            f6->setSource(Address2D(0, 2));
-            f6->setTarget(Address2D(2, 1));
             send(f6, "port$o", 3);
 
-            Flit* f7 = new Flit("toEastFromWest3");
+            Flit* f7 = MessageFactory::createFlit("toEastFromWest3", Address2D(0, 2), Address2D(2, 1), MODE_SPLIT_2, 18);
             take(f7);
-            f7->setSource(Address2D(0, 2));
-            f7->setTarget(Address2D(2, 1));
             send(f7, "port$o", 3);
         }
         else if(l == 8) {

@@ -1,5 +1,6 @@
 #include <omnetpp.h>
 #include <Messages/Flit.h>
+#include <Messages/MessageFactory.h>
 
 using namespace omnetpp;
 using namespace HaecComm::Messages;
@@ -15,28 +16,20 @@ protected:
 Define_Module(EncoderTestApp);
 
 void EncoderTestApp::initialize() {
-    Flit* f1 = new Flit("flit1");
+    Flit* f1 = MessageFactory::createFlit("flit1", Address2D(0, 0), Address2D(1, 1), MODE_DATA, 123);
     take(f1);
-    f1->setSource(Address2D(0, 0));
-    f1->setTarget(Address2D(1, 1));
-    f1->setGidOrFid(123);
 
-    Flit* f2 = f1->dup();
-    f2->setName("flit2");
-    f2->setGidOrFid(321);
+    Flit* f2 = MessageFactory::createFlit("flit2", Address2D(0, 0), Address2D(1, 1), MODE_DATA, 321);
+    take(f2);
 
     send(f1, "out1");
     send(f2, "out1");
 
-    Flit* f3 = new Flit("flit3");
+    Flit* f3 = MessageFactory::createFlit("flit3", Address2D(1, 0), Address2D(2, 0), MODE_DATA, 234);
     take(f3);
-    f3->setSource(Address2D(1, 0));
-    f3->setTarget(Address2D(2, 0));
-    f3->setGidOrFid(234);
 
-    Flit* f4 = f3->dup();
-    f3->setName("flit4");
-    f3->setGidOrFid(432);
+    Flit* f4 = MessageFactory::createFlit("flit4", Address2D(1, 0), Address2D(2, 0), MODE_DATA, 432);
+    take(f4);
 
     send(f3, "out2");
     send(f4, "out2");

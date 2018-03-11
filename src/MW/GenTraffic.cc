@@ -15,6 +15,7 @@
 
 #include "GenTraffic.h"
 #include <Messages/Flit.h>
+#include <Messages/MessageFactory.h>
 #include <sstream>
 
 using namespace HaecComm::Messages;
@@ -137,14 +138,10 @@ void GenTraffic::generateFlit(int targetX, int targetY) {
     packetName << "uc-" << fid << "-s" << source << "-t" << target;
 
     // Create the flit
-    Flit* flit = new Flit(packetName.str().c_str());
+    Flit* flit = MessageFactory::createFlit(packetName.str().c_str(), source, target, MODE_DATA, fid);
     take(flit);
 
-    // Set header fields
-    flit->setSource(source);
-    flit->setTarget(target);
-    flit->setGidOrFid(fid);
-
+    // Send flit
     emit(pktgenerateSignal, flit->getGidOrFid());
     EV << "Sending flit \"" << flit->getName() << "\" from " << flit->getSource()
        << " to " << flit->getTarget() << " (ID: " << flit->getGidOrFid() << ")" << std::endl;

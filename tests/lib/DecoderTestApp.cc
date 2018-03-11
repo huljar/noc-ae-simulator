@@ -1,5 +1,6 @@
 #include <omnetpp.h>
 #include <Messages/Flit.h>
+#include <Messages/MessageFactory.h>
 
 using namespace omnetpp;
 using namespace HaecComm::Messages;
@@ -15,16 +16,11 @@ protected:
 Define_Module(DecoderTestApp);
 
 void DecoderTestApp::initialize() {
-    Flit* f1 = new Flit("flit1");
+    Flit* f1 = MessageFactory::createFlit("flit1", Address2D(0, 0), Address2D(1, 1), MODE_DATA, 123, 5, NC_G2C3);
     take(f1);
-    f1->setSource(Address2D(0, 0));
-    f1->setTarget(Address2D(1, 1));
-    f1->setGidOrFid(123);
-    f1->setGev(5);
     f1->setOriginalIdsArraySize(2);
     f1->setOriginalIds(0, 222);
     f1->setOriginalIds(1, 333);
-    f1->setNcMode(NC_G2C3);
 
     Flit* f2 = f1->dup();
     f2->setName("flit2");
