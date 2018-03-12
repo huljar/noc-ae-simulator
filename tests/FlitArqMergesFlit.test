@@ -1,0 +1,62 @@
+%description:
+Test flit ARQ mode merging
+
+%includes:
+#include <Messages/Flit.h>
+#include <Messages/MessageFactory.h>
+using namespace HaecComm::Messages;
+
+%activity:
+Flit* f = MessageFactory::createFlit("flit1", Address2D(3, 3), Address2D(0, 0), MODE_ARQ_TELL_MISSING, 123, 0, NC_G2C3);
+f->setNcArqs(GevArqMap{{4, ARQ_DATA_MAC}});
+
+EV << "Mode " << cEnum::get("HaecComm::Messages::Mode")->getStringFor(f->getMode()) << std::endl
+   << "ARQ modes ";
+for(auto it = f->getNcArqs().begin(); it != f->getNcArqs().end(); ++it)
+    EV << "(" << it->first << "," << cEnum::get("HaecComm::Messages::ArqMode")->getStringFor(it->second) << ")";
+EV << std::endl << std::endl;
+
+f->mergeNcArqModesFlit(MODE_ARQ_TELL_RECEIVED, GevArqMap{{8, ARQ_DATA}});
+
+EV << "Mode " << cEnum::get("HaecComm::Messages::Mode")->getStringFor(f->getMode()) << std::endl
+   << "ARQ modes ";
+for(auto it = f->getNcArqs().begin(); it != f->getNcArqs().end(); ++it)
+    EV << "(" << it->first << "," << cEnum::get("HaecComm::Messages::ArqMode")->getStringFor(it->second) << ")";
+EV << std::endl << std::endl;
+
+f->mergeNcArqModesFlit(MODE_ARQ_TELL_MISSING, GevArqMap{{4, ARQ_DATA_MAC}});
+
+EV << "Mode " << cEnum::get("HaecComm::Messages::Mode")->getStringFor(f->getMode()) << std::endl
+   << "ARQ modes ";
+for(auto it = f->getNcArqs().begin(); it != f->getNcArqs().end(); ++it)
+    EV << "(" << it->first << "," << cEnum::get("HaecComm::Messages::ArqMode")->getStringFor(it->second) << ")";
+EV << std::endl << std::endl;
+
+f->mergeNcArqModesFlit(MODE_ARQ_TELL_MISSING, GevArqMap{{4, ARQ_DATA}, {12, ARQ_DATA_MAC}});
+
+EV << "Mode " << cEnum::get("HaecComm::Messages::Mode")->getStringFor(f->getMode()) << std::endl
+   << "ARQ modes ";
+for(auto it = f->getNcArqs().begin(); it != f->getNcArqs().end(); ++it)
+    EV << "(" << it->first << "," << cEnum::get("HaecComm::Messages::ArqMode")->getStringFor(it->second) << ")";
+EV << std::endl << std::endl;
+
+delete f;
+
+%contains: stdout
+Mode MODE_ARQ_TELL_MISSING
+ARQ modes (4,ARQ_DATA_MAC)
+
+Mode MODE_ARQ_TELL_RECEIVED
+ARQ modes (8,ARQ_DATA)
+
+Mode MODE_ARQ_TELL_RECEIVED
+ARQ modes (8,ARQ_DATA)
+
+Mode MODE_ARQ_TELL_MISSING
+ARQ modes (4,ARQ_DATA_MAC)(8,ARQ_MAC)(12,ARQ_DATA_MAC)
+
+%not-contains: stdout
+undisposed object:
+
+%not-contains: stdout
+-- check module destructor

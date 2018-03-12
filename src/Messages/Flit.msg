@@ -65,7 +65,7 @@ packet Flit {
     GevArqMap ncArqs;
     
     // When this is an ARQ for network coded flits using one MAC per generation: specify if we need/have this MAC
-    bool arqGenMac = false;
+    bool ncArqGenMac = false;
     
     // The bit length of the flit
     bitLength = 149; //# TODO: this is not always true; UC flits are 8 bit shorter than NC flits (they don't have a GEV)
