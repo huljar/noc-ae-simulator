@@ -22,7 +22,7 @@ namespace HaecComm { namespace Messages {
 
 class Flit : public Flit_Base {
 public:
-    Flit(const char *name=nullptr, short kind=0) : Flit_Base(name,kind) {}
+    Flit(const char *name=nullptr, short kind=0) : Flit_Base(name,kind) { adjustMsgKind(); }
     Flit(const Flit& other) : Flit_Base(other) {copy(other);}
     Flit& operator=(const Flit& other) {if (this==&other) return *this; Flit_Base::operator=(other); copy(other); return *this;}
     virtual Flit *dup() const override {return new Flit(*this);}
@@ -33,6 +33,11 @@ public:
     bool isArq() const;
     unsigned short getGenSize() const;
     unsigned short getNumCombinations() const;
+
+    // Message kind (for colorization in Qtenv)
+    virtual void setMode(uint8_t mode) override;
+    virtual void setNcMode(uint8_t ncMode) override;
+    void adjustMsgKind();
 
     // ARQ merging
     void mergeNcArqModesFlit(Mode newMode, const GevArqMap& newArqModes);

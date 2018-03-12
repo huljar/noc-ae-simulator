@@ -17,6 +17,7 @@ src/libHaecComm.so
 src/libHaecComm_dbg.so
 src/Messages/*_m.h
 src/Messages/*_m.cc
+simulations/core
 
 # statistics collection directory
 simulations/results/

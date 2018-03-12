@@ -37,8 +37,6 @@ Flit* MessageFactory::createFlit(const char* name, const Address2D& source, cons
     flit->setGidOrFid(id);
     flit->setGev(gev);
     flit->setNcMode(ncMode);
-
-    flit->setKind(flit->isArq() ? Constants::FLIT_ARQ_KIND : Constants::FLIT_NORMAL_KIND);
     return flit;
 }
 

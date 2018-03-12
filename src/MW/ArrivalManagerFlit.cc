@@ -87,7 +87,7 @@ void ArrivalManagerFlit::initialize() {
     int gridRows = getAncestorPar("rows");
     for(int y = 0; y < gridRows; ++y) {
         for(int x = 0; x < gridColumns; ++x) {
-            if(x != nodeX && y != nodeY) {
+            if(!(x == nodeX && y == nodeY)) {
                 arqAnswerTimeouts[Address2D(x, y)] = arqAnswerTimeoutBase + 2 * (std::abs(x - nodeX) + std::abs(y - nodeY));
             }
         }
@@ -762,10 +762,14 @@ void ArrivalManagerFlit::ncIssueArq(const IdSourceKey& key, Mode mode, const Gev
     FlitCache::iterator plannedIter = ncPlannedArqs.find(key);
     if(plannedIter == ncPlannedArqs.end()) {
         // Create a new ARQ and insert it into the planned ARQ map
+        EV_DEBUG << "Initiating planned ARQ for source " << key.second << ", ID " << key.first << ", mode "
+                 << cEnum::get("HaecComm::Messages::Mode")->getStringFor(mode) << " " << arqModes << std::endl;
         ncPlannedArqs.emplace(key, generateArq(key, mode, arqModes, ncMode));
     }
     else {
         // Merge the planned ARQ with the new ARQ arguments
+        EV_DEBUG << "Merging planned ARQ for source " << key.second << ", ID " << key.first << " with new mode "
+                 << cEnum::get("HaecComm::Messages::Mode")->getStringFor(mode) << " " << arqModes << std::endl;
         plannedIter->second->mergeNcArqModesFlit(mode, arqModes);
     }
 

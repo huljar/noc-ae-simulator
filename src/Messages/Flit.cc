@@ -14,6 +14,9 @@
 // 
 
 #include "Flit.h"
+#include <Util/Constants.h>
+
+using namespace HaecComm::Util;
 
 namespace HaecComm { namespace Messages {
 
@@ -41,6 +44,20 @@ unsigned short Flit::getNumCombinations() const {
         return 4;
 
     throw cRuntimeError(this, "Unexpected NC mode: %s", cEnum::get("HaecComm::Messages::NcMode")->getStringFor(ncMode));
+}
+
+void Flit::setMode(uint8_t mode) {
+    Flit_Base::setMode(mode);
+    adjustMsgKind();
+}
+
+void Flit::setNcMode(uint8_t ncMode) {
+    Flit_Base::setNcMode(ncMode);
+    adjustMsgKind();
+}
+
+void Flit::adjustMsgKind() {
+    setKind(isArq() ? Constants::FLIT_ARQ_KIND : (getNcMode() == NC_UNCODED ? Constants::FLIT_UNCODED_KIND : Constants::FLIT_NETWORK_CODED_KIND));
 }
 
 void Flit::mergeNcArqModesFlit(Mode newMode, const GevArqMap& newArqModes) {

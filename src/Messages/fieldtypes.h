@@ -139,6 +139,13 @@ Register_Enum(ArqMode, (ARQ_DATA, ARQ_MAC, ARQ_DATA_MAC, ARQ_SPLIT_1, ARQ_SPLIT_
 
 typedef std::map<uint16_t, ArqMode> GevArqMap;
 
+/// Stream insertion operator
+inline std::ostream& operator<<(std::ostream& os, const GevArqMap& arqModes) {
+    for(auto it = arqModes.begin(); it != arqModes.end(); ++it)
+        os << "(" << it->first << "," << cEnum::get("HaecComm::Messages::ArqMode")->getStringFor(it->second) << ")";
+    return os;
+}
+
 }} //namespace
 
 #endif /* MESSAGES_FIELDTYPES_H_ */
