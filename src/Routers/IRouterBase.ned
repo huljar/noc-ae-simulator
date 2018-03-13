@@ -27,6 +27,8 @@ moduleinterface IRouterBase {
         @statistic[sendCount](source=count(pktsend); record=last; title="Packets sent into the network");
         @statistic[receiveCount](source=count(pktreceive); record=last; title="Packets arriving from the network");
         @statistic[routeCount](source=count(pktroute); record=last; title="Packets routed between different nodes");
+        double modificationProb;
+        double dropProb;
     gates:
         inout local;
         inout port[];

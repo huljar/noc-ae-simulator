@@ -1,0 +1,98 @@
+%description:
+Test XY Router: do not route flits if the receiving router's
+input queue is full
+
+%inifile: omnetpp.ini
+[General]
+sim-time-limit = 100ns
+**.cmdenv-log-level = debug
+
+**.clock.inter = 2ns
+
+**.router1.id = 4
+**.router1.internalType = "HaecComm.Routers.RouterXY"
+**.router1.numPorts = 4
+**.router1.dropProb = 1.0
+**.router1.modificationProb = 0.8
+
+**.router2.id = 5
+**.router2.internalType = "HaecComm.Routers.RouterXY"
+**.router2.numPorts = 4
+**.router2.modificationProb = 1.0
+
+%file: test.ned
+import HaecComm.Core.Clock;
+import HaecComm.Routers.Router;
+import HaecComm.Buffers.PacketQueue;
+
+network Test {
+    parameters:
+        int columns = 3;
+    submodules:
+        clock: Clock;
+        router1: Router;
+        ql1: PacketQueue;
+        qp1[4]: PacketQueue;
+        router2: Router;
+        ql2: PacketQueue;
+        qp2[4]: PacketQueue;
+        testapp: RouterXYDropTestApp;
+    connections:
+        testapp.local1$o --> router1.local$i;
+        router1.local$o --> ql1.in;
+        ql1.out --> testapp.local1$i;
+
+        testapp.local2$o --> router2.local$i;
+        router2.local$o --> ql2.in;
+        ql2.out --> testapp.local2$i;
+
+        for i=0..3 {
+            testapp.port1$o[i] --> router1.port$i[i];
+            router1.port$o[i] --> qp1[i].in;
+            qp1[i].out --> testapp.port1$i[i];
+
+            testapp.port2$o[i] --> router2.port$i[i];
+            router2.port$o[i] --> qp2[i].in;
+            qp2[i].out --> testapp.port2$i[i];
+        }
+}
+
+%contains-regex: stdout
+Got flit from router 2 2flit0
+Modified true
+.*
+Got flit from router 2 2flit1
+Modified true
+.*
+Got flit from router 2 2flit2
+Modified true
+.*
+Got flit from router 2 2flit3
+Modified true
+.*
+Got flit from router 2 2flit4
+Modified true
+.*
+Got flit from router 2 2flit5
+Modified true
+.*
+Got flit from router 2 2flit6
+Modified true
+.*
+Got flit from router 2 2flit7
+Modified true
+.*
+Got flit from router 2 2flit8
+Modified true
+.*
+Got flit from router 2 2flit9
+Modified true
+
+%not-contains: stdout
+Got flit from router 1
+
+%not-contains: stdout
+undisposed object:
+
+%not-contains: stdout
+-- check module destructor

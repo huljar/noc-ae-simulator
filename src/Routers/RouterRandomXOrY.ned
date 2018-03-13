@@ -27,6 +27,8 @@ simple RouterRandomXOrY like IRouterBase {
         @statistic[receiveCount](source=count(pktreceive); record=last; title="Packets arriving from the network");
         @statistic[routeCount](source=count(pktroute); record=last; title="Packets routed between different nodes");
         @display("i=block/routing");
+        double modificationProb;
+        double dropProb;
     gates:
         inout local;
         inout port[];

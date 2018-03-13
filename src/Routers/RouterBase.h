@@ -40,12 +40,17 @@ protected:
     virtual void receiveSignal(cComponent* source, simsignal_t signalID, bool b, cObject* details) override;
 
     virtual int computeDestinationPort(const Messages::Flit* flit) const = 0;
+    virtual bool decideToModify(const Messages::Flit* flit) const;
+    virtual bool decideToDrop(const Messages::Flit* flit) const;
 
 	int gridColumns;
 	int nodeId;
 
 	int nodeX;
 	int nodeY;
+
+	double modificationProb;
+	double dropProb;
 
 	simsignal_t pktsendSignal;
 	simsignal_t pktreceiveSignal;
