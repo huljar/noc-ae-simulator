@@ -44,6 +44,7 @@ public:
     // ARQ merging
     virtual void setNcArqs(const GevArqMap& ncArqs) override;
     void mergeNcArqModesFlit(Mode newMode, const GevArqMap& newArqModes);
+    void removeFromNcArqFlit(const GevArqMap& arqModes);
 
 private:
     void copy(const Flit& other);

@@ -117,6 +117,7 @@ private:
     void ncTryVerification(const IdSourceKey& key, uint16_t gev);
     void ncTrySendToApp(const IdSourceKey& key, uint16_t gev);
     void ncIssueArq(const IdSourceKey& key, Messages::Mode mode, const Messages::GevArqMap& arqModes, Messages::NcMode ncMode);
+    void ncTryRemoveFromPlannedArq(const IdSourceKey& key, const Messages::GevArqMap& arqModes);
     void ncTrySendPlannedArq(const IdSourceKey& key, bool forceImmediate = false);
     void ncCheckGenerationDone(const IdSourceKey& key, unsigned short generationSize);
     void ncCleanUp(const IdSourceKey& key);

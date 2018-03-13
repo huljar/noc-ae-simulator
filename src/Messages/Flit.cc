@@ -130,6 +130,29 @@ void Flit::mergeNcArqModesFlit(Mode newMode, const GevArqMap& newArqModes) {
     }
 }
 
+void Flit::removeFromNcArqFlit(const GevArqMap& arqModes) {
+    // If we have a TELL_MISSING ARQ, remove the modes from the missing ones
+    // If we have a TELL_RECEIVED ARQ, add the modes as received ones
+
+    // Add new GEVs to known GEVs
+    for(auto it = arqModes.begin(); it != arqModes.end(); ++it)
+        knownGevs.insert(it->first);
+    ASSERT(knownGevs.size() <= getNumCombinations());
+
+    if(mode == MODE_ARQ_TELL_MISSING) {
+        mergeNcArqModesFlitWithout(arqModes);
+    }
+    else if(mode == MODE_ARQ_TELL_RECEIVED) {
+        mergeNcArqModesFlitUnion(arqModes);
+
+        // Check if we can convert this to a TELL_MISSING ARQ now
+        if(knownGevs.size() >= getNumCombinations()) {
+            setMode(MODE_ARQ_TELL_MISSING);
+            setNcArqs(invertNcArqModesFlit(getNcArqs()));
+        }
+    }
+}
+
 void Flit::copy(const Flit& other) {
     this->knownGevs = other.knownGevs;
 }

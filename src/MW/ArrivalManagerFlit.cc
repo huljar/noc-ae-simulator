@@ -270,6 +270,9 @@ void ArrivalManagerFlit::handleNetMessage(Flit* flit) {
                 setArqTimer(key, ncMode);
             }
 
+            // In case this flit is already in a planned ARQ, remove it from there
+            ncTryRemoveFromPlannedArq(key, GevArqMap{{gev, ARQ_DATA}});
+
             // We only need the data flit to start decryption and authentication,
             // so start it now
             ncStartDecryptAndAuth(key, gev);
@@ -308,6 +311,9 @@ void ArrivalManagerFlit::handleNetMessage(Flit* flit) {
                 // Start/update ARQ timer
                 setArqTimer(key, ncMode);
             }
+
+            // In case this flit is already in a planned ARQ, remove it from there
+            ncTryRemoveFromPlannedArq(key, GevArqMap{{gev, ARQ_MAC}});
 
             // Try to verify the flit (in case the computed MAC is already there)
             ncTryVerification(key, gev);
@@ -611,7 +617,8 @@ void ArrivalManagerFlit::ucIssueArq(const IdSourceKey& key, Mode mode, ArqMode a
 
     // Send ARQ
     EV << "Sending ARQ \"" << arq->getName() << "\" from " << arq->getSource()
-       << " to " << arq->getTarget() << " (ID: " << arq->getGidOrFid() << ")" << std::endl;
+       << " to " << arq->getTarget() << " (ID: " << arq->getGidOrFid() << ") (mode "
+       << cEnum::get("HaecComm::Messages::ArqMode")->getStringFor(arqMode) << ")" << std::endl;
     send(arq, "arqOut");
 
     // Increment ARQ counter
@@ -776,6 +783,23 @@ void ArrivalManagerFlit::ncIssueArq(const IdSourceKey& key, Mode mode, const Gev
     ncTrySendPlannedArq(key, !lastArqWaitForOngoingVerifications);
 }
 
+void ArrivalManagerFlit::ncTryRemoveFromPlannedArq(const IdSourceKey& key, const GevArqMap& arqModes) {
+    // Check if there is an ARQ planned
+    FlitCache::iterator plannedIter = ncPlannedArqs.find(key);
+    if(plannedIter == ncPlannedArqs.end())
+        return;
+
+    // Remove specified modes from the ARQ
+    plannedIter->second->removeFromNcArqFlit(arqModes);
+
+    // Check if the ARQ is empty now; if yes, delete it
+    if(plannedIter->second->getNcArqs().size() == 0) {
+        EV_DEBUG << "Canceling planned ARQ for source " << key.second << ", ID " << key.first << std::endl;
+        delete plannedIter->second;
+        ncPlannedArqs.erase(plannedIter);
+    }
+}
+
 void ArrivalManagerFlit::ncTrySendPlannedArq(const IdSourceKey& key, bool forceImmediate) {
     // Check if there is an ARQ planned
     FlitCache::iterator plannedIter = ncPlannedArqs.find(key);
@@ -790,7 +814,9 @@ void ArrivalManagerFlit::ncTrySendPlannedArq(const IdSourceKey& key, bool forceI
         // Send ARQ
         //emit(pktgenerateSignal, flit->getGidOrFid());
         EV << "Sending ARQ \"" << arq->getName() << "\" from " << arq->getSource()
-           << " to " << arq->getTarget() << " (ID: " << arq->getGidOrFid() << ")" << std::endl;
+           << " to " << arq->getTarget() << " (ID: " << arq->getGidOrFid() << ") (mode "
+           << cEnum::get("HaecComm::Messages::Mode")->getStringFor(arq->getMode()) << " "
+           << arq->getNcArqs() << ")" << std::endl;
         send(arq, "arqOut");
 
         // Remove from planned ARQ map
