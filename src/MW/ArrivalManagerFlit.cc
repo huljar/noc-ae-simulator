@@ -790,6 +790,7 @@ void ArrivalManagerFlit::ncTryRemoveFromPlannedArq(const IdSourceKey& key, const
         return;
 
     // Remove specified modes from the ARQ
+    EV_DEBUG << "Removing " << arqModes << " from planned ARQ for source " << key.second << ", ID " << key.first << std::endl;
     plannedIter->second->removeFromNcArqFlit(arqModes);
 
     // Check if the ARQ is empty now; if yes, delete it
