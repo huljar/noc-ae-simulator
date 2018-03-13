@@ -1,4 +1,4 @@
-simple ArrivalManagerFlitUncodedTestApp {
+simple AMFlitUCTestApp {
     gates:
         input  appIn;
         input  arqIn;

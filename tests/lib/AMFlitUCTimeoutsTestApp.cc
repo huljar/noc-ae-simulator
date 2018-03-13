@@ -8,7 +8,7 @@ using namespace HaecComm::Messages;
 
 namespace HaecCommTest {
 
-class ArrivalManagerFlitUncodedTimeoutsTestApp : public cSimpleModule, public cListener {
+class AMFlitUCTimeoutsTestApp : public cSimpleModule, public cListener {
 protected:
     virtual void initialize() override;
     virtual void handleMessage(cMessage* msg) override;
@@ -17,9 +17,9 @@ protected:
     Clock* clock;
 };
 
-Define_Module(ArrivalManagerFlitUncodedTimeoutsTestApp);
+Define_Module(AMFlitUCTimeoutsTestApp);
 
-void ArrivalManagerFlitUncodedTimeoutsTestApp::initialize() {
+void AMFlitUCTimeoutsTestApp::initialize() {
     getSimulation()->getSystemModule()->subscribe("clock", this);
     clock = dynamic_cast<Clock*>(getSimulation()->getSystemModule()->getSubmodule("clock"));
     ASSERT(clock != nullptr);
@@ -35,7 +35,7 @@ void ArrivalManagerFlitUncodedTimeoutsTestApp::initialize() {
     sendDelayed(f2, SimTime(2, SIMTIME_NS), "netOut");
 }
 
-void ArrivalManagerFlitUncodedTimeoutsTestApp::handleMessage(cMessage* msg) {
+void AMFlitUCTimeoutsTestApp::handleMessage(cMessage* msg) {
     Flit* f = check_and_cast<Flit*>(msg);
 
     // Error if anything arrives targeting the network
@@ -63,7 +63,7 @@ void ArrivalManagerFlitUncodedTimeoutsTestApp::handleMessage(cMessage* msg) {
     delete f;
 }
 
-void ArrivalManagerFlitUncodedTimeoutsTestApp::receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) {
+void AMFlitUCTimeoutsTestApp::receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) {
     if(signalID == registerSignal("clock")) {
 
     }

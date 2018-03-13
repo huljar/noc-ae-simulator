@@ -7,30 +7,30 @@ using namespace HaecComm::Messages;
 
 namespace HaecCommTest {
 
-class ArrivalManagerFlitG2C3TestApp : public cSimpleModule, public cListener {
+class AMFlitUCTestApp : public cSimpleModule, public cListener {
 protected:
     virtual void initialize() override;
     virtual void handleMessage(cMessage* msg) override;
     virtual void receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) override;
 };
 
-Define_Module(ArrivalManagerFlitG2C3TestApp);
+Define_Module(AMFlitUCTestApp);
 
-void ArrivalManagerFlitG2C3TestApp::initialize() {
+void AMFlitUCTestApp::initialize() {
     getSimulation()->getSystemModule()->subscribe("clock", this);
 
     // Test unmodified data/mac pair
-    Flit* f1 = MessageFactory::createFlit("flit1", Address2D(3, 3), Address2D(0, 0), MODE_DATA, 123, 123, NC_G2C3);
+    Flit* f1 = MessageFactory::createFlit("flit1", Address2D(3, 3), Address2D(0, 0), MODE_DATA, 123);
     take(f1);
 
-    Flit* f2 = MessageFactory::createFlit("flit2", Address2D(3, 3), Address2D(0, 0), MODE_MAC, 123, 123, NC_G2C3);
+    Flit* f2 = MessageFactory::createFlit("flit2", Address2D(3, 3), Address2D(0, 0), MODE_MAC, 123);
     take(f2);
 
     send(f1, "netOut");
     send(f2, "netOut");
 }
 
-void ArrivalManagerFlitG2C3TestApp::handleMessage(cMessage* msg) {
+void AMFlitUCTestApp::handleMessage(cMessage* msg) {
     Flit* f = check_and_cast<Flit*>(msg);
 
     // Error if anything arrives targeting the network
@@ -41,30 +41,23 @@ void ArrivalManagerFlitG2C3TestApp::handleMessage(cMessage* msg) {
         EV << "Got flit " << f->getName() << std::endl
            << "Source " << f->getSource() << std::endl
            << "Target " << f->getTarget() << std::endl
-           << "GID " << f->getGidOrFid() << std::endl
-           << "GEV " << f->getGev() << std::endl
-           << "Mode " << cEnum::get("HaecComm::Messages::Mode")->getStringFor(f->getMode()) << std::endl
-           << "NC mode " << cEnum::get("HaecComm::Messages::NcMode")->getStringFor(f->getNcMode()) << std::endl;
+           << "FID " << f->getGidOrFid() << std::endl
+           << "Mode " << cEnum::get("HaecComm::Messages::Mode")->getStringFor(f->getMode()) << std::endl;
     }
     else if(strcmp(f->getArrivalGate()->getName(), "arqIn") == 0) {
         EV << "Got ARQ " << f->getName() << std::endl
            << "Source " << f->getSource() << std::endl
            << "Target " << f->getTarget() << std::endl
-           << "GID " << f->getGidOrFid() << std::endl
-           << "GEV " << f->getGev() << std::endl
+           << "FID " << f->getGidOrFid() << std::endl
            << "Mode " << cEnum::get("HaecComm::Messages::Mode")->getStringFor(f->getMode()) << std::endl
-           << "NC mode " << cEnum::get("HaecComm::Messages::NcMode")->getStringFor(f->getNcMode()) << std::endl
-           << "ARQ modes ";
-        for(auto it = f->getNcArqs().begin(); it != f->getNcArqs().end(); ++it)
-            EV << "(" << it->first << "," << cEnum::get("HaecComm::Messages::ArqMode")->getStringFor(it->second) << ")";
-        EV << std::endl;
+           << "ARQ mode " << cEnum::get("HaecComm::Messages::ArqMode")->getStringFor(f->getUcArqs()) << std::endl;
 
-        if(f->getGidOrFid() == 123 && f->getNcArqs().count(321)) {
+        if(f->getGidOrFid() == 666) {
             // Answer to ARQ with unmodified flits
-            Flit* f3 = MessageFactory::createFlit("flit3-new", Address2D(3, 3), Address2D(0, 0), MODE_DATA, 123, 321, NC_G2C3);
+            Flit* f3 = MessageFactory::createFlit("flit3-new", Address2D(3, 3), Address2D(0, 0), MODE_DATA, 666);
             take(f3);
 
-            Flit* f4 = MessageFactory::createFlit("flit4-new", Address2D(3, 3), Address2D(0, 0), MODE_MAC, 123, 321, NC_G2C3);
+            Flit* f4 = MessageFactory::createFlit("flit4-new", Address2D(3, 3), Address2D(0, 0), MODE_MAC, 666);
             take(f4);
 
             sendDelayed(f3, SimTime(2, SIMTIME_NS), "netOut");
@@ -77,15 +70,14 @@ void ArrivalManagerFlitG2C3TestApp::handleMessage(cMessage* msg) {
     delete f;
 }
 
-void ArrivalManagerFlitG2C3TestApp::receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) {
+void AMFlitUCTestApp::receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) {
     if(signalID == registerSignal("clock")) {
         if(l == 2) {
             // Test modified data/mac pair
-            Flit* f3 = MessageFactory::createFlit("flit3", Address2D(3, 3), Address2D(0, 0), MODE_DATA, 123, 321, NC_G2C3);
+            Flit* f3 = MessageFactory::createFlit("flit3", Address2D(3, 3), Address2D(0, 0), MODE_DATA, 666);
             take(f3);
-            f3->setModified(true);
 
-            Flit* f4 = MessageFactory::createFlit("flit4", Address2D(3, 3), Address2D(0, 0), MODE_MAC, 123, 321, NC_G2C3);
+            Flit* f4 = MessageFactory::createFlit("flit4", Address2D(3, 3), Address2D(0, 0), MODE_MAC, 666);
             take(f4);
             f4->setModified(true);
 
@@ -93,10 +85,16 @@ void ArrivalManagerFlitG2C3TestApp::receiveSignal(cComponent* source, simsignal_
             send(f4, "netOut");
         }
         else if(l == 3) {
+            // Test data/mac pair with bit error
+            Flit* f5 = MessageFactory::createFlit("flit5", Address2D(3, 3), Address2D(0, 0), MODE_DATA, 777);
+            take(f5);
+            f5->setBitError(true);
 
-        }
-        else if(l == 5) {
-            // TODO: test losses
+            Flit* f6 = MessageFactory::createFlit("flit6", Address2D(3, 3), Address2D(0, 0), MODE_MAC, 777);
+            take(f6);
+
+            send(f5, "netOut");
+            send(f6, "netOut");
         }
     }
     else {

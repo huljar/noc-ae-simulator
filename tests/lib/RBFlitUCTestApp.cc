@@ -7,7 +7,7 @@ using namespace HaecComm::Messages;
 
 namespace HaecCommTest {
 
-class RetransmissionBufferFlitUncodedTestApp : public cSimpleModule, public cListener {
+class RBFlitUCTestApp : public cSimpleModule, public cListener {
 protected:
     virtual void initialize() override;
     virtual void handleMessage(cMessage* msg) override;
@@ -16,9 +16,9 @@ protected:
     int count;
 };
 
-Define_Module(RetransmissionBufferFlitUncodedTestApp);
+Define_Module(RBFlitUCTestApp);
 
-void RetransmissionBufferFlitUncodedTestApp::initialize() {
+void RBFlitUCTestApp::initialize() {
     getSimulation()->getSystemModule()->subscribe("clock", this);
     count = 1;
 
@@ -42,7 +42,7 @@ void RetransmissionBufferFlitUncodedTestApp::initialize() {
     send(f4, "dataOut");
 }
 
-void RetransmissionBufferFlitUncodedTestApp::handleMessage(cMessage* msg) {
+void RBFlitUCTestApp::handleMessage(cMessage* msg) {
     Flit* f = check_and_cast<Flit*>(msg);
 
     EV << count++ << " Got flit " << f->getName() << std::endl
@@ -54,7 +54,7 @@ void RetransmissionBufferFlitUncodedTestApp::handleMessage(cMessage* msg) {
     delete f;
 }
 
-void RetransmissionBufferFlitUncodedTestApp::receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) {
+void RBFlitUCTestApp::receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) {
     if(signalID == registerSignal("clock")) {
         if(l == 2) {
             // Send ARQ for FID 123, both flits

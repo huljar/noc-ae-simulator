@@ -1,4 +1,4 @@
-simple RetransmissionBufferFlitUncodedTestApp {
+simple RBFlitUCTestApp {
     gates:
         input  dataIn;
         output dataOut;

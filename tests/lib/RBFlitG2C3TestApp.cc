@@ -7,7 +7,7 @@ using namespace HaecComm::Messages;
 
 namespace HaecCommTest {
 
-class RetransmissionBufferFlitG2C3TestApp : public cSimpleModule, public cListener {
+class RBFlitG2C3TestApp : public cSimpleModule, public cListener {
 protected:
     virtual void initialize() override;
     virtual void handleMessage(cMessage* msg) override;
@@ -16,9 +16,9 @@ protected:
     int count;
 };
 
-Define_Module(RetransmissionBufferFlitG2C3TestApp);
+Define_Module(RBFlitG2C3TestApp);
 
-void RetransmissionBufferFlitG2C3TestApp::initialize() {
+void RBFlitG2C3TestApp::initialize() {
     getSimulation()->getSystemModule()->subscribe("clock", this);
     count = 1;
 
@@ -41,7 +41,7 @@ void RetransmissionBufferFlitG2C3TestApp::initialize() {
     send(f4, "dataOut");
 }
 
-void RetransmissionBufferFlitG2C3TestApp::handleMessage(cMessage* msg) {
+void RBFlitG2C3TestApp::handleMessage(cMessage* msg) {
     Flit* f = check_and_cast<Flit*>(msg);
 
     EV << count++ << " Got flit " << f->getName() << std::endl
@@ -54,7 +54,7 @@ void RetransmissionBufferFlitG2C3TestApp::handleMessage(cMessage* msg) {
     delete f;
 }
 
-void RetransmissionBufferFlitG2C3TestApp::receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) {
+void RBFlitG2C3TestApp::receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) {
     if(signalID == registerSignal("clock")) {
         if(l == 2) {
             // Send ARQ for specific flits (TELL_MISSING)

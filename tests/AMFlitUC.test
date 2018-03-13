@@ -25,7 +25,6 @@ import HaecComm.Core.Clock;
 import HaecComm.Buffers.PacketQueue;
 import HaecComm.MW.ArrivalManagerFlit;
 import HaecComm.MW.Crypto.*;
-import HaecCommTest.ArrivalManagerFlitUncodedTestApp;
 
 network Test {
     parameters:
@@ -53,7 +52,7 @@ network Test {
                 encIn[encUnits];
                 authIn[authUnits];
         }
-        testapp: ArrivalManagerFlitUncodedTestApp;
+        testapp: AMFlitUCTestApp;
     connections:
         testapp.appIn <-- am.appOut;
         testapp.arqIn <-- am.arqOut;

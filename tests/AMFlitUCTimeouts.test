@@ -1,9 +1,9 @@
 %description:
-Test arrival manager: network coded data/mac flit pairs ARQ timeouts
+Test arrival manager: uncoded data/mac flit pairs ARQ timeouts
 
 %inifile: omnetpp.ini
 [General]
-sim-time-limit = 500ns
+sim-time-limit = 100ns
 **.cmdenv-log-level = debug
 
 **.am.arqLimit = 1
@@ -52,7 +52,7 @@ network Test {
                 encIn[encUnits];
                 authIn[authUnits];
         }
-        testapp: ArrivalManagerFlitG2C3TimeoutsTestApp;
+        testapp: AMFlitUCTimeoutsTestApp;
     connections:
         testapp.appIn <-- am.appOut;
         testapp.arqIn <-- am.arqOut;
@@ -85,30 +85,16 @@ network Test {
 8 Got ARQ arq-123-s\(0,0\)-t\(3,3\)
 Source \(0,0\)
 Target \(3,3\)
-GID 123
-Mode MODE_ARQ_TELL_RECEIVED
-ARQ modes \(1,ARQ_DATA\)
+FID 123
+Mode MODE_ARQ_TELL_MISSING
+ARQ mode ARQ_MAC
 .*
-12 Got ARQ arq-123-s\(0,0\)-t\(2,2\)
+9 Got ARQ arq-123-s\(0,0\)-t\(2,2\)
 Source \(0,0\)
 Target \(2,2\)
-GID 123
-Mode MODE_ARQ_TELL_RECEIVED
-ARQ modes \(2,ARQ_MAC\)\(5,ARQ_DATA\)
-.*
-14 Got ARQ arq-222-s\(0,0\)-t\(3,3\)
-Source \(0,0\)
-Target \(3,3\)
-GID 222
+FID 123
 Mode MODE_ARQ_TELL_MISSING
-ARQ modes \(1,ARQ_DATA_MAC\)\(42,ARQ_DATA_MAC\)
-.*
-25 Got ARQ arq-42-s\(0,0\)-t\(1,1\)
-Source \(0,0\)
-Target \(1,1\)
-GID 42
-Mode MODE_ARQ_TELL_MISSING
-ARQ modes \(25,ARQ_DATA\)\(28,ARQ_DATA\)
+ARQ mode ARQ_DATA
 
 %not-contains: stdout
 undisposed object:

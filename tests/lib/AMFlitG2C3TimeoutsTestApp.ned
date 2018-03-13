@@ -1,4 +1,4 @@
-simple ArrivalManagerFlitUncodedTimeoutsTestApp {
+simple AMFlitG2C3TimeoutsTestApp {
     gates:
         input  appIn;
         input  arqIn;

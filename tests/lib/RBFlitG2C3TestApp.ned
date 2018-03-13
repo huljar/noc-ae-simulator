@@ -1,4 +1,4 @@
-simple RetransmissionBufferFlitG2C3TestApp {
+simple RBFlitG2C3TestApp {
     gates:
         input  dataIn;
         output dataOut;

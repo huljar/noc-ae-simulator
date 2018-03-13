@@ -14,7 +14,6 @@ sim-time-limit = 100ns
 %file: test.ned
 import HaecComm.Core.Clock;
 import HaecComm.Buffers.RetransmissionBuffer;
-import HaecCommTest.RetransmissionBufferFlitUncodedTestApp;
 
 network Test {
     parameters:
@@ -22,7 +21,7 @@ network Test {
     submodules:
         clock: Clock;
         rt: RetransmissionBuffer;
-        testapp: RetransmissionBufferFlitUncodedTestApp;
+        testapp: RBFlitUCTestApp;
     connections:
         testapp.dataOut --> rt.dataIn;
         testapp.arqOut --> rt.arqIn;

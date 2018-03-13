@@ -1,4 +1,4 @@
-simple ArrivalManagerFlitG2C3TestApp {
+simple AMFlitG2C3TestApp {
     gates:
         input  appIn;
         input  arqIn;
