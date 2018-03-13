@@ -60,8 +60,22 @@ void Flit::adjustMsgKind() {
     setKind(isArq() ? Constants::FLIT_ARQ_KIND : (getNcMode() == NC_UNCODED ? Constants::FLIT_UNCODED_KIND : Constants::FLIT_NETWORK_CODED_KIND));
 }
 
+void Flit::setNcArqs(const GevArqMap& ncArqs) {
+    Flit_Base::setNcArqs(ncArqs);
+
+    // Add new GEVs to known GEVs
+    for(auto it = ncArqs.begin(); it != ncArqs.end(); ++it)
+        knownGevs.insert(it->first);
+    ASSERT(knownGevs.size() <= getNumCombinations());
+}
+
 void Flit::mergeNcArqModesFlit(Mode newMode, const GevArqMap& newArqModes) {
     ASSERT(isArq() && ncMode != NC_UNCODED);
+
+    // Add new GEVs to known GEVs
+    for(auto it = newArqModes.begin(); it != newArqModes.end(); ++it)
+        knownGevs.insert(it->first);
+    ASSERT(knownGevs.size() <= getNumCombinations());
 
     // Check flit mode
     if(mode == MODE_ARQ_TELL_MISSING && newMode == MODE_ARQ_TELL_MISSING) {
@@ -72,15 +86,9 @@ void Flit::mergeNcArqModesFlit(Mode newMode, const GevArqMap& newArqModes) {
     else if(mode == MODE_ARQ_TELL_MISSING && newMode == MODE_ARQ_TELL_RECEIVED) {
         // We have a TELL_MISSING ARQ and received new TELL_RECEIVED modes
         // Check if we can merge to a TELL_MISSING ARQ
-        std::set<uint16_t> gevs;
-        for(auto it = ncArqs.begin(); it != ncArqs.end(); ++it)
-            gevs.insert(it->first);
-        for(auto it = newArqModes.begin(); it != newArqModes.end(); ++it)
-            gevs.insert(it->first);
-
-        if(gevs.size() >= getNumCombinations()) {
+        if(knownGevs.size() >= getNumCombinations()) {
             // Merge to a TELL_MISSING ARQ with the new modes inverted
-            GevArqMap inverted = invertNcArqModesFlit(newArqModes, gevs);
+            GevArqMap inverted = invertNcArqModesFlit(newArqModes);
             mergeNcArqModesFlitUnion(inverted);
         }
         else {
@@ -99,15 +107,9 @@ void Flit::mergeNcArqModesFlit(Mode newMode, const GevArqMap& newArqModes) {
     else if(mode == MODE_ARQ_TELL_RECEIVED && newMode == MODE_ARQ_TELL_MISSING) {
         // We have a TELL_RECEIVED ARQ and received new TELL_MISSING modes
         // Check if we can merge to a TELL_MISSING ARQ
-        std::set<uint16_t> gevs;
-        for(auto it = ncArqs.begin(); it != ncArqs.end(); ++it)
-            gevs.insert(it->first);
-        for(auto it = newArqModes.begin(); it != newArqModes.end(); ++it)
-            gevs.insert(it->first);
-
-        if(gevs.size() >= getNumCombinations()) {
+        if(knownGevs.size() >= getNumCombinations()) {
             // Merge to a new TELL_MISSING ARQ with the old modes inverted
-            GevArqMap inverted = invertNcArqModesFlit(ncArqs, gevs);
+            GevArqMap inverted = invertNcArqModesFlit(ncArqs);
 
             // Set modes to the new modes
             setMode(MODE_ARQ_TELL_MISSING);
@@ -129,6 +131,7 @@ void Flit::mergeNcArqModesFlit(Mode newMode, const GevArqMap& newArqModes) {
 }
 
 void Flit::copy(const Flit& other) {
+    this->knownGevs = other.knownGevs;
 }
 
 void Flit::mergeNcArqModesFlitUnion(const GevArqMap& newArqModes) {
@@ -168,9 +171,9 @@ void Flit::mergeNcArqModesFlitWithout(const GevArqMap& newArqModes) {
     }
 }
 
-GevArqMap Flit::invertNcArqModesFlit(const GevArqMap& toInvert, const std::set<uint16_t>& gevs) {
+GevArqMap Flit::invertNcArqModesFlit(const GevArqMap& toInvert) {
     GevArqMap inverted;
-    for(auto it = gevs.begin(); it != gevs.end(); ++it) {
+    for(auto it = knownGevs.begin(); it != knownGevs.end(); ++it) {
         GevArqMap::const_iterator toInvIter = toInvert.find(*it);
         if(toInvIter == toInvert.end())
             inverted.emplace(*it, ARQ_DATA_MAC);

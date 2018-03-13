@@ -17,6 +17,8 @@
 #define MESSAGES_FLIT_H_
 
 #include <Messages/Flit_m.h>
+#include <cinttypes>
+#include <set>
 
 namespace HaecComm { namespace Messages {
 
@@ -40,6 +42,7 @@ public:
     void adjustMsgKind();
 
     // ARQ merging
+    virtual void setNcArqs(const GevArqMap& ncArqs) override;
     void mergeNcArqModesFlit(Mode newMode, const GevArqMap& newArqModes);
 
 private:
@@ -48,7 +51,9 @@ private:
     // ARQ merging
     void mergeNcArqModesFlitUnion(const GevArqMap& newArqModes);
     void mergeNcArqModesFlitWithout(const GevArqMap& newArqModes);
-    GevArqMap invertNcArqModesFlit(const GevArqMap& toInvert, const std::set<uint16_t>& gevs);
+    GevArqMap invertNcArqModesFlit(const GevArqMap& toInvert);
+
+    std::set<uint16_t> knownGevs;
 };
 
 }} //namespace

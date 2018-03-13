@@ -32,7 +32,7 @@ for(auto it = f->getNcArqs().begin(); it != f->getNcArqs().end(); ++it)
     EV << "(" << it->first << "," << cEnum::get("HaecComm::Messages::ArqMode")->getStringFor(it->second) << ")";
 EV << std::endl << std::endl;
 
-f->mergeNcArqModesFlit(MODE_ARQ_TELL_MISSING, GevArqMap{{4, ARQ_DATA}, {12, ARQ_DATA_MAC}});
+f->mergeNcArqModesFlit(MODE_ARQ_TELL_MISSING, GevArqMap{{12, ARQ_DATA_MAC}});
 
 EV << "Mode " << cEnum::get("HaecComm::Messages::Mode")->getStringFor(f->getMode()) << std::endl
    << "ARQ modes ";
