@@ -64,6 +64,11 @@ public:
 		return s.str();
 	}
 
+	/// Get raw value of the underlying address representation
+	uint8_t raw() const {
+	    return address;
+	}
+
 private:
 	/// The X coordinate is stored in the most significant 4 bit and the
 	/// Y coordinate in the least significant 4 bit.

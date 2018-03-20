@@ -25,20 +25,18 @@ Define_Module(ReportArrival);
 void ReportArrival::initialize() {
 	MiddlewareBase::initialize();
 
-	pktconsumeSignal = registerSignal("pktconsume");
+	receiveFlitSignal = registerSignal("receiveFlit");
 }
 
 void ReportArrival::handleMessage(cMessage* msg) {
-	if(Flit* flit = dynamic_cast<Flit*>(msg)) {
-		emit(pktconsumeSignal, flit->getGidOrFid()); // TODO: take into account lost packets
-		EV << "Received flit \"" << flit->getName() << "\" from " << flit->getSource()
-		   << " at " << flit->getTarget() << " with hop count " << +flit->getHopCount()
-		   << " (flit ID: " << flit->getGidOrFid() << ")" << std::endl;
-	}
-	else {
-		EV << "Received message \"" << msg->getName() << "\"" << std::endl;
-	}
-    delete msg;
+    Flit* flit = check_and_cast<Flit*>(msg);
+
+    emit(receiveFlitSignal, flit);
+    EV << "Received flit \"" << flit->getName() << "\" from " << flit->getSource()
+       << " at " << flit->getTarget() << " with hop count " << +flit->getHopCount()
+       << " (flit ID: " << flit->getGidOrFid() << ")" << std::endl;
+
+    delete flit;
 }
 
 }} //namespace

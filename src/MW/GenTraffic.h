@@ -67,7 +67,7 @@ protected:
     int cachedTargetX;
     int cachedTargetY;
 
-    simsignal_t pktgenerateSignal;
+    simsignal_t generateFlitSignal;
 };
 
 }} //namespace

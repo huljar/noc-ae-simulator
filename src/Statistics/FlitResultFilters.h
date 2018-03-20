@@ -13,34 +13,30 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __HAECCOMM_REPORTARRIVAL_H_
-#define __HAECCOMM_REPORTARRIVAL_H_
+#ifndef STATISTICS_FLITRESULTFILTERS_H_
+#define STATISTICS_FLITRESULTFILTERS_H_
 
 #include <omnetpp.h>
-#include <MW/MiddlewareBase.h>
 
 using namespace omnetpp;
 
-namespace HaecComm { namespace MW {
+namespace HaecComm { namespace Statistics {
 
-/**
- * \brief Special middleware which reports message arrivals
- *
- * This middleware logs information about incoming messages. Afterwards,
- * the messages are deleted.
- *
- * \note This module will not send out any messages. Its output gate
- * is supposed to stay unconnected, since this module consumes all
- * incoming traffic.
- */
-class ReportArrival: public MiddlewareBase {
+class FlitIdFilter : public cObjectResultFilter {
 protected:
-    virtual void initialize() override;
-    virtual void handleMessage(cMessage* msg) override;
+    virtual void receiveSignal(cResultFilter* prev, simtime_t_cref t, cObject* object, cObject* details) override;
+};
 
-    simsignal_t receiveFlitSignal;
+class FlitSourceFilter : public cObjectResultFilter {
+protected:
+    virtual void receiveSignal(cResultFilter* prev, simtime_t_cref t, cObject* object, cObject* details) override;
+};
+
+class FlitTargetFilter : public cObjectResultFilter {
+protected:
+    virtual void receiveSignal(cResultFilter* prev, simtime_t_cref t, cObject* object, cObject* details) override;
 };
 
 }} //namespace
 
-#endif /* __HAECCOMM_REPORTARRIVAL_H_ */
+#endif /* STATISTICS_FLITRESULTFILTERS_H_ */

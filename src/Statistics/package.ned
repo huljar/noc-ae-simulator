@@ -13,24 +13,6 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package HaecComm.MW;
+package HaecComm.Statistics;
 
-//
-// Special middleware which reports message arrivals
-//
-// This middleware logs information about incoming messages. Afterwards,
-// the messages are deleted.
-//
-// Note: This module will not send out any messages. Its output gate
-// is supposed to stay unconnected, since this module consumes all
-// incoming traffic.
-//
-simple ReportArrival like IMiddlewareBase {
-    parameters:
-        @signal[receiveFlit](type=HaecComm::Messages::Flit);
-        @statistic[flits](source=receiveFlit; record=vector(flitId),vector(flitSource); title="Received Flits");
-        @display("i=block/arrival");
-    gates:
-        input  in;
-        output out @loose;
-}
+@namespace(HaecComm::Statistics);

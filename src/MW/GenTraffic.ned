@@ -28,8 +28,8 @@ package HaecComm.MW;
 //
 simple GenTraffic like IMiddlewareBase {
     parameters:
-        @signal[pktgenerate](type=unsigned long);
-        @statistic[flitIds](source=pktgenerate; record=vector; title="Flits generated");
+        @signal[generateFlit](type=HaecComm::Messages::Flit);
+        @statistic[flits](source=generateFlit; record=vector(flitId),vector(flitTarget); title="Generated Flits");
         @display("i=block/departure");
         bool enabled = default(true);
         double injectionProb;
