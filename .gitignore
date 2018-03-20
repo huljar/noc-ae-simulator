@@ -5,9 +5,10 @@
 # output directory
 out/
 
-# eclipse user settings
+# user specific settings files/directories
 .settings/
 simulations/.qtenvrc
+analysis/.ropeproject
 
 # automatically generated files
 src/Makefile
