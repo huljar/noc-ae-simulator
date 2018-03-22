@@ -64,9 +64,9 @@ void RouterBase::initialize() {
 
         // Subscribe to the "queue full" signal of the input queues of the connected routers/components
         cModule* connectedModule = outGate->getPathEndGate()->getOwnerModule();
-        connectedModule->subscribe("qfull", this);
+        connectedModule->subscribe("queueFull", this);
 
-        EV_DEBUG << "Subscribed to " << connectedModule->getFullPath() << "'s \"qfull\" signal." << std::endl;
+        EV_DEBUG << "Subscribed to " << connectedModule->getFullPath() << "'s \"queueFull\" signal." << std::endl;
 
         // Fill the maps
         modulePortMap.emplace(connectedModule->getId(), i);
@@ -176,7 +176,7 @@ void RouterBase::receiveSignal(cComponent* source, simsignal_t signalID, unsigne
 void RouterBase::receiveSignal(cComponent* source, simsignal_t signalID, bool b, cObject* details) {
     // If we receive a "queue is full" signal, set the ready state for the port that connects to
     // the source module to false. If the queue is not full any more, set ready state to true.
-    if(signalID == registerSignal("qfull")) {
+    if(signalID == registerSignal("queueFull")) {
         portReadyMap.at(modulePortMap.at(source->getId())) = !b;
     }
 }

@@ -51,9 +51,9 @@ protected:
     bool cycleFree;
     cPacketQueue* queue;
 
-    simsignal_t qlenSignal;
-    simsignal_t qfullSignal;
-    simsignal_t pktdropSignal;
+    simsignal_t queueLengthSignal;
+    simsignal_t queueFullSignal;
+    simsignal_t flitDropSignal;
 };
 
 }} //namespace

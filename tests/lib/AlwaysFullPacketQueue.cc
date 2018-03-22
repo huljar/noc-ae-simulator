@@ -22,8 +22,8 @@ void AlwaysFullPacketQueue::receiveSignal(cComponent* source, simsignal_t signal
     PacketQueueBase::receiveSignal(source, signalID, l, details);
 
     if(signalID == registerSignal("clock") && l == 0) {
-        EV_DEBUG << "Emitting qfull signal (true)" << std::endl;
-        emit(qfullSignal, true);
+        EV_DEBUG << "Emitting queueFull signal (true)" << std::endl;
+        emit(queueFullSignal, true);
     }
 }
 

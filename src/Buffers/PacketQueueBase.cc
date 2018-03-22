@@ -14,6 +14,9 @@
 // 
 
 #include "PacketQueueBase.h"
+#include <Messages/Flit.h>
+
+using namespace HaecComm::Messages;
 
 namespace HaecComm { namespace Buffers {
 
@@ -63,55 +66,49 @@ void PacketQueueBase::initialize() {
 
     queue = new cPacketQueue;
 
-    qlenSignal = registerSignal("qlen");
-    qfullSignal = registerSignal("qfull");
-    pktdropSignal = registerSignal("pktdrop");
+    queueLengthSignal = registerSignal("queueLength");
+    queueFullSignal = registerSignal("queueFull");
+    flitDropSignal = registerSignal("flitDrop");
 }
 
 void PacketQueueBase::handleMessage(cMessage* msg) {
-	// Confirm that this is a packet
-	if(!msg->isPacket()) {
-		EV_WARN << "Received a message that is not a packet. Discarding it." << std::endl;
-		delete msg;
-		return;
-	}
-
-	cPacket* packet = static_cast<cPacket*>(msg); // No need for dynamic_cast or check_and_cast here
+	// Confirm that this is a flit
+	Flit* flit = check_and_cast<Flit*>(msg);
 
     if(!awaitSendRequests && !syncFirstPacket && cycleFree) {
         // If we don't wait for requests, don't sync the first packet
         // and did not already send a packet this cycle, we can send it
         // immediately.
-        send(packet, "out");
+        send(flit, "out");
         cycleFree = false;
     }
     else if(maxLength == 0) {
         // Otherwise, if we don't have a queue length restriction, we can
         // freely insert the packet.
-        queue->insert(packet);
+        queue->insert(flit);
     }
     else if(queue->getLength() < maxLength) {
         // Otherwise, if there is a length restriction, but we did not reach
         // it yet, we can also insert the packet.
-        queue->insert(packet);
+        queue->insert(flit);
 
         // If the queue is full now, we emit the appropriate signal.
         if(queue->getLength() == maxLength)
-        	emit(qfullSignal, true);
+        	emit(queueFullSignal, true);
     }
     else {
         // If we receive a packet while the queue is full, we must discard it.
-        emit(pktdropSignal, packet);
+        emit(flitDropSignal, flit);
         EV_WARN << "Received a packet, but max queue length of " << maxLength
                 << " was already reached. Discarding it." << std::endl;
-        delete packet;
+        delete flit;
     }
 }
 
 void PacketQueueBase::receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) {
 	if(signalID == registerSignal("clock")) {
 		// Emit queue length signal
-		emit(qlenSignal, queue->getLength());
+		emit(queueLengthSignal, queue->getLength());
 
 		if(queue->isEmpty()) {
 			cycleFree = true;
@@ -127,7 +124,7 @@ void PacketQueueBase::popQueueAndSend() {
     take(packet);
     send(packet, "out");
     if(queue->getLength() == maxLength - 1)
-    	emit(qfullSignal, false);
+    	emit(queueFullSignal, false);
 }
 
 void PacketQueueBase::popQueueAndDiscard() {
@@ -135,7 +132,7 @@ void PacketQueueBase::popQueueAndDiscard() {
     take(packet);
     delete(packet);
     if(queue->getLength() == maxLength - 1)
-        emit(qfullSignal, false);
+        emit(queueFullSignal, false);
 }
 
 }} //namespace

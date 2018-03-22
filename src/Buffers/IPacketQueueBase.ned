@@ -20,11 +20,11 @@ package HaecComm.Buffers;
 //
 moduleinterface IPacketQueueBase {
     parameters:
-        @signal[qlen](type=long); // not using unsigned because queues return signed values for length
-        @signal[pktdrop](type=cPacket);
-        @signal[qfull](type=bool);
-        @statistic[queueLength](source=qlen; record=max,timeavg,vector?; title="Queue Length");
-        @statistic[dropCount](source=count(pktdrop); record=last; title="Packets dropped");
+        @signal[queueLength](type=long); // not using unsigned because queues return signed values for length
+        @signal[flitDrop](type=HaecComm::Messages::Flit);
+        @signal[queueFull](type=bool);
+        @statistic[queueLength](source=queueLength; record=max,timeavg,vector; title="Queue Length");
+        @statistic[dropCount](source=flitDrop; record=count; title="Flits dropped");
         bool awaitSendRequests;
         bool syncFirstPacket;
         int maxLength;
