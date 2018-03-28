@@ -4,6 +4,7 @@ import sqlite3 as sql
 import numpy as np
 import gnuplotpy as gp
 
+# Global parameters
 meshRows = 8
 meshCols = 8
 
@@ -76,6 +77,37 @@ def plotRouterQueueLengths(cursorVec, routerNum = -1, portNum = -1):
 
             # Run gnuplot
             gp.gnuplot('queuelength.gpi', args, data)
+
+def getFlitEndToEndLatency(cursorVec, sourceId, targetId):
+    sourceIds = []
+    targetIds = []
+
+    idVecName = 'flits:vector(flitId)'
+    sourceVecName = 'flits:vector(flitSource)'
+    targetVecName = 'flits:vector(flitTarget)'
+
+    if sourceId >= 0:
+        sourceIds = [sourceId]
+    else:
+        sourceIds = [x for x in range(meshRows * meshCols)]
+
+    if targetId >= 0:
+        targetIds = [targetId]
+    else:
+        targetIds = [x for x in range(meshRows * meshCols)]
+
+    for source in sourceIds:
+        for target in targetIds:
+            # Build source/target module names
+            sourceModName = 'Mesh2D.app[' + str(source) + '].producer'
+            targetModName = 'Mesh2D.app[' + str(target) + '].consumer'
+
+            # Get target raw address
+#            targetRaw = # TODO: look up how python division/modulo rounds
+
+#            cursorVec.execute(
+#                '''select s.simtimeRaw, t.simtimeRaw
+#                   from 
 
 if __name__ == '__main__':
     # Ensure output directory exists
