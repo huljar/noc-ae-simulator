@@ -23,5 +23,8 @@ simulations/core
 # statistics collection directory
 simulations/results/
 
+# analysis output directory
+analysis/plots/
+
 # opp_test work directory
 tests/work

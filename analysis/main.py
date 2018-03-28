@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
-import sqlite3
+import os
+import sqlite3 as sql
+import numpy as np
+import gnuplotpy as gp
+
+meshRows = 8
+meshCols = 8
+
+outputDir = 'plots/'
 
 def dbConnect():
     # Database paths
@@ -10,9 +18,9 @@ def dbConnect():
     uriSca = 'file:' + pathSca + '?mode=ro'
     uriVec = 'file:' + pathVec + '?mode=ro'
 
-    # Connect to DBs and get a cursor
-    connSca = sqlite3.connect(uriSca, uri=True)
-    connVec = sqlite3.connect(uriVec, uri=True)
+    # Connect to DBs
+    connSca = sql.connect(uriSca, uri=True)
+    connVec = sql.connect(uriVec, uri=True)
 
     # Return connections
     return (connSca, connVec)
@@ -22,19 +30,66 @@ def dbClose(connSca, connVec):
     connSca.close()
     connVec.close()
 
+def plotRouterQueueLengths(cursorVec, routerNum = -1, portNum = -1):
+    routerNames = []
+    moduleNames = []
+
+    if routerNum >= 0:
+        routerNames = ['Mesh2D.router[' + str(routerNum) + ']']
+    else:
+        routerNames = ['Mesh2D.router[' + str(x) + ']' for x in range(meshRows * meshCols)]
+
+    if portNum == 5:
+        moduleNames = ['localInputQueue']
+    elif portNum >= 0:
+        moduleNames = ['nodeInputQueue[' + str(portNum) + ']']
+    else:
+        moduleNames = ['nodeInputQueue[' + str(x) + ']' for x in range(4)]
+        moduleNames.append('localInputQueue')
+
+    for router in routerNames:
+        for module in moduleNames:        
+            fullName = router + '.' + module
+
+            cursorVec.execute(
+                '''select d.value
+                   from vector v inner join vectorData d on v.vectorId = d.vectorId
+                   where v.moduleName = :name''',
+                {'name': fullName}
+            )
+
+            # Fetch rows
+            result = cursorVec.fetchall()
+
+            # Get gnuplot parameters
+            args = {
+                'the_title': fullName, 
+                'x_max': len(result),
+                'y_max': 10,
+                'filename': outputDir + fullName + '.png'
+            }
+
+            # Get data
+            x = range(0, len(result))
+            y = [x[0] for x in result]
+            data = [x, y]
+
+            # Run gnuplot
+            gp.gnuplot('queuelength.gpi', args, data)
+
 if __name__ == '__main__':
+    # Ensure output directory exists
+    if not os.path.exists(outputDir):
+        os.makedirs(outputDir)
+
     # Connect to DBs
     (connSca, connVec) = dbConnect()
 
     cursorSca = connSca.cursor()
     cursorVec = connVec.cursor()
 
-    # Open results file for gnuplot
-
-    cursorVec.execute('''select v.moduleName, v.vectorName, d.value
-                         from vector v inner join vectorData d on v.vectorId = d.vectorId
-                         where v.vectorId = 1''')
-
-    print(cursorVec.fetchone())
-
+    # Plot queue lengths of routers
+    plotRouterQueueLengths(cursorVec, portNum = 5)
+    
+    # Close DB connections
     dbClose(connSca, connVec)

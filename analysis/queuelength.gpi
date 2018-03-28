@@ -1,0 +1,15 @@
+set datafile separator ','
+set term pngcairo size 20cm,20cm
+set out filename
+
+unset key
+set grid
+set border lw 1.5
+
+set title the_title
+set xrange [0:1.1*x_max]
+set yrange [0:1.1*y_max]
+
+plot data u 1:2 w lp pt 7 ps 0.5 lw 2
+
+set out
