@@ -19,6 +19,7 @@
 #include <omnetpp.h>
 #include <Buffers/PacketQueueBase.h>
 #include <Util/ShiftRegister.h>
+#include <map>
 #include <queue>
 #include <vector>
 
@@ -46,6 +47,9 @@ protected:
     Buffers::PacketQueueBase* appInputQueue;
     Buffers::PacketQueueBase* exitInputQueue;
     Buffers::PacketQueueBase* netInputQueue;
+
+    std::map<int, simsignal_t> encBusySignals;
+    std::map<int, simsignal_t> authBusySignals;
 };
 
 }}} //namespace

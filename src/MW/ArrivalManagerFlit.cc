@@ -97,6 +97,8 @@ void ArrivalManagerFlit::initialize() {
 void ArrivalManagerFlit::handleMessage(cMessage* msg) {
     if(msg->isSelfMessage()) {
         ArqTimer* timer = check_and_cast<ArqTimer*>(msg);
+        if(timer->getGidOrFid() == 588)
+            EV << "BREAK HERE";
         handleArqTimer(timer);
     }
     else {
@@ -107,6 +109,8 @@ void ArrivalManagerFlit::handleMessage(cMessage* msg) {
             delete msg;
             return;
         }
+        if(flit->getGidOrFid() == 588)
+            EV << "BREAK HERE";
 
         // Handle flits arriving from the network
         if(strcmp(flit->getArrivalGate()->getName(), "netIn") == 0) {
