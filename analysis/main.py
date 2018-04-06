@@ -82,9 +82,7 @@ def getFlitEndToEndLatency(cursorVec, sourceId, targetId):
     sourceIds = []
     targetIds = []
 
-    idVecName = 'flits:vector(flitId)'
-    sourceVecName = 'flits:vector(flitSource)'
-    targetVecName = 'flits:vector(flitTarget)'
+    idVecName = 'flitsGenerated:vector(flitId)'
 
     if sourceId >= 0:
         sourceIds = [sourceId]

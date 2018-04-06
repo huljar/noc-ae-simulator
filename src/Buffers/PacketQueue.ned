@@ -25,7 +25,7 @@ simple PacketQueue like IPacketQueueBase {
         @signal[queueLength](type=long); // not using unsigned because queues return signed values for length
         @signal[flitDrop](type=HaecComm::Messages::Flit);
         @signal[queueFull](type=bool);
-        @statistic[queueLength](source=queueLength; record=max,timeavg,vector; title="Queue Length");
+        @statistic[queueLength](source=queueLength; record=max,timeavg,vector?; title="Queue Length");
         @statistic[dropCount](source=flitDrop; record=count; title="Flits dropped");
         @display("i=block/queue");
         bool awaitSendRequests = default(false);

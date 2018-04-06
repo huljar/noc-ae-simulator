@@ -44,9 +44,9 @@ void RouterBase::initialize() {
     if(dropProb < 0.0 || dropProb > 1.0)
         throw cRuntimeError(this, "Drop probability must be between 0 and 1, but is %f", dropProb);
 
-    pktsendSignal = registerSignal("pktsend");
-    pktreceiveSignal = registerSignal("pktreceive");
-    pktrouteSignal = registerSignal("pktroute");
+    sendFlitSignal = registerSignal("sendFlit");
+    receiveFlitSignal = registerSignal("receiveFlit");
+    forwardFlitSignal = registerSignal("forwardFlit");
 
     // subscribe to clock signal
     getSimulation()->getSystemModule()->subscribe("clock", this);
@@ -95,11 +95,11 @@ void RouterBase::handleMessage(cMessage* msg) {
 
     // Emit signals
     if(isSender && !isReceiver)
-        emit(pktsendSignal, flit);
+        emit(sendFlitSignal, flit);
     if(isReceiver && !isSender)
-        emit(pktreceiveSignal, flit);
+        emit(receiveFlitSignal, flit);
     if(!isSender && !isReceiver)
-        emit(pktrouteSignal, flit);
+        emit(forwardFlitSignal, flit);
 
     // Increase hop count if we are not the sender node
     if(!isSender) {

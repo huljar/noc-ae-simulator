@@ -52,9 +52,9 @@ protected:
 	double modificationProb;
 	double dropProb;
 
-	simsignal_t pktsendSignal;
-	simsignal_t pktreceiveSignal;
-	simsignal_t pktrouteSignal;
+	simsignal_t sendFlitSignal;
+	simsignal_t receiveFlitSignal;
+	simsignal_t forwardFlitSignal;
 
 	std::map<int, int> modulePortMap;
 	std::map<int, bool> portReadyMap;
