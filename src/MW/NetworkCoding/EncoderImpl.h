@@ -41,9 +41,10 @@ protected:
     virtual void initialize() override;
     virtual void handleMessage(cMessage* msg) override;
 
+    bool useGlobalTransmissionIds;
+
 private:
     std::map<Messages::Address2D, FlitVector> flitCache;
-    std::map<Messages::Address2D, uint32_t> gidCounter;
 };
 
 }}} //namespace

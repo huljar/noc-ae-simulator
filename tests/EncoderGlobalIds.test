@@ -15,16 +15,15 @@ sim-time-limit = 10ns
 %file: test.ned
 import HaecComm.Core.Clock;
 import HaecComm.MW.NetworkCoding.Encoder;
-import HaecCommTest.EncoderTestApp;
 
 network Test {
     parameters:
-        bool useGlobalTransmissionIds = false;
+        bool useGlobalTransmissionIds = true;
     submodules:
         clock: Clock;
         encoder1: Encoder;
         encoder2: Encoder;
-        testapp: EncoderTestApp;
+        testapp: EncoderGlobalIdsTestApp;
     connections:
         testapp.in1 <-- encoder1.out;
         testapp.out1 --> encoder1.in;
@@ -39,10 +38,10 @@ Target \(1,1\)
 GID 0
 GEV 0
 .*
-Got flit nc-0-0-s\(1,0\)-t\(2,0\)
+Got flit nc-1-0-s\(1,0\)-t\(2,0\)
 Source \(1,0\)
 Target \(2,0\)
-GID 0
+GID 1
 GEV 0
 .*
 Got flit nc-0-1-s\(0,0\)-t\(1,1\)
@@ -51,10 +50,10 @@ Target \(1,1\)
 GID 0
 GEV 1
 .*
-Got flit nc-0-1-s\(1,0\)-t\(2,0\)
+Got flit nc-1-1-s\(1,0\)-t\(2,0\)
 Source \(1,0\)
 Target \(2,0\)
-GID 0
+GID 1
 GEV 1
 .*
 Got flit nc-0-2-s\(0,0\)-t\(1,1\)
@@ -63,17 +62,35 @@ Target \(1,1\)
 GID 0
 GEV 2
 .*
-Got flit nc-0-2-s\(1,0\)-t\(2,0\)
+Got flit nc-1-2-s\(1,0\)-t\(2,0\)
 Source \(1,0\)
 Target \(2,0\)
-GID 0
+GID 1
 GEV 2
 .*
-Got flit nc-0-3-s\(1,0\)-t\(2,0\)
+Got flit nc-1-3-s\(1,0\)-t\(2,0\)
 Source \(1,0\)
 Target \(2,0\)
-GID 0
+GID 1
 GEV 3
+.*
+Got flit nc-2-0-s\(0,0\)-t\(1,2\)
+Source \(0,0\)
+Target \(1,2\)
+GID 2
+GEV 0
+.*
+Got flit nc-2-1-s\(0,0\)-t\(1,2\)
+Source \(0,0\)
+Target \(1,2\)
+GID 2
+GEV 1
+.*
+Got flit nc-2-2-s\(0,0\)-t\(1,2\)
+Source \(0,0\)
+Target \(1,2\)
+GID 2
+GEV 2
 
 %not-contains: stdout
 undisposed object:

@@ -36,6 +36,7 @@ network Mesh2D {
         string routerType;              // NED type of the router (must implement IRouter)
         string channelType;             // NED type of the channels between nodes (must implement IHaecChannel)
         double clockPeriod @unit(s);    // Clock speed
+        bool useGlobalTransmissionIds;  // Use globally unique IDs for flits and generations
     submodules:
         //
         // The global clock module. It is used by nodes to synchronize message

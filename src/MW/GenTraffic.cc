@@ -16,9 +16,11 @@
 #include "GenTraffic.h"
 #include <Messages/Flit.h>
 #include <Messages/MessageFactory.h>
+#include <Util/IdProvider.h>
 #include <sstream>
 
 using namespace HaecComm::Messages;
+using namespace HaecComm::Util;
 
 namespace HaecComm { namespace MW {
 
@@ -30,6 +32,7 @@ GenTraffic::GenTraffic()
     , generatePairs(false)
     , singleTarget(false)
     , singleTargetId(0)
+    , useGlobalTransmissionIds(false)
     , gridRows(1)
     , gridColumns(1)
     , nodeId(0)
@@ -58,6 +61,8 @@ void GenTraffic::initialize() {
 
     generatePairs = par("generatePairs");
     singleTarget = par("singleTarget");
+
+    useGlobalTransmissionIds = getAncestorPar("useGlobalTransmissionIds");
 
     gridRows = getAncestorPar("rows");
     gridColumns = getAncestorPar("columns");
@@ -131,7 +136,10 @@ void GenTraffic::generateFlit(int targetX, int targetY) {
     // Get parameters
     Address2D source(nodeX, nodeY);
     Address2D target(targetX, targetY);
-    uint32_t& fid = fidCounter[target];
+
+    // Get local or global flit ID
+    IdProvider* idp = IdProvider::getInstance();
+    uint32_t fid = useGlobalTransmissionIds ? idp->getNextFlitId() : idp->getNextFlitId(source, target);
 
     // Build packet name
     std::ostringstream packetName;
@@ -146,9 +154,6 @@ void GenTraffic::generateFlit(int targetX, int targetY) {
     EV << "Sending flit \"" << flit->getName() << "\" from " << flit->getSource()
        << " to " << flit->getTarget() << " (ID: " << flit->getGidOrFid() << ")" << std::endl;
     send(flit, "out");
-
-    // Increment Flit ID counter
-    ++fid;
 }
 
 }} //namespace

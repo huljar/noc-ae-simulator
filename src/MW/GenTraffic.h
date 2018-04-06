@@ -55,13 +55,12 @@ protected:
     bool singleTarget;
     int singleTargetId;
 
+    bool useGlobalTransmissionIds;
     int gridRows;
     int gridColumns;
     int nodeId;
     int nodeX;
     int nodeY;
-
-    std::map<Messages::Address2D, uint32_t> fidCounter;
 
     bool useCachedTarget;
     int cachedTargetX;

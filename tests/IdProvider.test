@@ -1,0 +1,56 @@
+%description:
+Test signal emissions of the clock module
+
+%includes:
+#include <Util/IdProvider.h>
+#include <vector>
+using namespace HaecComm;
+
+%activity:
+Util::IdProvider* idp = Util::IdProvider::getInstance();
+std::vector<unsigned long> flitIds;
+std::vector<unsigned long> genIds;
+
+for(int i = 0; i < 4; ++i) {
+    flitIds.push_back(idp->getNextFlitId());
+    genIds.push_back(idp->getNextGenId());
+}
+for(int i = 0; i < 3; ++i)
+    flitIds.push_back(idp->getNextFlitId());
+for(int i = 0; i < 6; ++i)
+    genIds.push_back(idp->getNextGenId());
+for(int i = 0; i < 3; ++i)
+    flitIds.push_back(idp->getNextFlitId());
+
+for(auto it = flitIds.begin(); it != flitIds.end(); ++it)
+    EV << "Flit ID " << *it << std::endl;
+for(auto it = genIds.begin(); it != genIds.end(); ++it)
+    EV << "Gen ID " << *it << std::endl;
+
+%contains: stdout
+Flit ID 0
+Flit ID 1
+Flit ID 2
+Flit ID 3
+Flit ID 4
+Flit ID 5
+Flit ID 6
+Flit ID 7
+Flit ID 8
+Flit ID 9
+Gen ID 0
+Gen ID 1
+Gen ID 2
+Gen ID 3
+Gen ID 4
+Gen ID 5
+Gen ID 6
+Gen ID 7
+Gen ID 8
+Gen ID 9
+
+%not-contains: stdout
+undisposed object:
+
+%not-contains: stdout
+-- check module destructor

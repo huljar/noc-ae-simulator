@@ -15,16 +15,20 @@
 
 #include "EncoderImpl.h"
 #include <Messages/Flit.h>
+#include <Util/IdProvider.h>
 #include <sstream>
 #include <utility>
 
 using namespace HaecComm::Messages;
+using namespace HaecComm::Util;
 
 namespace HaecComm { namespace MW { namespace NetworkCoding {
 
 Define_Module(EncoderImpl);
 
-EncoderImpl::EncoderImpl() {
+EncoderImpl::EncoderImpl()
+    : useGlobalTransmissionIds(false)
+{
 }
 
 EncoderImpl::~EncoderImpl() {
@@ -35,6 +39,8 @@ EncoderImpl::~EncoderImpl() {
 
 void EncoderImpl::initialize() {
     NetworkCodingBase::initialize();
+
+    useGlobalTransmissionIds = getAncestorPar("useGlobalTransmissionIds");
 }
 
 void EncoderImpl::handleMessage(cMessage* msg) {
@@ -51,9 +57,9 @@ void EncoderImpl::handleMessage(cMessage* msg) {
 
 	if(mode == MODE_DATA) {
 	    // Get parameters
+	    const Address2D& source = flit->getSource();
 		const Address2D& target = flit->getTarget();
 		FlitVector& generation = flitCache[target];
-		uint32_t& gid = gidCounter[target];
 
         // Insert flit into cache (indexed by target address)
 		generation.push_back(flit);
@@ -63,6 +69,10 @@ void EncoderImpl::handleMessage(cMessage* msg) {
 
 		// Check if we have enough flits to create a generation
 		if(generation.size() == static_cast<size_t>(generationSize)) {
+	        // Get local or global generation ID
+	        IdProvider* idp = IdProvider::getInstance();
+	        uint32_t gid = useGlobalTransmissionIds ? idp->getNextGenId() : idp->getNextGenId(source, target);
+
 			// TODO: do actual network coding
 
 			// Logging
@@ -107,13 +117,10 @@ void EncoderImpl::handleMessage(cMessage* msg) {
 			for(auto it = generation.begin(); it != generation.end(); ++it)
 			    delete *it;
 			generation.clear();
-
-			// Increment GID counter
-			++gid;
 		}
 	}
 	else if(mode == MODE_MAC) {
-		flit->setGidOrFid(gidCounter[flit->getTarget()] - 1); // -1 because the counter contains the ID of the next generation
+		//flit->setGidOrFid(gidCounter[flit->getTarget()] - 1); // -1 because the counter contains the ID of the next generation
 		send(flit, "out");
 	}
 	else if(mode == MODE_SPLIT_1) {
