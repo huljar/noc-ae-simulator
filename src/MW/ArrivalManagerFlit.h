@@ -133,6 +133,7 @@ private:
 
     bool ncCheckCompleteGenerationReceived(const IdSourceKey& key, unsigned short numCombinations);
     bool ncCheckVerificationOngoing(const IdSourceKey& key) const;
+    bool ncCheckArqPlanned(const IdSourceKey& key) const;
 };
 
 }} //namespace

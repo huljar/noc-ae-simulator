@@ -20,6 +20,10 @@ package HaecComm.MW.Crypto;
 //
 simple EntryGuardFlit {
     parameters:
+        @signal[enc*Busy](type=bool);
+        @signal[auth*Busy](type=bool);
+        @statisticTemplate[encBusy](record=timeavg,vector?; title="Encryption Unit Busy Status $name");
+        @statisticTemplate[authBusy](record=timeavg,vector?; title="Authentication Unit Busy Status $name");
         @display("i=block/fork");
         int busyCyclesEnc;
         int busyCyclesAuth;

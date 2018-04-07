@@ -19,6 +19,7 @@
 #include <omnetpp.h>
 #include <Buffers/PacketQueueBase.h>
 #include <Util/ShiftRegister.h>
+#include <map>
 #include <queue>
 #include <vector>
 
@@ -30,6 +31,10 @@ namespace HaecComm { namespace MW { namespace Crypto {
  * TODO - implement load balancing for unclocked simulations
  */
 class EntryGuardFlit : public cSimpleModule, public cListener {
+public:
+    typedef std::priority_queue<int, std::vector<int>, std::greater<int>> AvailableQueue;
+    typedef Util::ShiftRegister<std::vector<int>> BusyRegister;
+
 protected:
     virtual void initialize() override;
     virtual void handleMessage(cMessage* msg) override;
@@ -38,14 +43,17 @@ protected:
     int busyCyclesEnc;
     int busyCyclesAuth;
 
-    std::queue<int> availableEncUnits;
-    Util::ShiftRegister<std::vector<int>> busyEncUnits;
-    std::queue<int> availableAuthUnits;
-    Util::ShiftRegister<std::vector<int>> busyAuthUnits;
+    AvailableQueue availableEncUnits;
+    BusyRegister busyEncUnits;
+    AvailableQueue availableAuthUnits;
+    BusyRegister busyAuthUnits;
 
     Buffers::PacketQueueBase* appInputQueue;
     Buffers::PacketQueueBase* exitInputQueue;
     Buffers::PacketQueueBase* netInputQueue;
+
+    std::map<int, simsignal_t> encBusySignals;
+    std::map<int, simsignal_t> authBusySignals;
 };
 
 }}} //namespace

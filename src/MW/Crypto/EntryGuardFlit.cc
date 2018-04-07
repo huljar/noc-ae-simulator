@@ -15,6 +15,7 @@
 
 #include "EntryGuardFlit.h"
 #include <Messages/Flit.h>
+#include <sstream>
 
 using namespace HaecComm::Buffers;
 using namespace HaecComm::Messages;
@@ -60,6 +61,30 @@ void EntryGuardFlit::initialize() {
     appInputQueue = check_and_cast<PacketQueueBase*>(appInGate->getPathStartGate()->getOwnerModule());
     exitInputQueue = check_and_cast<PacketQueueBase*>(exitInGate->getPathStartGate()->getOwnerModule());
     netInputQueue = check_and_cast<PacketQueueBase*>(netInGate->getPathStartGate()->getOwnerModule());
+
+    // Register busy signals and corresponding statistic for all enc/auth units
+    cProperty* encStatTemplate = getProperties()->get("statisticTemplate", "encBusy");
+    cProperty* authStatTemplate = getProperties()->get("statisticTemplate", "authBusy");
+
+    for(int i = 0; i < gateSize("encOut"); ++i) {
+        // Build signal name
+        std::ostringstream signalStatName;
+        signalStatName << "enc" << i << "Busy";
+        simsignal_t signal = registerSignal(signalStatName.str().c_str());
+        encBusySignals.emplace(i, signal);
+
+        getEnvir()->addResultRecorders(this, signal, signalStatName.str().c_str(), encStatTemplate);
+    }
+
+    for(int i = 0; i < gateSize("authOut"); ++i) {
+        // Build signal name
+        std::ostringstream signalStatName;
+        signalStatName << "auth" << i << "Busy";
+        simsignal_t signal = registerSignal(signalStatName.str().c_str());
+        authBusySignals.emplace(i, signal);
+
+        getEnvir()->addResultRecorders(this, signal, signalStatName.str().c_str(), authStatTemplate);
+    }
 }
 
 void EntryGuardFlit::handleMessage(cMessage* msg) {
@@ -84,7 +109,7 @@ void EntryGuardFlit::handleMessage(cMessage* msg) {
             delete flit;
             return;
         }
-        int encIdx = availableEncUnits.front();
+        int encIdx = availableEncUnits.top();
 
         // Set name
         std::ostringstream flitName;
@@ -97,6 +122,9 @@ void EntryGuardFlit::handleMessage(cMessage* msg) {
         // Adjust unit status
         availableEncUnits.pop();
         busyEncUnits.back().push_back(encIdx);
+
+        // Emit busy signal
+        emit(encBusySignals.at(encIdx), true);
     }
     else if(strcmp(flit->getArrivalGate()->getName(), "exitIn") == 0) {
         // Flit arrived from the exit guard (encrypted), send to authentication
@@ -108,7 +136,7 @@ void EntryGuardFlit::handleMessage(cMessage* msg) {
             delete flit;
             return;
         }
-        int authIdx = availableAuthUnits.front();
+        int authIdx = availableAuthUnits.top();
 
         // Set name
         // TODO: better names
@@ -122,6 +150,9 @@ void EntryGuardFlit::handleMessage(cMessage* msg) {
         // Adjust unit status
         availableAuthUnits.pop();
         busyAuthUnits.back().push_back(authIdx);
+
+        // Emit busy signal
+        emit(authBusySignals.at(authIdx), true);
     }
     else { // arrivalGate == "netIn"
         // Flit arrived from the network, send to both decryption and verification
@@ -131,8 +162,8 @@ void EntryGuardFlit::handleMessage(cMessage* msg) {
             delete flit;
             return;
         }
-        int encIdx = availableEncUnits.front();
-        int authIdx = availableAuthUnits.front();
+        int encIdx = availableEncUnits.top();
+        int authIdx = availableAuthUnits.top();
 
         // Create verification flit
         Flit* mac = flit->dup();
@@ -159,19 +190,27 @@ void EntryGuardFlit::handleMessage(cMessage* msg) {
         busyEncUnits.back().push_back(encIdx);
         availableAuthUnits.pop();
         busyAuthUnits.back().push_back(authIdx);
+
+        // Emit busy signals
+        emit(encBusySignals.at(encIdx), true);
+        emit(authBusySignals.at(authIdx), true);
     }
 }
 
 void EntryGuardFlit::receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) {
 	if(signalID == registerSignal("clock")) {
-	    // Shift busy units
+	    // Shift busy units and emit free signals for finished units
 		std::vector<int> finishedEncUnits = busyEncUnits.shift();
-		for(auto it = finishedEncUnits.begin(); it != finishedEncUnits.end(); ++it)
+		for(auto it = finishedEncUnits.begin(); it != finishedEncUnits.end(); ++it) {
 			availableEncUnits.push(*it);
+			emit(encBusySignals.at(*it), false);
+		}
 
 		std::vector<int> finishedAuthUnits = busyAuthUnits.shift();
-        for(auto it = finishedAuthUnits.begin(); it != finishedAuthUnits.end(); ++it)
+        for(auto it = finishedAuthUnits.begin(); it != finishedAuthUnits.end(); ++it) {
             availableAuthUnits.push(*it);
+            emit(authBusySignals.at(*it), false);
+        }
 
         // Count the free units affected by packet requests
         size_t availEnc = availableEncUnits.size();

@@ -260,18 +260,18 @@ void ArrivalManagerFlit::handleNetMessage(Flit* flit) {
             EV_DEBUG << "Caching data flit \"" << flit->getName() << "\" from " << source << " with ID " << id << " and GEV " << gev << std::endl;
             gevCache.emplace(gev, flit);
 
+            // In case this flit is already in a planned ARQ, remove it from there
+            ncTryRemoveFromPlannedArq(key, GevArqMap{{gev, ARQ_DATA}});
+
             // Check if we can cancel the ARQ timer
             if(ncCheckCompleteGenerationReceived(key, flit->getNumCombinations())) {
                 // Cancel ARQ timer
                 cancelArqTimer(key);
             }
-            else {
-                // Start/update ARQ timer
+            // If there is no planned ARQ, start/update the ARQ timer
+            else if(!ncCheckArqPlanned(key)) {
                 setArqTimer(key, ncMode);
             }
-
-            // In case this flit is already in a planned ARQ, remove it from there
-            ncTryRemoveFromPlannedArq(key, GevArqMap{{gev, ARQ_DATA}});
 
             // We only need the data flit to start decryption and authentication,
             // so start it now
@@ -302,18 +302,18 @@ void ArrivalManagerFlit::handleNetMessage(Flit* flit) {
             EV_DEBUG << "Caching MAC flit \"" << flit->getName() << "\" from " << source << " with ID " << id << " and GEV " << gev << std::endl;
             gevCache.emplace(gev, flit);
 
+            // In case this flit is already in a planned ARQ, remove it from there
+            ncTryRemoveFromPlannedArq(key, GevArqMap{{gev, ARQ_MAC}});
+
             // Check if we can cancel the ARQ timer
             if(ncCheckCompleteGenerationReceived(key, flit->getNumCombinations())) {
                 // Cancel ARQ timer
                 cancelArqTimer(key);
             }
-            else {
-                // Start/update ARQ timer
+            // If there is no planned ARQ, start/update the ARQ timer
+            else if(!ncCheckArqPlanned(key)) {
                 setArqTimer(key, ncMode);
             }
-
-            // In case this flit is already in a planned ARQ, remove it from there
-            ncTryRemoveFromPlannedArq(key, GevArqMap{{gev, ARQ_MAC}});
 
             // Try to verify the flit (in case the computed MAC is already there)
             ncTryVerification(key, gev);
@@ -1030,6 +1030,10 @@ bool ArrivalManagerFlit::ncCheckVerificationOngoing(const IdSourceKey& key) cons
 
     // We have found a computed MAC for all applicable GEVs
     return false;
+}
+
+bool ArrivalManagerFlit::ncCheckArqPlanned(const IdSourceKey& key) const {
+    return ncPlannedArqs.count(key);
 }
 
 }} //namespace
