@@ -47,6 +47,7 @@ module NetworkInterfaceNcEncAuthFlit like INetworkInterface {
             @display("p=180,280");
             generationSize = generationSize;
             numCombinations = numCombinations;
+            internalType = "HaecComm.MW.NetworkCoding.EncoderImplFlit";
         }
         appCryptoQueue: PacketQueue {
             @display("p=280,280");
@@ -110,6 +111,7 @@ module NetworkInterfaceNcEncAuthFlit like INetworkInterface {
             @display("p=180,450");
             generationSize = generationSize;
             numCombinations = numCombinations;
+            internalType = "HaecComm.MW.NetworkCoding.DecoderImplFlit";
         }
     connections:
         app$i --> appInputQueue.in;

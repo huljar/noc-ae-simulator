@@ -1,23 +1,22 @@
 %description:
-Test network coding: encoder module (G2C3 and G2C4)
+Test network coding: encoder module with generation authentication (G2C3 and G2C4)
 
 %inifile: omnetpp.ini
 [General]
-sim-time-limit = 10ns
+sim-time-limit = 20ns
 
 **.clock.inter = 2ns
 
 **.encoder1.generationSize = 2
 **.encoder1.numCombinations = 3
-**.encoder1.internalType = "HaecComm.MW.NetworkCoding.EncoderImplFlit"
+**.encoder1.internalType = "HaecComm.MW.NetworkCoding.EncoderImplGen"
 **.encoder2.generationSize = 2
 **.encoder2.numCombinations = 4
-**.encoder2.internalType = "HaecComm.MW.NetworkCoding.EncoderImplFlit"
+**.encoder2.internalType = "HaecComm.MW.NetworkCoding.EncoderImplGen"
 
 %file: test.ned
 import HaecComm.Core.Clock;
 import HaecComm.MW.NetworkCoding.Encoder;
-import HaecCommTest.EncoderTestApp;
 
 network Test {
     parameters:
@@ -26,7 +25,7 @@ network Test {
         clock: Clock;
         encoder1: Encoder;
         encoder2: Encoder;
-        testapp: EncoderTestApp;
+        testapp: EncoderGenTestApp;
     connections:
         testapp.in1 <-- encoder1.out;
         testapp.out1 --> encoder1.in;
@@ -76,6 +75,18 @@ Source \(1,0\)
 Target \(2,0\)
 GID 0
 GEV 3
+.*
+Got flit mac12
+Source \(0,0\)
+Target \(1,1\)
+GID 0
+GEV 0
+.*
+Got flit mac34
+Source \(1,0\)
+Target \(2,0\)
+GID 0
+GEV 0
 
 %not-contains: stdout
 undisposed object:

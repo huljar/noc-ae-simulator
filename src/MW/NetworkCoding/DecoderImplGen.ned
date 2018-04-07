@@ -16,12 +16,13 @@
 package HaecComm.MW.NetworkCoding;
 
 //
-// Simple module implementing network encoding. Flits with the same destination
-// are grouped into a generation. For each generation, a number of linear
-// combinations is computed, which are then sent out. On the receiver side,
-// a ~Decoder module is required to obtain the original flits.
+// Simple module implementing network decoding. Flits with the same generation
+// ID (combinations) are collected until enough flits are present. These flits
+// are decoded using the <i>gev</i> header field and sent out afterwards. On
+// the sender side, an ~Encoder module is required create the linear combinations
+// of the original flits.
 //
-simple EncoderImpl like INetworkCodingBase {
+simple DecoderImplGen like INetworkCodingBase {
     parameters:
         int generationSize;
         int numCombinations;

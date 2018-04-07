@@ -9,8 +9,10 @@ sim-time-limit = 10ns
 
 **.encoder1.generationSize = 2
 **.encoder1.numCombinations = 3
+**.encoder1.internalType = "HaecComm.MW.NetworkCoding.EncoderImplFlit"
 **.encoder2.generationSize = 2
 **.encoder2.numCombinations = 4
+**.encoder2.internalType = "HaecComm.MW.NetworkCoding.EncoderImplFlit"
 
 %file: test.ned
 import HaecComm.Core.Clock;

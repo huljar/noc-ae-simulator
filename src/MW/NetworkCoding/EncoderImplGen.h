@@ -13,8 +13,8 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __HAECCOMM_DECODER_H_
-#define __HAECCOMM_DECODER_H_
+#ifndef __HAECCOMM_NETWORKCODINGENCODERGEN_H_
+#define __HAECCOMM_NETWORKCODINGENCODERGEN_H_
 
 #include <omnetpp.h>
 #include <Messages/Flit.h>
@@ -30,20 +30,18 @@ namespace HaecComm { namespace MW { namespace NetworkCoding {
 /**
  * TODO - Generated class
  */
-class DecoderImpl : public NetworkCodingBase {
+class EncoderImplGen : public NetworkCodingBase {
 public:
-    typedef std::pair<uint32_t, Messages::Address2D> IdSourceKey;
-    typedef std::vector<Messages::Flit*> FlitVector;
-
-	DecoderImpl();
-	virtual ~DecoderImpl();
+	EncoderImplGen();
+	virtual ~EncoderImplGen();
 
 protected:
     virtual void initialize() override;
     virtual void handleMessage(cMessage* msg) override;
 
 private:
-    std::map<IdSourceKey, FlitVector> flitCache;
+    std::map<Messages::Address2D, FlitVector> flitCache;
+    std::map<Messages::Address2D, uint32_t> lastUsedGids;
 };
 
 }}} //namespace

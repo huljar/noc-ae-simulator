@@ -21,12 +21,13 @@ module Decoder like INetworkCodingBase {
     parameters:
         int generationSize;
         int numCombinations;
+        string internalType;
         @display("i=block/switch");
     gates:
         input  in;
         output out;
     submodules:
-    	decoderImpl: DecoderImpl {
+    	decoderImpl: <internalType> like INetworkCodingBase {
             @display("p=80,100");
             generationSize = generationSize;
             numCombinations = numCombinations;

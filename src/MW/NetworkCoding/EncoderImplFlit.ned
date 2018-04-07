@@ -15,28 +15,18 @@
 
 package HaecComm.MW.NetworkCoding;
 
-import HaecComm.Buffers.Serializer;
-
-module Encoder like INetworkCodingBase {
+//
+// Simple module implementing network encoding. Flits with the same destination
+// are grouped into a generation. For each generation, a number of linear
+// combinations is computed, which are then sent out. On the receiver side,
+// a ~Decoder module is required to obtain the original flits.
+//
+simple EncoderImplFlit like INetworkCodingBase {
     parameters:
         int generationSize;
         int numCombinations;
-        string internalType;
-        @display("i=block/switch");
+        @display("i=block/cogwheel");
     gates:
         input  in;
         output out;
-    submodules:
-        encoderImpl: <internalType> like INetworkCodingBase {
-            @display("p=80,100");
-            generationSize = generationSize;
-            numCombinations = numCombinations;
-        }
-        serializer: Serializer {
-            @display("p=180,100");
-        }
-    connections:
-        in --> encoderImpl.in;
-        serializer.in <-- encoderImpl.out;
-        serializer.out --> out;
 }

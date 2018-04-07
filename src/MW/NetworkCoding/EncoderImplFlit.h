@@ -13,39 +13,34 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __HAECCOMM_NETWORKCODINGBASE_H_
-#define __HAECCOMM_NETWORKCODINGBASE_H_
+#ifndef __HAECCOMM_NETWORKCODINGENCODERFLIT_H_
+#define __HAECCOMM_NETWORKCODINGENCODERFLIT_H_
 
 #include <omnetpp.h>
-#include <Buffers/PacketQueueBase.h>
 #include <Messages/Flit.h>
-#include <MW/MiddlewareBase.h>
+#include <MW/NetworkCoding/NetworkCodingBase.h>
+#include <cinttypes>
+#include <map>
+#include <vector>
 
 using namespace omnetpp;
 
 namespace HaecComm { namespace MW { namespace NetworkCoding {
 
-class NetworkCodingBase: public MiddlewareBase {
+/**
+ * TODO - Generated class
+ */
+class EncoderImplFlit : public NetworkCodingBase {
 public:
-    typedef std::pair<uint32_t, Messages::Address2D> IdSourceKey;
-    typedef std::vector<Messages::Flit*> FlitVector;
-
-	NetworkCodingBase();
-	virtual ~NetworkCodingBase();
+	EncoderImplFlit();
+	virtual ~EncoderImplFlit();
 
 protected:
     virtual void initialize() override;
-    virtual void handleMessage(cMessage* msg) override = 0;
+    virtual void handleMessage(cMessage* msg) override;
 
-    virtual uint32_t encodeAndSendGeneration(FlitVector& generation, const Messages::Address2D& source, const Messages::Address2D& target);
-    virtual void decodeAndSendGeneration(FlitVector& combinations, uint32_t gid, const Messages::Address2D& source, const Messages::Address2D& target);
-
-    int generationSize;
-    int numCombinations;
-
-    bool useGlobalTransmissionIds;
-
-    Buffers::PacketQueueBase* inputQueue;
+private:
+    std::map<Messages::Address2D, FlitVector> flitCache;
 };
 
 }}} //namespace
