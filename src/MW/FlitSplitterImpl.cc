@@ -14,11 +14,12 @@
 // 
 
 #include "FlitSplitterImpl.h"
+
 #include <Messages/Flit.h>
 
 using namespace HaecComm::Messages;
 
-namespace HaecComm { namespace MW { namespace NetworkCoding {
+namespace HaecComm { namespace MW {
 
 Define_Module(FlitSplitterImpl);
 
@@ -49,4 +50,4 @@ void FlitSplitterImpl::handleMessage(cMessage* msg) {
 	}
 }
 
-}}} //namespace
+}} //namespace

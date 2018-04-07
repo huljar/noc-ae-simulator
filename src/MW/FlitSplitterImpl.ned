@@ -13,26 +13,15 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package HaecComm.MW.NetworkCoding;
+package HaecComm.MW;
 
-import HaecComm.MW.IMiddlewareBase;
-import HaecComm.Buffers.Serializer;
-
-module FlitSplitter like IMiddlewareBase {
+//
+// TODO auto-generated module
+//
+simple FlitSplitterImpl like IMiddlewareBase {
     parameters:
-        @display("i=block/classifier2");
+        @display("i=block/cogwheel");
     gates:
         input  in;
         output out;
-    submodules:
-        flitSplitterImpl: FlitSplitterImpl {
-            @display("p=80,100");
-        }
-        serializer: Serializer {
-            @display("p=180,100");
-        }
-    connections:
-        in --> flitSplitterImpl.in;
-        serializer.in <-- flitSplitterImpl.out;
-        serializer.out --> out;
 }

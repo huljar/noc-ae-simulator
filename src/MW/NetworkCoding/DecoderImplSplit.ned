@@ -13,25 +13,21 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __HAECCOMM_FLITSPLITTER_H_
-#define __HAECCOMM_FLITSPLITTER_H_
+package HaecComm.MW.NetworkCoding;
 
-#include <omnetpp.h>
-#include <MW/MiddlewareBase.h>
-
-using namespace omnetpp;
-
-namespace HaecComm { namespace MW { namespace NetworkCoding {
-
-/**
- * TODO - Generated class
- */
-class FlitSplitterImpl : public MiddlewareBase {
-protected:
-    virtual void initialize() override;
-    virtual void handleMessage(cMessage* msg) override;
-};
-
-}}} //namespace
-
-#endif
+//
+// Simple module implementing network decoding. Flits with the same generation
+// ID (combinations) are collected until enough flits are present. These flits
+// are decoded using the <i>gev</i> header field and sent out afterwards. On
+// the sender side, an ~Encoder module is required create the linear combinations
+// of the original flits.
+//
+simple DecoderImplSplit like INetworkCodingBase {
+    parameters:
+        int generationSize;
+        int numCombinations;
+        @display("i=block/cogwheel");
+    gates:
+        input  in;
+        output out;
+}

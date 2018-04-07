@@ -1,0 +1,102 @@
+%description:
+Test network coding: encoder module (G2C3 and G2C4)
+
+%inifile: omnetpp.ini
+[General]
+sim-time-limit = 10ns
+
+**.clock.inter = 2ns
+
+**.encoder1.generationSize = 2
+**.encoder1.numCombinations = 3
+**.encoder1.internalType = "HaecComm.MW.NetworkCoding.EncoderImplSplit"
+**.encoder2.generationSize = 2
+**.encoder2.numCombinations = 4
+**.encoder2.internalType = "HaecComm.MW.NetworkCoding.EncoderImplSplit"
+
+%file: test.ned
+import HaecComm.Core.Clock;
+import HaecComm.MW.FlitSplitter;
+import HaecComm.MW.NetworkCoding.Encoder;
+
+network Test {
+    parameters:
+        bool useGlobalTransmissionIds = false;
+    submodules:
+        clock: Clock;
+        splitter1: FlitSplitter;
+        encoder1: Encoder;
+        splitter2: FlitSplitter;
+        encoder2: Encoder;
+        testapp: EncoderSplitTestApp;
+    connections:
+        testapp.in1 <-- encoder1.out;
+        testapp.out1 --> splitter1.in;
+        splitter1.out --> encoder1.in;
+        testapp.in2 <-- encoder2.out;
+        testapp.out2 --> splitter2.in;
+        splitter2.out --> encoder2.in;
+}
+
+%contains-regex: stdout
+Got flit nc-0-0-s\(0,0\)-t\(1,1\)
+Source \(0,0\)
+Target \(1,1\)
+GID 0
+GEV 0
+Mode MODE_SPLIT_NC
+OrigIDs 123 123
+.*
+Got flit nc-0-0-s\(1,0\)-t\(2,0\)
+Source \(1,0\)
+Target \(2,0\)
+GID 0
+GEV 0
+Mode MODE_SPLIT_NC
+OrigIDs 321 321
+.*
+Got flit nc-0-1-s\(0,0\)-t\(1,1\)
+Source \(0,0\)
+Target \(1,1\)
+GID 0
+GEV 1
+Mode MODE_SPLIT_NC
+OrigIDs 123 123
+.*
+Got flit nc-0-1-s\(1,0\)-t\(2,0\)
+Source \(1,0\)
+Target \(2,0\)
+GID 0
+GEV 1
+Mode MODE_SPLIT_NC
+OrigIDs 321 321
+.*
+Got flit nc-0-2-s\(0,0\)-t\(1,1\)
+Source \(0,0\)
+Target \(1,1\)
+GID 0
+GEV 2
+Mode MODE_SPLIT_NC
+OrigIDs 123 123
+.*
+Got flit nc-0-2-s\(1,0\)-t\(2,0\)
+Source \(1,0\)
+Target \(2,0\)
+GID 0
+GEV 2
+Mode MODE_SPLIT_NC
+OrigIDs 321 321
+.*
+Got flit nc-0-3-s\(1,0\)-t\(2,0\)
+Source \(1,0\)
+Target \(2,0\)
+GID 0
+GEV 3
+Mode MODE_SPLIT_NC
+OrigIDs 321 321
+
+%not-contains: stdout
+undisposed object:
+
+%not-contains: stdout
+-- check module destructor

@@ -100,10 +100,11 @@ enum Mode : uint8_t { // not using "enum class" (scoped enumeration) here, becau
 	MODE_MAC,               //!< MODE_MAC Flit containing a Message Authentication Code (MAC) for another flit.
 	MODE_SPLIT_1,           //!< MODE_SPLIT_1 Flit where the payload consists of half data and half MAC (first part).
 	MODE_SPLIT_2,           //!< MODE_SPLIT_2 Flit where the payload consists of half data and half MAC (second part).
+	MODE_SPLIT_NC,          //!< MODE_SPLIT_NC Flit where the payload consists of half data and half MAC (encoded).
 	MODE_ARQ_TELL_RECEIVED, //!< MODE_ARQ_RECEIVED Flit containing an ARQ, specifying what flits have been received from a transmission unit.
 	MODE_ARQ_TELL_MISSING   //!< MODE_ARQ_MISSING Flit containing an ARQ, specifying what flits are still missing from a transmission unit.
 };
-Register_Enum(Mode, (MODE_DATA, MODE_MAC, MODE_SPLIT_1, MODE_SPLIT_2,
+Register_Enum(Mode, (MODE_DATA, MODE_MAC, MODE_SPLIT_1, MODE_SPLIT_2, MODE_SPLIT_NC,
                      MODE_ARQ_TELL_RECEIVED, MODE_ARQ_TELL_MISSING));
 
 enum Status : uint8_t {

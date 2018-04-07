@@ -3,16 +3,17 @@ Test network coding: decoder module
 
 %inifile: omnetpp.ini
 [General]
-sim-time-limit = 10ns
+sim-time-limit = 20ns
 
 **.clock.inter = 2ns
 
 **.decoder.generationSize = 2
 **.decoder.numCombinations = 3
-**.decoder.internalType = "HaecComm.MW.NetworkCoding.DecoderImplFlit"
+**.decoder.internalType = "HaecComm.MW.NetworkCoding.DecoderImplSplit"
 
 %file: test.ned
 import HaecComm.Core.Clock;
+import HaecComm.MW.SplitMerger;
 import HaecComm.MW.NetworkCoding.Decoder;
 
 network Test {
@@ -21,9 +22,11 @@ network Test {
     submodules:
         clock: Clock;
         decoder: Decoder;
-        testapp: DecoderTestApp;
+        merger: SplitMerger;
+        testapp: DecoderSplitTestApp;
     connections:
-        testapp.in <-- decoder.out;
+        decoder.out --> merger.in;
+        testapp.in <-- merger.out;
         testapp.out --> decoder.in;
 }
 
@@ -32,12 +35,7 @@ Got flit uc-222-s\(0,0\)-t\(1,1\)
 Source \(0,0\)
 Target \(1,1\)
 FID 222
-.*
-Got flit uc-333-s\(0,0\)-t\(1,1\)
-Source \(0,0\)
-Target \(1,1\)
-FID 333
-.*
+Mode MODE_DATA
 
 %not-contains: stdout
 undisposed object:

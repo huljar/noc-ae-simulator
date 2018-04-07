@@ -13,16 +13,18 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package HaecComm.MW.NetworkCoding;
-
-import HaecComm.MW.IMiddlewareBase;
+package HaecComm.MW;
 
 //
-// TODO auto-generated module
+// Simple module implementing network decoding. Flits with the same generation
+// ID (combinations) are collected until enough flits are present. These flits
+// are decoded using the <i>gev</i> header field and sent out afterwards. On
+// the sender side, an ~Encoder module is required create the linear combinations
+// of the original flits.
 //
-simple FlitSplitterImpl like IMiddlewareBase {
+simple SplitMerger like IMiddlewareBase {
     parameters:
-        @display("i=block/cogwheel");
+        @display("i=block/join");
     gates:
         input  in;
         output out;

@@ -54,7 +54,7 @@ void DecoderImplFlit::handleMessage(cMessage* msg) {
     uint32_t gid = flit->getGidOrFid();
     const Address2D& source = flit->getSource();
     const Address2D& target = flit->getTarget();
-    IdSourceKey key = std::make_pair(gid, flit->getSource());
+    IdSourceKey key = std::make_pair(gid, source);
 
     // Insert flit into cache (indexed by source address and generation ID)
     FlitVector& combinations = flitCache[key];

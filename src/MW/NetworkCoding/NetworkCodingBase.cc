@@ -88,6 +88,10 @@ uint32_t NetworkCodingBase::encodeAndSendGeneration(FlitVector& generation, cons
                    << "-t" << combination->getTarget().str();
         combination->setName(packetName.str().c_str());
 
+        // Check if the mode needs to be adjusted (there is no distinction between first and second split after encoding)
+        if(combination->getMode() == MODE_SPLIT_1 || combination->getMode() == MODE_SPLIT_2)
+            combination->setMode(MODE_SPLIT_NC);
+
         // Send the encoded flit
         send(combination, "out");
     }
@@ -127,6 +131,14 @@ void NetworkCodingBase::decodeAndSendGeneration(FlitVector& combinations, uint32
         packetName << "uc-" << fid << "-s" << decoded->getSource().str()
                    << "-t" << decoded->getTarget().str();
         decoded->setName(packetName.str().c_str());
+
+        // Check if the mode needs to be adjusted
+        if(decoded->getMode() == MODE_SPLIT_NC) {
+            if(i == 0)
+                decoded->setMode(MODE_SPLIT_1);
+            else if(i == 1)
+                decoded->setMode(MODE_SPLIT_2);
+        }
 
         // Send the decoded flit
         send(decoded, "out");
