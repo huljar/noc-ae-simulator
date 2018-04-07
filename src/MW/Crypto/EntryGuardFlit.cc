@@ -109,7 +109,7 @@ void EntryGuardFlit::handleMessage(cMessage* msg) {
             delete flit;
             return;
         }
-        int encIdx = availableEncUnits.front();
+        int encIdx = availableEncUnits.top();
 
         // Set name
         std::ostringstream flitName;
@@ -136,7 +136,7 @@ void EntryGuardFlit::handleMessage(cMessage* msg) {
             delete flit;
             return;
         }
-        int authIdx = availableAuthUnits.front();
+        int authIdx = availableAuthUnits.top();
 
         // Set name
         // TODO: better names
@@ -162,8 +162,8 @@ void EntryGuardFlit::handleMessage(cMessage* msg) {
             delete flit;
             return;
         }
-        int encIdx = availableEncUnits.front();
-        int authIdx = availableAuthUnits.front();
+        int encIdx = availableEncUnits.top();
+        int authIdx = availableAuthUnits.top();
 
         // Create verification flit
         Flit* mac = flit->dup();
