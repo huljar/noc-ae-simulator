@@ -15,35 +15,15 @@
 
 package HaecComm.MW.Crypto;
 
-import HaecComm.Buffers.Serializer;
-import HaecComm.MW.*;
+import HaecComm.MW.IMiddlewareBase;
 
 //
-// Compound module wrapper around the ~AuthHalfFlitImpl simple module.
-// In addition to the authentication, a computation delay and
-// serialization (one packet per clock cycle) are performed.
+// Encryption module.
 //
-module AuthSplit like ICryptoUnit {
+simple EncSplitImpl like IMiddlewareBase {
     parameters:
-        int computeCycles;
-        @display("i=block/encrypt");
+        @display("i=block/cogwheel");
     gates:
         input  in;
         output out;
-    submodules:
-        auth: AuthSplitImpl {
-            @display("p=60,60");
-        }
-        delay: Delay {
-            @display("p=160,60");
-            waitCycles = computeCycles;
-        }
-        serializer: Serializer {
-            @display("p=260,60");
-        }
-    connections:
-        in --> auth.in;
-        auth.out --> delay.in;
-        delay.out --> serializer.in;
-        serializer.out --> out;
 }

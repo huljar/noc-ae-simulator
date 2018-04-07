@@ -15,29 +15,12 @@
 
 package HaecComm.MW.Crypto;
 
-import HaecComm.MW.*;
+import HaecComm.MW.IMiddlewareBase;
 
 //
-// Compound module wrapper around the ~EncFlitImpl simple module.
-// In addition to the encryption, a computation delay was added.
+// Interface for authentication modules to implement
 //
-module EncFlit like ICryptoUnit {
+moduleinterface ICryptoUnit extends IMiddlewareBase {
     parameters:
-        int computeCycles; // Number of clock cycles to delay outgoing packets
-        @display("i=block/encrypt");
-    gates:
-        input  in;
-        output out;
-    submodules:
-        enc: EncFlitImpl {
-            @display("p=80,80");
-        }
-        delay: Delay {
-            @display("p=200,80");
-            waitCycles = computeCycles;
-        }
-    connections:
-        in --> enc.in;
-        enc.out --> delay.in;
-        delay.out --> out;
+        int computeCycles;
 }

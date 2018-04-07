@@ -15,15 +15,13 @@
 
 package HaecComm.MW.Crypto;
 
-import HaecComm.Buffers.Serializer;
 import HaecComm.MW.*;
 
 //
-// Compound module wrapper around the ~AuthFlitImpl simple module.
-// In addition to the authentication, a computation delay and
-// serialization (one packet per clock cycle) are performed.
+// Compound module wrapper around the ~EncSplitImpl simple module.
+// In addition to the encryption, a computation delay was added.
 //
-module AuthFlit like ICryptoUnit {
+module EncSplit like ICryptoUnit {
     parameters:
         int computeCycles; // Number of clock cycles to delay outgoing packets
         @display("i=block/encrypt");
@@ -31,19 +29,15 @@ module AuthFlit like ICryptoUnit {
         input  in;
         output out;
     submodules:
-        auth: AuthFlitImpl {
-            @display("p=60,60");
+        enc: EncSplitImpl {
+            @display("p=80,80");
         }
         delay: Delay {
-            @display("p=160,60");
-            waitCycles = computeCycles - 1; //# -1 because the data flit can already be sent one cycle earlier
-        }
-        serializer: Serializer {
-            @display("p=260,60");
+            @display("p=200,80");
+            waitCycles = computeCycles;
         }
     connections:
-        in --> auth.in;
-        auth.out --> delay.in;
-        delay.out --> serializer.in;
-        serializer.out --> out;
+        in --> enc.in;
+        enc.out --> delay.in;
+        delay.out --> out;
 }

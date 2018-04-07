@@ -23,7 +23,7 @@ import HaecComm.MW.*;
 // In addition to the authentication, a computation delay and
 // serialization (one packet per clock cycle) are performed.
 //
-module AuthGeneration like IAuthBase {
+module AuthGeneration like ICryptoUnit {
     parameters:
         int computeCycles;
         int generationSize;

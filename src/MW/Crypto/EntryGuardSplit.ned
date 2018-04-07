@@ -15,29 +15,22 @@
 
 package HaecComm.MW.Crypto;
 
-import HaecComm.MW.*;
-
 //
-// Compound module wrapper around the ~EncFlitImpl simple module.
-// In addition to the encryption, a computation delay was added.
+// TODO auto-generated module
 //
-module EncFlit like ICryptoUnit {
+simple EntryGuardSplit {
     parameters:
-        int computeCycles; // Number of clock cycles to delay outgoing packets
-        @display("i=block/encrypt");
+        @signal[enc*Busy](type=bool);
+        @signal[auth*Busy](type=bool);
+        @statisticTemplate[encBusy](record=timeavg,vector?; title="Encryption Unit Busy Status $name");
+        @statisticTemplate[authBusy](record=timeavg,vector?; title="Authentication Unit Busy Status $name");
+        @display("i=block/fork");
+        int busyCyclesEnc;
+        int busyCyclesAuth;
     gates:
-        input  in;
-        output out;
-    submodules:
-        enc: EncFlitImpl {
-            @display("p=80,80");
-        }
-        delay: Delay {
-            @display("p=200,80");
-            waitCycles = computeCycles;
-        }
-    connections:
-        in --> enc.in;
-        enc.out --> delay.in;
-        delay.out --> out;
+        input  appIn;
+        input  exitIn;
+        input  netIn;
+        output encOut[];
+        output authOut[];
 }
