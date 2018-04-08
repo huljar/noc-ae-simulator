@@ -137,11 +137,12 @@ enum ArqMode : uint8_t {
     ARQ_DATA,           //!< ARQ_DATA
     ARQ_MAC,            //!< ARQ_MAC
     ARQ_DATA_MAC,       //!< ARQ_DATA_MAC
-    ARQ_SPLIT_1,        //!< ARQ_SPLIT_1
-    ARQ_SPLIT_2,        //!< ARQ_SPLIT_2
-    ARQ_SPLITS_BOTH     //!< ARQ_SPLITS_BOTH
+    ARQ_SPLIT_1,        //!< ARQ_SPLIT_1 First split in uncoded setting
+    ARQ_SPLIT_2,        //!< ARQ_SPLIT_2 Second split in uncoded setting
+    ARQ_SPLITS_BOTH,    //!< ARQ_SPLITS_BOTH Both splits in uncoded setting
+    ARQ_SPLIT_NC        //!< ARQ_SPLIT_NC Use this mode for network coded splits (no distinction between first and second split and there is only one split per GEV)
 };
-Register_Enum(ArqMode, (ARQ_DATA, ARQ_MAC, ARQ_DATA_MAC, ARQ_SPLIT_1, ARQ_SPLIT_2, ARQ_SPLITS_BOTH));
+Register_Enum(ArqMode, (ARQ_DATA, ARQ_MAC, ARQ_DATA_MAC, ARQ_SPLIT_1, ARQ_SPLIT_2, ARQ_SPLITS_BOTH, ARQ_SPLIT_NC));
 
 typedef std::map<uint16_t, ArqMode> GevArqMap;
 

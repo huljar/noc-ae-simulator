@@ -1,0 +1,96 @@
+%description:
+Test retransmission buffer: Uncoded splits
+
+%inifile: omnetpp.ini
+[General]
+sim-time-limit = 100ns
+**.cmdenv-log-level = debug
+
+**.clock.inter = 2ns
+
+**.rt.bufSize = 5
+**.rt.internalType = "HaecComm.Buffers.RetransmissionBufferImplSplit"
+
+%file: test.ned
+import HaecComm.Core.Clock;
+import HaecComm.Buffers.RetransmissionBuffer;
+
+network Test {
+    parameters:
+        int numCombinations = 3;
+    submodules:
+        clock: Clock;
+        rt: RetransmissionBuffer;
+        testapp: RBSplitUCTestApp;
+    connections:
+        testapp.dataOut --> rt.dataIn;
+        testapp.arqOut --> rt.arqIn;
+        testapp.dataIn <-- rt.out;
+}
+
+%contains-regex: stdout
+1 Got flit split11
+Source \(3,3\)
+Target \(0,0\)
+FID 123
+Mode MODE_SPLIT_1
+.*
+2 Got flit split12
+Source \(3,3\)
+Target \(0,0\)
+FID 123
+Mode MODE_SPLIT_2
+.*
+3 Got flit split21
+Source \(3,3\)
+Target \(1,3\)
+FID 234
+Mode MODE_SPLIT_1
+.*
+4 Got flit split22
+Source \(3,3\)
+Target \(1,3\)
+FID 234
+Mode MODE_SPLIT_2
+.*
+5 Got flit split11
+Source \(3,3\)
+Target \(0,0\)
+FID 123
+Mode MODE_SPLIT_1
+.*
+6 Got flit split12
+Source \(3,3\)
+Target \(0,0\)
+FID 123
+Mode MODE_SPLIT_2
+.*
+7 Got flit split31
+Source \(3,3\)
+Target \(2,2\)
+FID 345
+Mode MODE_SPLIT_1
+.*
+8 Got flit split32
+Source \(3,3\)
+Target \(2,2\)
+FID 345
+Mode MODE_SPLIT_2
+.*
+9 Got flit split12
+Source \(3,3\)
+Target \(0,0\)
+FID 123
+Mode MODE_SPLIT_2
+
+%not-contains: stdout
+Target (1,0)
+
+%not-contains: stdout
+FID 124
+
+%not-contains: stdout
+undisposed object:
+
+%not-contains: stdout
+-- check module destructor

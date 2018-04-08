@@ -17,8 +17,6 @@ sim-time-limit = 20ns
 import HaecComm.Core.Clock;
 import HaecComm.Routers.Router;
 import HaecComm.Buffers.PacketQueue;
-import HaecCommTest.RouterXYFullTestApp;
-import HaecCommTest.AlwaysFullPacketQueue;
 
 network Test {
     parameters:

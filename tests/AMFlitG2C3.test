@@ -25,7 +25,6 @@ import HaecComm.Core.Clock;
 import HaecComm.Buffers.PacketQueue;
 import HaecComm.MW.ArrivalManagerFlit;
 import HaecComm.MW.Crypto.*;
-import HaecCommTest.AMFlitG2C3TestApp;
 
 network Test {
     parameters:

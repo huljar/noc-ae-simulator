@@ -9,7 +9,6 @@ sim-time-limit = 10ns
 
 %file: test.ned
 import HaecComm.Core.Clock;
-import HaecCommTest.ClockTestApp;
 
 network Test {
     submodules:

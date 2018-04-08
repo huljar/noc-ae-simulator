@@ -1,0 +1,108 @@
+%description:
+Test retransmission buffer: Network coded (G2C3) splits
+
+%inifile: omnetpp.ini
+[General]
+sim-time-limit = 100ns
+**.cmdenv-log-level = debug
+
+**.clock.inter = 2ns
+
+**.rt.bufSize = 10
+**.rt.internalType = "HaecComm.Buffers.RetransmissionBufferImplSplit"
+
+%file: test.ned
+import HaecComm.Core.Clock;
+import HaecComm.Buffers.RetransmissionBuffer;
+
+network Test {
+    parameters:
+        int numCombinations = 3;
+    submodules:
+        clock: Clock;
+        rt: RetransmissionBuffer;
+        testapp: RBSplitG2C3TestApp;
+    connections:
+        testapp.dataOut --> rt.dataIn;
+        testapp.arqOut --> rt.arqIn;
+        testapp.dataIn <-- rt.out;
+}
+
+%contains-regex: stdout
+1 Got flit split11
+Source \(3,3\)
+Target \(0,0\)
+GID 123
+GEV 2
+Mode MODE_SPLIT_NC
+.*
+2 Got flit split12
+Source \(3,3\)
+Target \(0,0\)
+GID 123
+GEV 3
+Mode MODE_SPLIT_NC
+.*
+3 Got flit split13
+Source \(3,3\)
+Target \(0,0\)
+GID 123
+GEV 4
+Mode MODE_SPLIT_NC
+.*
+4 Got flit split21
+Source \(3,3\)
+Target \(0,0\)
+GID 124
+GEV 1
+Mode MODE_SPLIT_NC
+.*
+5 Got flit split11
+Source \(3,3\)
+Target \(0,0\)
+GID 123
+GEV 2
+Mode MODE_SPLIT_NC
+.*
+6 Got flit split13
+Source \(3,3\)
+Target \(0,0\)
+GID 123
+GEV 4
+Mode MODE_SPLIT_NC
+.*
+7 Got flit split11
+Source \(3,3\)
+Target \(0,0\)
+GID 123
+GEV 2
+Mode MODE_SPLIT_NC
+.*
+8 Got flit split12
+Source \(3,3\)
+Target \(0,0\)
+GID 123
+GEV 3
+Mode MODE_SPLIT_NC
+.*
+9 Got flit split13
+Source \(3,3\)
+Target \(0,0\)
+GID 123
+GEV 4
+Mode MODE_SPLIT_NC
+
+%contains: stdout
+Failed to answer ARQ - Specified GEV not in buffer any more
+
+%not-contains: stdout
+Target (1,0)
+
+%not-contains: stdout
+FID 124
+
+%not-contains: stdout
+undisposed object:
+
+%not-contains: stdout
+-- check module destructor
