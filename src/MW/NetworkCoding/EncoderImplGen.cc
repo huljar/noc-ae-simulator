@@ -14,12 +14,14 @@
 // 
 
 #include "EncoderImplGen.h"
+#include <Util/Constants.h>
 
 #include <Messages/Flit.h>
 #include <sstream>
 #include <utility>
 
 using namespace HaecComm::Messages;
+using namespace HaecComm::Util;
 
 namespace HaecComm { namespace MW { namespace NetworkCoding {
 
@@ -80,6 +82,8 @@ void EncoderImplGen::handleMessage(cMessage* msg) {
         EV_DEBUG << "Assigning GID " << gid << " to the MAC for target " << target << std::endl;
 
         flit->setGidOrFid(gid);
+        flit->setGev(Constants::GEN_MAC_GEV);
+
         if(generationSize == 2 && numCombinations == 3)
             flit->setNcMode(NC_G2C3);
         else if(generationSize == 2 && numCombinations == 4)

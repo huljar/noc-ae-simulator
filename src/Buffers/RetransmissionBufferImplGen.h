@@ -28,12 +28,22 @@ namespace HaecComm { namespace Buffers {
  */
 class RetransmissionBufferImplGen : public RetransmissionBufferImplBase {
 public:
+    typedef std::map<IdTargetKey, Messages::Flit*> MacCache;
+
 	RetransmissionBufferImplGen();
 	virtual ~RetransmissionBufferImplGen();
 
 protected:
     virtual void handleDataMessage(Messages::Flit* flit) override;
     virtual void handleArqMessage(Messages::Flit* flit) override;
+
+    MacCache macCache;
+
+private:
+    bool retrieveSpecifiedFlits(const ModeCache& cache, Messages::ArqMode mode, FlitQueue& outQueue);
+    bool retrieveMissingFlits(const GevCache& cache, const Messages::GevArqMap& modes, FlitQueue& outQueue);
+    bool retrieveGenerationMac(const IdTargetKey& key, FlitQueue& outQueue);
+    unsigned int countMissingFlits(const Messages::GevArqMap& modes, bool genMacRequested);
 
 };
 

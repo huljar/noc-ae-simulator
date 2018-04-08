@@ -1,0 +1,196 @@
+%description:
+Test retransmission buffer: Network coded (G2C3) data flits with generation MAC
+
+%inifile: omnetpp.ini
+[General]
+sim-time-limit = 200ns
+**.cmdenv-log-level = debug
+
+**.clock.inter = 2ns
+
+**.rt.bufSize = 20
+**.rt.internalType = "HaecComm.Buffers.RetransmissionBufferImplGen"
+
+%file: test.ned
+import HaecComm.Core.Clock;
+import HaecComm.Buffers.RetransmissionBuffer;
+
+network Test {
+    parameters:
+        int numCombinations = 3;
+    submodules:
+        clock: Clock;
+        rt: RetransmissionBuffer;
+        testapp: RBGenG2C3TestApp;
+    connections:
+        testapp.dataOut --> rt.dataIn;
+        testapp.arqOut --> rt.arqIn;
+        testapp.dataIn <-- rt.out;
+}
+
+%contains-regex: stdout
+1 Got flit data11
+Source \(3,3\)
+Target \(0,0\)
+GID 123
+GEV 1
+Mode MODE_DATA
+.*
+2 Got flit data12
+Source \(3,3\)
+Target \(0,0\)
+GID 123
+GEV 2
+Mode MODE_DATA
+.*
+3 Got flit data13
+Source \(3,3\)
+Target \(0,0\)
+GID 123
+GEV 3
+Mode MODE_DATA
+.*
+4 Got flit mac1
+Source \(3,3\)
+Target \(0,0\)
+GID 123
+GEV 0
+Mode MODE_MAC
+.*
+5 Got flit data21
+Source \(3,3\)
+Target \(0,0\)
+GID 124
+GEV 1
+Mode MODE_DATA
+.*
+6 Got flit data22
+Source \(3,3\)
+Target \(0,0\)
+GID 124
+GEV 2
+Mode MODE_DATA
+.*
+7 Got flit data31
+Source \(3,3\)
+Target \(0,0\)
+GID 125
+GEV 1
+Mode MODE_DATA
+.*
+8 Got flit mac3
+Source \(3,3\)
+Target \(0,0\)
+GID 125
+GEV 0
+Mode MODE_MAC
+.*
+9 Got flit data12
+Source \(3,3\)
+Target \(0,0\)
+GID 123
+GEV 2
+Mode MODE_DATA
+.*
+10 Got flit data13
+Source \(3,3\)
+Target \(0,0\)
+GID 123
+GEV 3
+Mode MODE_DATA
+.*
+11 Got flit data11
+Source \(3,3\)
+Target \(0,0\)
+GID 123
+GEV 1
+Mode MODE_DATA
+.*
+12 Got flit mac1
+Source \(3,3\)
+Target \(0,0\)
+GID 123
+GEV 0
+Mode MODE_MAC
+.*
+13 Got flit data31
+Source \(3,3\)
+Target \(0,0\)
+GID 125
+GEV 1
+Mode MODE_DATA
+.*
+14 Got flit mac3
+Source \(3,3\)
+Target \(0,0\)
+GID 125
+GEV 0
+Mode MODE_MAC
+.*
+15 Got flit data21
+Source \(3,3\)
+Target \(0,0\)
+GID 124
+GEV 1
+Mode MODE_DATA
+.*
+16 Got flit data11
+Source \(3,3\)
+Target \(0,0\)
+GID 123
+GEV 1
+Mode MODE_DATA
+.*
+17 Got flit data12
+Source \(3,3\)
+Target \(0,0\)
+GID 123
+GEV 2
+Mode MODE_DATA
+.*
+18 Got flit data13
+Source \(3,3\)
+Target \(0,0\)
+GID 123
+GEV 3
+Mode MODE_DATA
+.*
+19 Got flit data11
+Source \(3,3\)
+Target \(0,0\)
+GID 123
+GEV 1
+Mode MODE_DATA
+.*
+20 Got flit data12
+Source \(3,3\)
+Target \(0,0\)
+GID 123
+GEV 2
+Mode MODE_DATA
+.*
+21 Got flit data13
+Source \(3,3\)
+Target \(0,0\)
+GID 123
+GEV 3
+Mode MODE_DATA
+.*
+22 Got flit mac1
+Source \(3,3\)
+Target \(0,0\)
+GID 123
+GEV 0
+Mode MODE_MAC
+
+%contains: stdout
+Failed to answer ARQ - Specified GEV not in buffer any more
+
+%contains: stdout
+Failed to answer ARQ - Generation MAC not in buffer any more
+
+%not-contains: stdout
+undisposed object:
+
+%not-contains: stdout
+-- check module destructor

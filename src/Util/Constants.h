@@ -17,6 +17,8 @@ namespace HaecComm { namespace Util { namespace Constants {
     const short FLIT_UNCODED_KIND = 1;
     const short FLIT_NETWORK_CODED_KIND = 2;
     const short FLIT_ARQ_KIND = 0;
+
+    const uint16_t GEN_MAC_GEV = 0;
 }}}
 
 #endif /* UTIL_CONSTANTS_H_ */
