@@ -73,9 +73,9 @@ void ArrivalManagerFlit::initialize() {
 
     lastArqWaitForOngoingVerifications = par("lastArqWaitForOngoingVerifications");
 
-    outOfOrderIdGracePeriod = par("outOfOrderIdGracePeriod");
-    if(outOfOrderIdGracePeriod < 0)
-        throw cRuntimeError(this, "outOfOrderIdGracePeriod must be greater than or equal to 0");
+    finishedIdsTracked = par("finishedIdsTracked");
+    if(finishedIdsTracked < 0)
+        throw cRuntimeError(this, "finishedIdsTracked must be greater than or equal to 0");
 
     gridColumns = getAncestorPar("columns");
     nodeId = getAncestorPar("id");
@@ -123,46 +123,14 @@ void ArrivalManagerFlit::handleNetMessage(Flit* flit) {
     uint32_t id = flit->getGidOrFid();
     Address2D source = flit->getSource();
 
-    // Check if this is an active or new ID (might be a repeat attack)
-    IdSet& activeIdSet = activeIds[source];
-    if(!highestKnownIds.count(source)) {
-        // This is the first flit to arrive from this source
-        // Set current ID as new highest known ID
-        highestKnownIds.emplace(source, id);
-
-        // Insert as active ID
-        activeIdSet.insert(id);
-    }
-    else {
-        // Check if this flit belongs to an active ID (or is the new highest ID)
-        uint32_t& highestId = highestKnownIds[source];
-        if(id > highestId) {
-            // Set current ID as new highest known ID
-            highestId = id;
-
-            // Insert as active ID
-            activeIdSet.insert(id);
-        }
-        //else if(id >= highestId - outOfOrderIdGracePeriod) {
-            // TODO: Allow grace period for out-of-order arrivals (lower ID may arrive later than higher ID)
-            // This ID is still allowed into the active ID set
-            //activeIdSet.insert(id); // TODO: do not allow finished IDs here?
-        //}
-        else {
-            // Check if this ID in the active ID set
-            if(!activeIdSet.count(id)) {
-                // This is either a retransmission of an old, finished ID or a repeat attack
-                // Discard the flit and return
-                EV << "Received a flit from " << source << " with ID " << id
-                   << ", but ID is inactive (highest known ID: " << highestId << ")" << std::endl;
-                delete flit;
-                return;
-            }
-            // else: this flit's ID is active, continue without special action
-        }
+    // Check if this is a finished ID (might be a repeat attack or redundant transmission)
+    if(finishedIds[source].first.count(id)) {
+        EV << "Received a flit from " << source << " with ID " << id << ", but the ID is already finished." << std::endl;
+        delete flit;
+        return;
     }
 
-    // We now know that this flit's ID from this source is active
+    // We now know that this flit's ID from this source is not finished
     // Get parameters
     IdSourceKey key = std::make_pair(id, source);
     Mode mode = static_cast<Mode>(flit->getMode());
@@ -335,8 +303,8 @@ void ArrivalManagerFlit::handleCryptoMessage(Flit* flit) {
     // Check network coding mode
     if(ncMode == NC_UNCODED) {
         // Check if this ID is already finished
-        IdSet& activeIdSet = activeIds[source];
-        if(!activeIdSet.count(id)) {
+        const IdSet& finishedIdSet = finishedIds[source].first;
+        if(finishedIdSet.count(id)) {
             EV_DEBUG << "Received a decrypted/authenticated flit for finished FID " << id << std::endl;
             delete flit;
             return;
@@ -385,8 +353,8 @@ void ArrivalManagerFlit::handleCryptoMessage(Flit* flit) {
         uint16_t gev = flit->getGev();
 
         // Check if this generation is already finished
-        IdSet& activeIdSet = activeIds[source];
-        if(!activeIdSet.count(id)) {
+        const IdSet& finishedIdSet = finishedIds[source].first;
+        if(finishedIdSet.count(id)) {
             EV_DEBUG << "Received a decrypted/authenticated flit for finished GID " << id << " (GEV " << gev << ")" << std::endl;
             delete flit;
             return;
@@ -647,10 +615,18 @@ void ArrivalManagerFlit::ucCleanUp(const IdSourceKey& key) {
     // Clear corrupted decryption counter
     ucDiscardDecrypting.erase(key);
 
-    // Remove ID from active ID set
-    activeIds.at(key.second).erase(key.first);
+    // Insert ID into finished ID set
+    IdSet& finishedSet = finishedIds[key.second].first;
+    IdQueue& finishedQueue = finishedIds[key.second].second;
 
-    // TODO: check if this ID needs to be inserted into the finished ID set for the grace period
+    finishedSet.insert(key.first);
+    finishedQueue.push(key.first);
+
+    // Check if the finished ID set size grew too large
+    while(finishedSet.size() > static_cast<size_t>(finishedIdsTracked)) {
+        finishedSet.erase(finishedQueue.front());
+        finishedQueue.pop();
+    }
 
     // Cancel and delete any remaining ARQ timers
     TimerCache::iterator timerIter = arqTimers.find(key);
@@ -838,8 +814,6 @@ void ArrivalManagerFlit::ncCheckGenerationDone(const IdSourceKey& key, unsigned 
     if(dispatchedGevs.size() >= generationSize) {
         // Clean up whole generation
         ncCleanUp(key);
-
-        // TODO: check if this ID needs to be inserted into the finished ID set for the grace period
     }
 }
 
@@ -865,8 +839,18 @@ void ArrivalManagerFlit::ncCleanUp(const IdSourceKey& key) {
     // Clear corrupted decryption counter
     ncDiscardDecrypting.erase(key);
 
-    // Remove ID from active ID set
-    activeIds.at(key.second).erase(key.first);
+    // Insert ID into finished ID set
+    IdSet& finishedSet = finishedIds[key.second].first;
+    IdQueue& finishedQueue = finishedIds[key.second].second;
+
+    finishedSet.insert(key.first);
+    finishedQueue.push(key.first);
+
+    // Check if the finished ID set size grew too large
+    while(finishedSet.size() > static_cast<size_t>(finishedIdsTracked)) {
+        finishedSet.erase(finishedQueue.front());
+        finishedQueue.pop();
+    }
 
     // Cancel and delete any remaining ARQ timers
     TimerCache::iterator timerIter = arqTimers.find(key);

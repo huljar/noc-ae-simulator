@@ -22,6 +22,7 @@
 #include <Util/ShiftRegister.h>
 #include <cinttypes>
 #include <map>
+#include <queue>
 #include <set>
 #include <vector>
 
@@ -35,6 +36,7 @@ namespace HaecComm { namespace MW {
 class ArrivalManagerFlit : public cSimpleModule {
 public:
     typedef std::set<uint32_t> IdSet;
+    typedef std::queue<uint32_t> IdQueue;
     typedef std::set<uint16_t> GevSet;
     typedef std::pair<uint32_t, Messages::Address2D> IdSourceKey;
     typedef std::map<uint16_t, Messages::Flit*> GevCache;
@@ -53,7 +55,7 @@ protected:
     int arqIssueTimeout;
     int arqAnswerTimeoutBase;
     bool lastArqWaitForOngoingVerifications;
-    int outOfOrderIdGracePeriod;
+    int finishedIdsTracked;
 
     int gridColumns;
     int nodeId;
@@ -64,10 +66,8 @@ protected:
     // The values differ because the round trip time differs
     std::map<Messages::Address2D, int> arqAnswerTimeouts;
 
-    // Track currently active FIDs/GIDs for each sender (to recognize redundant retransmissions)
-    std::map<Messages::Address2D, IdSet> activeIds;
-    // TODO: finished IDs inside the grace period
-    std::map<Messages::Address2D, uint32_t> highestKnownIds;
+    // Track finished FIDs/GIDs for each sender (to recognize redundant retransmissions)
+    std::map<Messages::Address2D, std::pair<IdSet, IdQueue>> finishedIds;
 
     // Track amount of issued ARQs
     std::map<IdSourceKey, unsigned int> issuedArqs;

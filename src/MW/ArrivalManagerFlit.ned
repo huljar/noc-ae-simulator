@@ -25,7 +25,7 @@ simple ArrivalManagerFlit {
         int arqIssueTimeout;
         int arqAnswerTimeoutBase;
         bool lastArqWaitForOngoingVerifications;
-        int outOfOrderIdGracePeriod = default(2);
+        int finishedIdsTracked = default(100);
     gates:
         input  netIn;
         input  cryptoIn;
