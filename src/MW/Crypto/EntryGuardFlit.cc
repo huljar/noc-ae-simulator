@@ -222,18 +222,18 @@ void EntryGuardFlit::receiveSignal(cComponent* source, simsignal_t signalID, uns
             exitInputQueue->requestPacket();
         }
 
+        // Next priority: encrypt a new departing flit
+        if(appInputQueue->peek() && availEnc > 0) {
+            --availEnc;
+            appInputQueue->requestPacket();
+        }
+
         // Next priority: decrypt/verify an arriving flit
         if(netInputQueue->peek() && availEnc > 0 && availAuth > 0) {
             --availEnc;
             --availAuth;
             netInputQueue->requestPacket();
         }
-
-        // Next priority: encrypt a new departing flit
-        if(appInputQueue->peek() && availEnc > 0) {
-            --availEnc;
-            appInputQueue->requestPacket();
-	    }
 	}
 }
 

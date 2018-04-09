@@ -13,35 +13,22 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __HAECCOMM_AUTHGENERATION_H_
-#define __HAECCOMM_AUTHGENERATION_H_
+package HaecComm.MW.Crypto;
 
-#include <omnetpp.h>
-#include <Messages/fieldtypes.h>
-#include <MW/MiddlewareBase.h>
-#include <map>
+import HaecComm.MW.IMiddlewareBase;
 
-using namespace omnetpp;
-
-namespace HaecComm { namespace MW { namespace Crypto {
-
-/**
- * TODO - Generated class
- */
-class AuthGenerationImpl : public MiddlewareBase {
-public:
-	AuthGenerationImpl();
-	virtual ~AuthGenerationImpl();
-
-protected:
-    virtual void initialize() override;
-    virtual void handleMessage(cMessage* msg) override;
-
-private:
-    int generationSize;
-    std::map<Messages::Address2D, cArray*> flitCache;
-};
-
-}}} //namespace
-
-#endif
+//
+// Authentication module implementing the whole generation authentication scheme
+// as described in the paper. Flits are collected until enough flits of the same
+// generation are present. Then, a MAC over the whole generation is computed and
+// put into a separate flit. Afterwards, the data flits of the generation are
+// sent out, followed immediately by the corresponding MAC flit.
+//
+simple AuthGenImpl like IMiddlewareBase {
+    parameters:
+        @display("i=block/cogwheel");
+        int generationSize;
+    gates:
+        input  in;
+        output out;
+}

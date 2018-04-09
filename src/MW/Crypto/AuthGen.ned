@@ -23,7 +23,7 @@ import HaecComm.MW.*;
 // In addition to the authentication, a computation delay and
 // serialization (one packet per clock cycle) are performed.
 //
-module AuthGeneration like ICryptoUnit {
+module AuthGen like ICryptoUnit {
     parameters:
         int computeCycles;
         int generationSize;
@@ -32,13 +32,13 @@ module AuthGeneration like ICryptoUnit {
         input  in;
         output out;
     submodules:
-        auth: AuthGenerationImpl {
+        auth: AuthGenImpl {
             @display("p=60,60");
             generationSize = generationSize;
         }
         delay: Delay {
             @display("p=160,60");
-            waitCycles = computeCycles - generationSize; //# -generationSize because the data flits can already be sent while the MAC is being computed
+            waitCycles = computeCycles;
         }
         serializer: Serializer {
             @display("p=260,60");

@@ -36,7 +36,7 @@ module AuthFlit like ICryptoUnit {
         }
         delay: Delay {
             @display("p=160,60");
-            waitCycles = computeCycles - 1; //# -1 because the data flit can already be sent one cycle earlier
+            waitCycles = computeCycles;
         }
         serializer: Serializer {
             @display("p=260,60");

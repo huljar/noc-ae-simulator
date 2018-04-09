@@ -87,14 +87,14 @@ network Test {
 %contains-regex: stdout
 Initiating planned ARQ.*
 Canceling planned ARQ.*
-12 Got flit flit3-dec
+13 Got flit flit3-dec
 Source \(1,0\)
 Target \(0,0\)
 GID 123
 GEV 43
 Mode MODE_DATA
 .*
-13 Got flit flit4-dec
+14 Got flit flit4-dec
 Source \(1,0\)
 Target \(0,0\)
 GID 123

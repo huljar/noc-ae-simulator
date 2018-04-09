@@ -13,8 +13,8 @@ sim-time-limit = 500ns
 
 **.awaitSendRequests = true
 
-**.encUnits = 2
-**.authUnits = 2
+**.encUnits = 10
+**.authUnits = 10
 **.busyCyclesEnc = 5
 **.busyCyclesAuth = 5
 **.encUnit[*].computeCycles = 5
@@ -96,7 +96,7 @@ GID 123
 Mode MODE_ARQ_TELL_RECEIVED
 ARQ modes \(2,ARQ_MAC\)\(5,ARQ_DATA\)
 .*
-14 Got ARQ arq-222-s\(0,0\)-t\(3,3\)
+15 Got ARQ arq-222-s\(0,0\)-t\(3,3\)
 Source \(0,0\)
 Target \(3,3\)
 GID 222
