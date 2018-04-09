@@ -13,11 +13,12 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __HAECCOMM_ENTRYGUARDFLIT_H_
-#define __HAECCOMM_ENTRYGUARDFLIT_H_
+#ifndef __HAECCOMM_ENTRYGUARDGEN_H_
+#define __HAECCOMM_ENTRYGUARDGEN_H_
 
 #include <omnetpp.h>
 #include <Buffers/PacketQueueBase.h>
+#include <Messages/fieldtypes.h>
 #include <Util/ShiftRegister.h>
 #include <map>
 #include <queue>
@@ -30,10 +31,12 @@ namespace HaecComm { namespace MW { namespace Crypto {
 /**
  * TODO - implement load balancing for unclocked simulations
  */
-class EntryGuardFlit : public cSimpleModule, public cListener {
+class EntryGuardGen : public cSimpleModule, public cListener {
 public:
     typedef std::priority_queue<int, std::vector<int>, std::greater<int>> AvailableQueue;
     typedef Util::ShiftRegister<std::vector<int>> BusyRegister;
+    typedef std::pair<int, int> AuthUnitFlits;
+    typedef std::map<Messages::Address2D, AuthUnitFlits> AuthUnitGensMap;
 
 protected:
     virtual void initialize() override;
@@ -42,11 +45,15 @@ protected:
 
     int busyCyclesEnc;
     int busyCyclesAuth;
+    int generationSize;
 
     AvailableQueue availableEncUnits;
     BusyRegister busyEncUnits;
     AvailableQueue availableAuthUnits;
     BusyRegister busyAuthUnits;
+
+    AuthUnitGensMap authUnitGensDeparting;
+    AuthUnitGensMap authUnitGensArriving;
 
     Buffers::PacketQueueBase* appInputQueue;
     Buffers::PacketQueueBase* exitInputQueue;

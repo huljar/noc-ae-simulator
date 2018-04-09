@@ -1,0 +1,137 @@
+%description:
+Test crypto entry guard flit distribution
+
+%inifile: omnetpp.ini
+[General]
+sim-time-limit = 200ns
+
+**.clock.inter = 2ns
+
+**.busyCyclesEnc = 4
+**.busyCyclesAuth = 8
+**.generationSize = 2
+**.awaitSendRequests = true
+
+%file: test.ned
+import HaecComm.Core.Clock;
+import HaecComm.Buffers.PacketQueue;
+import HaecComm.MW.Crypto.EntryGuardGen;
+
+network Test {
+    submodules:
+        clock: Clock;
+        appInputQueue: PacketQueue;
+        exitInputQueue: PacketQueue;
+        netInputQueue: PacketQueue;
+        entryGuard: EntryGuardGen {
+            gates: encOut[4]; authOut[4];
+        }
+        testapp: EntryGuardGenTestApp;
+    connections:
+        testapp.appInputQueue --> appInputQueue.in;
+        testapp.exitInputQueue --> exitInputQueue.in;
+        testapp.netInputQueue --> netInputQueue.in;
+
+        entryGuard.appIn <-- appInputQueue.out;
+        entryGuard.exitIn <-- exitInputQueue.out;
+        entryGuard.netIn <-- netInputQueue.out;
+
+        for i=0..3 {
+            entryGuard.encOut[i] --> testapp.encUnits[i];
+            entryGuard.authOut[i] --> testapp.authUnits[i];
+        }
+}
+
+%contains-regex: stdout
+Got flit exit1-mac at authUnits\[0\]
+Source \(0,0\)
+Target \(2,0\)
+FID 131
+Mode MODE_DATA
+.*
+Got flit app1-enc at encUnits\[0\]
+Source \(0,0\)
+Target \(1,1\)
+FID 121
+Mode MODE_DATA
+.*
+Got flit net1-dec at encUnits\[1\]
+Source \(1,1\)
+Target \(0,0\)
+FID 141
+Mode MODE_DATA
+.*
+Got flit net1-ver at authUnits\[1\]
+Source \(1,1\)
+Target \(0,0\)
+FID 141
+Mode MODE_DATA
+.*
+Got flit exit2-mac at authUnits\[0\]
+Source \(0,0\)
+Target \(2,0\)
+FID 132
+Mode MODE_DATA
+.*
+Got flit app2-enc at encUnits\[2\]
+Source \(0,0\)
+Target \(1,1\)
+FID 122
+Mode MODE_DATA
+.*
+Got flit net2-dec at encUnits\[3\]
+Source \(1,1\)
+Target \(0,0\)
+FID 142
+Mode MODE_DATA
+.*
+Got flit net2-ver at authUnits\[1\]
+Source \(1,1\)
+Target \(0,0\)
+FID 142
+Mode MODE_DATA
+.*
+Got flit exit3-mac at authUnits\[2\]
+Source \(0,0\)
+Target \(2,0\)
+FID 133
+Mode MODE_DATA
+.*
+Got flit exit4-mac at authUnits\[2\]
+Source \(0,0\)
+Target \(2,0\)
+FID 134
+Mode MODE_DATA
+.*
+Got flit net3-dec at encUnits\[0\]
+Source \(1,2\)
+Target \(0,0\)
+FID 143
+Mode MODE_DATA
+.*
+Got flit net3-ver at authUnits\[3\]
+Source \(1,2\)
+Target \(0,0\)
+FID 143
+Mode MODE_DATA
+.*
+Got flit net4-dec at encUnits\[1\]
+Source \(1,2\)
+Target \(0,0\)
+FID 144
+Mode MODE_DATA
+.*
+Got flit net4-ver at authUnits\[3\]
+Source \(1,2\)
+Target \(0,0\)
+FID 144
+Mode MODE_DATA
+
+%not-contains-regex: stdout
+.*Discarding.*
+
+%not-contains: stdout
+undisposed object:
+
+%not-contains: stdout
+-- check module destructor
