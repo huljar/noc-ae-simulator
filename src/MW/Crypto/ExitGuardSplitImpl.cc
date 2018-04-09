@@ -58,14 +58,14 @@ void ExitGuardSplitImpl::handleMessage(cMessage* msg) {
         ASSERT(strcmp(flit->getArrivalGate()->getName(), "encIn") == 0);
 
         // Send decrypted split back to the app
-        flit->setStatus(STATUS_NONE);
+        // We do not reset the status flag on purpose
         send(flit, "appOut");
     }
     else if(flit->getStatus() == STATUS_VERIFYING) {
         ASSERT(strcmp(flit->getArrivalGate()->getName(), "authIn") == 0);
 
         // Send verification MAC back to the app
-        flit->setStatus(STATUS_NONE);
+        // We do not reset the status flag on purpose
         send(flit, "appOut");
     }
     else {
