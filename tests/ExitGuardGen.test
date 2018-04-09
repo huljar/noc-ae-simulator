@@ -1,0 +1,78 @@
+%description:
+Test crypto exit guard flit distribution
+
+%inifile: omnetpp.ini
+[General]
+sim-time-limit = 200ns
+
+**.clock.inter = 2ns
+
+**.generationSize = 2
+
+%file: test.ned
+import HaecComm.Core.Clock;
+import HaecComm.MW.Crypto.ExitGuardGen;
+
+network Test {
+    submodules:
+        clock: Clock;
+        exitGuard: ExitGuardGen {
+            gates: encIn[4]; authIn[4];
+        }
+        testapp: ExitGuardGenTestApp;
+    connections:
+        exitGuard.appOut --> testapp.appIn;
+        exitGuard.entryOut --> testapp.entryIn;
+        exitGuard.netOut --> testapp.netIn;
+
+        for i=0..3 {
+            exitGuard.encIn[i] <-- testapp.encUnits[i];
+            exitGuard.authIn[i] <-- testapp.authUnits[i];
+        }
+}
+
+%contains-regex: stdout
+Got flit enc1 at entryIn
+Source \(0,0\)
+Target \(1,1\)
+FID 121
+Mode MODE_DATA
+.*
+Got flit enc2 at entryIn
+Source \(0,0\)
+Target \(1,1\)
+FID 122
+Mode MODE_DATA
+.*
+Got flit enc3 at entryIn
+Source \(0,0\)
+Target \(1,1\)
+FID 123
+Mode MODE_DATA
+.*
+Got flit enc1 at netIn
+Source \(0,0\)
+Target \(1,1\)
+FID 121
+Mode MODE_DATA
+.*
+Got flit enc2 at netIn
+Source \(0,0\)
+Target \(1,1\)
+FID 122
+Mode MODE_DATA
+.*
+Got flit auth1 at netIn
+Source \(0,0\)
+Target \(1,1\)
+FID 131
+Mode MODE_MAC
+
+%not-contains: stdout
+Got flit enc3 at netIn
+
+%not-contains: stdout
+undisposed object:
+
+%not-contains: stdout
+-- check module destructor

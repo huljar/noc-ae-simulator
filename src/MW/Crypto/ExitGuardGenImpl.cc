@@ -13,24 +13,35 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include "ExitGuardSplitImpl.h"
+#include "ExitGuardGenImpl.h"
 
 using namespace HaecComm::Messages;
 
 namespace HaecComm { namespace MW { namespace Crypto {
 
-Define_Module(ExitGuardSplitImpl);
+Define_Module(ExitGuardGenImpl);
 
-ExitGuardSplitImpl::ExitGuardSplitImpl() {
+ExitGuardGenImpl::ExitGuardGenImpl()
+    : generationSize(1)
+{
 }
 
-ExitGuardSplitImpl::~ExitGuardSplitImpl() {
+ExitGuardGenImpl::~ExitGuardGenImpl() {
+    for(auto it = flitCache.begin(); it != flitCache.end(); ++it) {
+        while(!it->second.empty()) {
+            delete it->second.front();
+            it->second.pop();
+        }
+    }
 }
 
-void ExitGuardSplitImpl::initialize() {
+void ExitGuardGenImpl::initialize() {
+    generationSize = par("generationSize");
+    if(generationSize < 1)
+        throw cRuntimeError(this, "Generation size must be greater than 0, but received %i", generationSize);
 }
 
-void ExitGuardSplitImpl::handleMessage(cMessage* msg) {
+void ExitGuardGenImpl::handleMessage(cMessage* msg) {
     // Confirm that this is a flit
     Flit* flit = dynamic_cast<Flit*>(msg);
     if(!flit) {
@@ -39,25 +50,42 @@ void ExitGuardSplitImpl::handleMessage(cMessage* msg) {
         return;
     }
 
+    // Get parameters
+    const Address2D& target = flit->getTarget();
+
     // Check flit status flag
     if(flit->getStatus() == STATUS_ENCRYPTING) {
         ASSERT(strcmp(flit->getArrivalGate()->getName(), "encIn") == 0);
 
-        // Send encrypted split back for authentication
+        // Store encrypted flit
+        flitCache[target].push(flit);
+
+        // Send back a copy for authentication
         flit->setStatus(STATUS_NONE);
-        send(flit, "entryOut");
+        Flit* mac = flit->dup();
+        send(mac, "entryOut");
     }
     else if(flit->getStatus() == STATUS_AUTHENTICATING) {
         ASSERT(strcmp(flit->getArrivalGate()->getName(), "authIn") == 0);
 
-        // Send encrypted and authenticated split out to the network
+        // Retrieve corresponding encrypted flits, send all out to the network
+        FlitQueue& queue = flitCache.at(target);
+        ASSERT(queue.size() >= static_cast<size_t>(generationSize));
+
+        // Send encrypted flits
+        for(int i = 0; i < generationSize; ++i) {
+            send(queue.front(), "netOut");
+            queue.pop();
+        }
+
+        // Send MAC
         flit->setStatus(STATUS_NONE);
         send(flit, "netOut");
     }
     else if(flit->getStatus() == STATUS_DECRYPTING) {
         ASSERT(strcmp(flit->getArrivalGate()->getName(), "encIn") == 0);
 
-        // Send decrypted split back to the app
+        // Send decrypted flit back to the app
         flit->setStatus(STATUS_NONE);
         send(flit, "appOut");
     }

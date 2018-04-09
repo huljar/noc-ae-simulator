@@ -71,8 +71,6 @@ module NetworkInterfaceNcEncAuthFlit like INetworkInterface {
         }
         exitGuard: ExitGuardFlit {
             @display("p=550,300");
-            busyCyclesEnc = encCycles;
-            busyCyclesAuth = authCycles;
             gates:
                 encIn[encUnits];
                 authIn[authUnits];

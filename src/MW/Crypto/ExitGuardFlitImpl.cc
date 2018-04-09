@@ -101,7 +101,7 @@ void ExitGuardFlitImpl::handleMessage(cMessage* msg) {
         send(flit, "appOut");
     }
     else {
-        throw cRuntimeError(this, "Received a flit with an unexpected status: %u", flit->getStatus());
+        throw cRuntimeError(this, "Received a flit with an unexpected status: %s", cEnum::get("HaecComm::Messages::Status")->getStringFor(flit->getStatus()));
     }
 }
 

@@ -20,8 +20,6 @@ import HaecComm.Buffers.Serializer;
 module ExitGuardSplit {
     parameters:
         @display("i=block/join");
-        int busyCyclesEnc;
-        int busyCyclesAuth;
     gates:
         input  encIn[];
         input  authIn[];

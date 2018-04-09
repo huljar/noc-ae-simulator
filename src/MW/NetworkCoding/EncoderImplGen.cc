@@ -68,7 +68,7 @@ void EncoderImplGen::handleMessage(cMessage* msg) {
 
         // Check if we have enough flits to create a generation
         if(generation.size() == static_cast<size_t>(generationSize)) {
-            lastUsedGids[target] = encodeAndSendGeneration(generation, source, target);
+            lastUsedGids[target].push(encodeAndSendGeneration(generation, source, target));
 
             // Clean up uncoded flits
             for(auto it = generation.begin(); it != generation.end(); ++it)
@@ -77,8 +77,13 @@ void EncoderImplGen::handleMessage(cMessage* msg) {
         }
     }
     else if(mode == MODE_MAC) {
-        // Assign GID of the last generation sent to this target to the MAC
-        uint32_t gid = lastUsedGids.at(target);
+        // Assign GID of the oldest generation sent to this target that does not yet have a MAC
+        std::queue<uint32_t>& gidQueue = lastUsedGids.at(target);
+        ASSERT(!gidQueue.empty());
+
+        uint32_t gid = gidQueue.front();
+        gidQueue.pop();
+
         EV_DEBUG << "Assigning GID " << gid << " to the MAC for target " << target << std::endl;
 
         flit->setGidOrFid(gid);

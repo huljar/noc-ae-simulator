@@ -21,6 +21,7 @@
 #include <MW/NetworkCoding/NetworkCodingBase.h>
 #include <cinttypes>
 #include <map>
+#include <queue>
 #include <vector>
 
 using namespace omnetpp;
@@ -41,7 +42,7 @@ protected:
 
 private:
     std::map<Messages::Address2D, FlitVector> flitCache;
-    std::map<Messages::Address2D, uint32_t> lastUsedGids;
+    std::map<Messages::Address2D, std::queue<uint32_t>> lastUsedGids;
 };
 
 }}} //namespace

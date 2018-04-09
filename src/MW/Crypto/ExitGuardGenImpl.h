@@ -13,12 +13,13 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __HAECCOMM_EXITGUARDFLIT_H_
-#define __HAECCOMM_EXITGUARDFLIT_H_
+#ifndef __HAECCOMM_EXITGUARDGEN_H_
+#define __HAECCOMM_EXITGUARDGEN_H_
 
 #include <omnetpp.h>
 #include <Messages/Flit.h>
 #include <map>
+#include <queue>
 
 using namespace omnetpp;
 
@@ -27,22 +28,21 @@ namespace HaecComm { namespace MW { namespace Crypto {
 /**
  * TODO - Generated class
  */
-class ExitGuardFlitImpl : public cSimpleModule {
+class ExitGuardGenImpl : public cSimpleModule {
 public:
-    typedef std::pair<uint32_t, Messages::Address2D> UcKey;
-    typedef std::tuple<uint32_t, uint16_t, Messages::Address2D> NcKey;
-    typedef std::map<UcKey, Messages::Flit*> UncodedFlitMap;
-    typedef std::map<NcKey, Messages::Flit*> NetworkCodedFlitMap;
+    typedef std::queue<Messages::Flit*> FlitQueue;
+    typedef std::map<Messages::Address2D, FlitQueue> TargetDataFlitMap;
 
-    ExitGuardFlitImpl();
-    virtual ~ExitGuardFlitImpl();
+    ExitGuardGenImpl();
+    virtual ~ExitGuardGenImpl();
 
 protected:
     virtual void initialize() override;
     virtual void handleMessage(cMessage* msg) override;
 
-    UncodedFlitMap ucFlitCache;
-    NetworkCodedFlitMap ncFlitCache;
+    int generationSize;
+
+    TargetDataFlitMap flitCache;
 };
 
 }}} //namespace

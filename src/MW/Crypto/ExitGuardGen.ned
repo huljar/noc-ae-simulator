@@ -17,9 +17,10 @@ package HaecComm.MW.Crypto;
 
 import HaecComm.Buffers.Serializer;
 
-module ExitGuardFlit {
+module ExitGuardGen {
     parameters:
         @display("i=block/join");
+        int generationSize;
     gates:
         input  encIn[];
         input  authIn[];
@@ -27,7 +28,7 @@ module ExitGuardFlit {
         output appOut;
         output entryOut;
     submodules:
-        exitGuard: ExitGuardFlitImpl {
+        exitGuard: ExitGuardGenImpl {
             @display("p=80,120");
             gates:
                 encIn[sizeof(encIn)];
