@@ -19,7 +19,7 @@ import HaecComm.Buffers.Serializer;
 
 module FlitSplitter like IMiddlewareBase {
     parameters:
-        @display("i=block/classifier2");
+        @display("i=block/tx");
     gates:
         input  in;
         output out;

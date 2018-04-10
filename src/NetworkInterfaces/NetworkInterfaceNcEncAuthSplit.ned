@@ -29,136 +29,128 @@ module NetworkInterfaceNcEncAuthSplit like INetworkInterface {
     parameters:
         @display("i=block/control");
         int id;
-        int ncGenerationSize;
-        int ncNumCombinations;
-        int authMode;
-        int authCryptoUnits;
+        int generationSize;
+        int numCombinations;
+        int encUnits;
+        int encCycles;
+        int authUnits;
         int authCycles;
     gates:
         inout app;
         inout router;
     submodules:
-        //#### Input queue for all auth modes ####//
+        //# app->net
         appInputQueue: PacketQueue {
-            @display("p=80,120");
-            awaitSendRequests = false;
+            @display("p=80,280");
         }
-        
-//        //#### Auth modes 1 and 3 (positioning of modules varies) ####//
-//        //# TODO: split different auth modes into different NED files
-//        ncEncoderFirst: Encoder if authMode != 2 {
-//            @display("p=200,120");
-//            generationSize = ncGenerationSize;
-//            numCombinations = ncNumCombinations;
-//        }
-//        authQueue: PacketQueue if authMode != 2 {
-//            @display("p=320,120");
-//            awaitSendRequests = true;
-//        }
-//        authLoadBalancerSecond: LoadBalancer if authMode != 2 {
-//            @display("p=440,120");
-//            busyCycles = authCycles;
-//            gates: out[authCryptoUnits];
-//        }
-//        authUnitFlit[authCryptoUnits]: AuthFlit if authMode == 1 {
-//            @display("p=560,40,column,80");
-//            computeCycles = authCycles;
-//        }
-//        authUnitHalfFlit[authCryptoUnits]: AuthHalfFlit if authMode == 3 {
-//            @display("p=560,40,column,80");
-//            computeCycles = authCycles;
-//        }
-//        authSerializerSecond: MultiInputPacketQueue if authMode != 2 {
-//            @display("p=680,120;i=block/join");
-//            syncFirstPacket = false;
-//            gates: in[authCryptoUnits];
-//        }
-//        
-//        //#### Auth mode 2 (positioning of modules varies) ####//
-//        authLoadBalancerFirst: LoadBalancer if authMode == 2 {
-//            @display("p=200,120");
-//            busyCycles = authCycles;
-//            gates: out[authCryptoUnits];
-//        }
-//        authUnitGen[authCryptoUnits]: AuthGeneration if authMode == 2 {
-//            @display("p=320,40,column,80");
-//            computeCycles = authCycles;
-//            generationSize = ncGenerationSize;
-//        }
-//        authSerializerFirst: MultiInputPacketQueue if authMode == 2 {
-//            @display("p=440,120;i=block/join");
-//            syncFirstPacket = false;
-//            gates: in[authCryptoUnits];
-//        }
-//        ncEncoderQueue: PacketQueue if authMode == 2 {
-//            @display("p=560,120");
-//            awaitSendRequests = true;
-//        }
-//        ncEncoderSecond: Encoder if authMode == 2 {
-//            @display("p=680,120");
-//            generationSize = ncGenerationSize;
-//            numCombinations = ncNumCombinations;
-//        }
-//        
-//        //#### Auth mode independent modules ####//
-//        retransmissionBuffer: RetransmissionBuffer {
-//            @display("p=800,120");
-//        }
-//        arqSplitter: ArqSplitter {
-//            @display("p=800,420");
-//        }
-//        arqQueue: PacketQueue {
-//            @display("p=750,270");
-//        }
-//        routerInputQueue: PacketQueue {
-//            @display("p=680,420");
-//            awaitSendRequests = true;
-//        }
-//        ncDecode: Decoder {
-//            @display("p=560,420");
-//            generationSize = ncGenerationSize;
-//            numCombinations = ncNumCombinations;
-//        }
-//        ncDecodeQueue: PacketQueue {
-//            @display("p=440,420");
-//            awaitSendRequests = false;
-//        }
+        flitSplitter: FlitSplitter {
+            @display("p=180,280");
+        }
+        encoder: Encoder {
+            @display("p=280,280");
+            generationSize = generationSize;
+            numCombinations = numCombinations;
+            internalType = "HaecComm.MW.NetworkCoding.EncoderImplSplit";
+        }
+        appCryptoQueue: PacketQueue {
+            @display("p=380,280");
+            awaitSendRequests = true;
+        }
+        entryGuard: EntryGuardSplit {
+            @display("p=480,300");
+            busyCyclesEnc = encCycles;
+            busyCyclesAuth = authCycles;
+            gates:
+                encOut[encUnits];
+                authOut[authUnits];
+        }
+        encUnit[encUnits]: EncSplit {
+            @display("p=150,80,row,80");
+            computeCycles = encCycles;
+        }
+        authUnit[authUnits]: AuthSplit {
+            @display("p=150,160,row,80");
+            computeCycles = authCycles;
+        }
+        exitGuard: ExitGuardSplit {
+            @display("p=650,300");
+            gates:
+                encIn[encUnits];
+                authIn[authUnits];
+        }
+        authCryptoQueue: PacketQueue {
+            @display("p=565,320");
+            awaitSendRequests = true;
+        }
+        retransmissionBuffer: RetransmissionBuffer {
+            @display("p=750,280");
+            internalType = "HaecComm.Buffers.RetransmissionBufferImplSplit";
+        }
+        netStream: MultiInputSerializer {
+            @display("p=850,320");
+            gates: in[2];
+        }
+
+        //# net->app
+        routerInputQueue: PacketQueue {
+            @display("p=850,450");
+        }
+        arqSplitter: ArqSplitter {
+            @display("p=750,450");
+        }
+        arrivalManager: ArrivalManagerSplit {
+            @display("p=600,450");
+        }
+        netCryptoQueue: PacketQueue {
+            @display("p=500,380");
+            awaitSendRequests = true;
+        }
+        decoderQueue: PacketQueue {
+            @display("p=380,450");
+        }
+        decoder: Decoder {
+            @display("p=280,450");
+            generationSize = generationSize;
+            numCombinations = numCombinations;
+            internalType = "HaecComm.MW.NetworkCoding.DecoderImplSplit";
+        }
+        splitMerger: SplitMerger {
+            @display("p=180,450");
+        }
     connections:
-        app <--> router;
-//        app$i --> appInputQueue.in;
-//        
-//        //# NED does not allow nested if/for blocks as of OMNeT++ 5.2
-//        if authMode != 2 {
-//            appInputQueue.out --> ncEncoderFirst.in if authMode == 1;
-//            appInputQueue.out --> flitSplitter.in if authMode == 3;
-//            flitSplitter.out --> ncEncoderFirst.in if authMode == 3;
-//            ncEncoderFirst.out --> authQueue.in;
-//            authQueue.out --> authLoadBalancerSecond.in;
-//            authSerializerSecond.out --> retransmissionBuffer.in;
-//        }
-//        if authMode == 2 {
-//            appInputQueue.out --> authLoadBalancerFirst.in;
-//            authSerializerFirst.out --> ncEncoderQueue.in;
-//            ncEncoderQueue.out --> ncEncoderSecond.in;
-//            ncEncoderSecond.out --> retransmissionBuffer.in;
-//        }
-//        
-//        for i=0..authCryptoUnits-1 {
-//            authUnitFlit[i].in <-- authLoadBalancerSecond.out[i] if authMode == 1;
-//            authUnitFlit[i].out --> authSerializerSecond.in[i] if authMode == 1;
-//            authUnitGen[i].in <-- authLoadBalancerFirst.out[i] if authMode == 2;
-//            authUnitGen[i].out --> authSerializerFirst.in[i] if authMode == 2;
-//            authUnitHalfFlit[i].in <-- authLoadBalancerSecond.out[i] if authMode == 3;
-//            authUnitHalfFlit[i].out --> authSerializerSecond.in[i] if authMode == 3;
-//        }
-//        
-//        retransmissionBuffer.out --> router$o;
-//        
-//        arqSplitter.in <-- router$i;
-//        arqSplitter.arqOut --> arqQueue.in;
-//        arqQueue.out --> retransmissionBuffer.arqIn;
-//        arqSplitter.othersOut --> routerInputQueue.in;
-//        ncDecode.in <-- routerInputQueue.out;
-//        ncDecode.out --> ncDecodeQueue.in;
-//        ncDecodeQueue.out --> app$o;
+        app$i --> appInputQueue.in;
+        appInputQueue.out --> flitSplitter.in;
+        encoder.in <-- flitSplitter.out;
+        encoder.out --> appCryptoQueue.in;
+        entryGuard.appIn <-- appCryptoQueue.out;
+        entryGuard.exitIn <-- authCryptoQueue.out;
+
+        for i=0..encUnits-1 {
+            encUnit[i].in <-- entryGuard.encOut[i];
+            encUnit[i].out --> exitGuard.encIn[i];
+        }
+
+        for i=0..authUnits-1 {
+            authUnit[i].in <-- entryGuard.authOut[i];
+            authUnit[i].out --> exitGuard.authIn[i];
+        }
+
+        exitGuard.netOut --> retransmissionBuffer.dataIn;
+        netStream.in[0] <-- retransmissionBuffer.out;
+        netStream.out --> router$o;
+
+        router$i --> routerInputQueue.in;
+        arqSplitter.in <-- routerInputQueue.out;
+        arqSplitter.othersOut --> arrivalManager.netIn;
+        arrivalManager.cryptoOut --> netCryptoQueue.in;
+        arrivalManager.appOut --> decoderQueue.in;
+        decoder.in <-- decoderQueue.out;
+        decoder.out --> splitMerger.in;
+        splitMerger.out --> app$o;
+
+        arqSplitter.arqOut --> retransmissionBuffer.arqIn;
+        exitGuard.appOut --> arrivalManager.cryptoIn;
+        arrivalManager.arqOut --> netStream.in[1];
+        entryGuard.netIn <-- netCryptoQueue.out;
+        exitGuard.entryOut --> authCryptoQueue.in;
 }

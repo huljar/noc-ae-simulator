@@ -24,7 +24,7 @@ package HaecComm.MW;
 //
 simple SplitMerger like IMiddlewareBase {
     parameters:
-        @display("i=block/join");
+        @display("i=block/rx");
     gates:
         input  in;
         output out;
