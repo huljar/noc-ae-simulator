@@ -527,7 +527,7 @@ void ArrivalManagerSplit::ucTryVerification(const IdSourceKey& key, Mode mode) {
         }
 
         // Issue ARQ
-        ucIssueArq(key, ARQ_SPLITS_BOTH);
+        ucIssueArq(key, (mode == MODE_SPLIT_1 ? ARQ_SPLIT_1 : ARQ_SPLIT_2));
 
         // Clear received cache to ensure we can receive the retransmission
         ucDeleteFromCache(ucReceivedSplitsCache, key, mode);

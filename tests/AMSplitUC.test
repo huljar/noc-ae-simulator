@@ -1,0 +1,150 @@
+%description:
+Test arrival manager: uncoded splits
+
+%inifile: omnetpp.ini
+[General]
+sim-time-limit = 100ns
+**.cmdenv-log-level = debug
+
+**.am.arqLimit = 1
+**.am.arqIssueTimeout = 8
+**.am.arqAnswerTimeoutBase = 5
+**.am.lastArqWaitForOngoingVerifications = true
+
+**.awaitSendRequests = true
+
+**.encUnits = 2
+**.authUnits = 2
+**.busyCyclesEnc = 5
+**.busyCyclesAuth = 5
+**.encUnit[*].computeCycles = 5
+**.authUnit[*].computeCycles = 5
+
+%file: test.ned
+import HaecComm.Core.Clock;
+import HaecComm.Buffers.PacketQueue;
+import HaecComm.MW.ArrivalManagerSplit;
+import HaecComm.MW.Crypto.*;
+
+network Test {
+    parameters:
+        int rows = 4;
+        int columns = 4;
+        int id = 0;
+        int encUnits;
+        int authUnits;
+        double clockPeriod @unit(s) = 2ns;
+    submodules:
+        clock: Clock { inter = clockPeriod; }
+        am: ArrivalManagerSplit;
+        appQ: PacketQueue;
+        authQ: PacketQueue;
+        netQ: PacketQueue;
+        entryGuard: EntryGuardSplit {
+            gates:
+                encOut[encUnits];
+                authOut[authUnits];
+        }
+        encUnit[encUnits]: EncSplit;
+        authUnit[authUnits]: AuthSplit;
+        exitGuard: ExitGuardSplit {
+            gates:
+                encIn[encUnits];
+                authIn[authUnits];
+        }
+        testapp: AMSplitUCTestApp;
+    connections:
+        testapp.appIn <-- am.appOut;
+        testapp.arqIn <-- am.arqOut;
+        testapp.netOut --> am.netIn;
+
+        am.cryptoOut --> netQ.in;
+        entryGuard.netIn <-- netQ.out;
+
+        testapp.appQOut --> appQ.in;
+        entryGuard.appIn <-- appQ.out;
+
+        exitGuard.entryOut --> authQ.in;
+        entryGuard.exitIn <-- authQ.out;
+
+        for i=0..encUnits-1 {
+            encUnit[i].in <-- entryGuard.encOut[i];
+            encUnit[i].out --> exitGuard.encIn[i];
+        }
+
+        for i=0..authUnits-1 {
+            authUnit[i].in <-- entryGuard.authOut[i];
+            authUnit[i].out --> exitGuard.authIn[i];
+        }
+
+        exitGuard.appOut --> am.cryptoIn;
+        exitGuard.netOut --> testapp.retBufIn;
+}
+
+%contains-regex: stdout
+Got flit flit1-dec
+Source \(3,3\)
+Target \(0,0\)
+FID 123
+Mode MODE_SPLIT_1
+.*
+Got flit flit2-dec
+Source \(3,3\)
+Target \(0,0\)
+FID 123
+Mode MODE_SPLIT_2
+.*
+Got ARQ arq-666-s\(0,0\)-t\(3,3\)
+Source \(0,0\)
+Target \(3,3\)
+FID 666
+Mode MODE_ARQ_TELL_MISSING
+ARQ mode ARQ_SPLIT_2
+.*
+Got ARQ arq-777-s\(0,0\)-t\(3,3\)
+Source \(0,0\)
+Target \(3,3\)
+FID 777
+Mode MODE_ARQ_TELL_MISSING
+ARQ mode ARQ_SPLIT_1
+.*
+Got ARQ arq-888-s\(0,0\)-t\(2,3\)
+Source \(0,0\)
+Target \(2,3\)
+FID 888
+Mode MODE_ARQ_TELL_MISSING
+ARQ mode ARQ_SPLITS_BOTH
+.*
+Got flit flit3-dec
+Source \(3,3\)
+Target \(0,0\)
+FID 666
+Mode MODE_SPLIT_1
+.*
+Got flit flit4-new-dec
+Source \(3,3\)
+Target \(0,0\)
+FID 666
+Mode MODE_SPLIT_2
+.*
+Got flit flit7-new-dec
+Source \(2,3\)
+Target \(0,0\)
+FID 888
+Mode MODE_SPLIT_1
+.*
+Got flit flit8-new-dec
+Source \(2,3\)
+Target \(0,0\)
+FID 888
+Mode MODE_SPLIT_2
+
+%contains: stdout
+ARQ timeout triggered for source (3,3), ID 777
+ARQ limit reached for source (3,3), ID 777
+
+%not-contains: stdout
+undisposed object:
+
+%not-contains: stdout
+-- check module destructor
