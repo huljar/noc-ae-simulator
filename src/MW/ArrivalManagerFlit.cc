@@ -770,7 +770,7 @@ void ArrivalManagerFlit::ncTryRemoveFromPlannedArq(const IdSourceKey& key, const
     plannedIter->second->removeFromNcArqFlit(arqModes);
 
     // Check if the ARQ is empty now; if yes, delete it
-    if(plannedIter->second->getNcArqs().size() == 0) {
+    if(plannedIter->second->getNcArqs().empty()) {
         EV_DEBUG << "Canceling planned ARQ for source " << key.second << ", ID " << key.first << std::endl;
         delete plannedIter->second;
         ncPlannedArqs.erase(plannedIter);
@@ -986,7 +986,7 @@ bool ArrivalManagerFlit::ncCheckCompleteGenerationReceived(const IdSourceKey& ke
     const GevCache& receivedData = ncReceivedDataCache[key];
     const GevCache& receivedMacs = ncReceivedMacCache[key];
 
-    return receivedData.size() == numCombinations && receivedMacs.size() == numCombinations;
+    return receivedData.size() >= numCombinations && receivedMacs.size() >= numCombinations;
 }
 
 bool ArrivalManagerFlit::ncCheckVerificationOngoing(const IdSourceKey& key) const {

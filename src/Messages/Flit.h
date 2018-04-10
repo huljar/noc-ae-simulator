@@ -43,8 +43,12 @@ public:
 
     // ARQ merging
     virtual void setNcArqs(const GevArqMap& ncArqs) override;
+
     void mergeNcArqModesFlit(Mode newMode, const GevArqMap& newArqModes);
     void removeFromNcArqFlit(const GevArqMap& arqModes);
+
+    void mergeNcArqModesSplit(Mode newMode, const GevArqMap& newArqModes);
+    void removeFromNcArqSplit(const GevArqMap& arqModes);
 
 private:
     void copy(const Flit& other);
@@ -53,6 +57,10 @@ private:
     void mergeNcArqModesFlitUnion(const GevArqMap& newArqModes);
     void mergeNcArqModesFlitWithout(const GevArqMap& newArqModes);
     GevArqMap invertNcArqModesFlit(const GevArqMap& toInvert);
+
+    void mergeNcArqModesSplitUnion(const GevArqMap& newArqModes);
+    void mergeNcArqModesSplitWithout(const GevArqMap& newArqModes);
+    GevArqMap invertNcArqModesSplit(const GevArqMap& toInvert);
 
     std::set<uint16_t> knownGevs;
 };

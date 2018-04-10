@@ -153,6 +153,90 @@ void Flit::removeFromNcArqFlit(const GevArqMap& arqModes) {
     }
 }
 
+void Flit::mergeNcArqModesSplit(Mode newMode, const GevArqMap& newArqModes) {
+    ASSERT(isArq() && ncMode != NC_UNCODED);
+
+    // Add new GEVs to known GEVs
+    for(auto it = newArqModes.begin(); it != newArqModes.end(); ++it)
+        knownGevs.insert(it->first);
+    ASSERT(knownGevs.size() <= getNumCombinations());
+
+    // Check flit mode
+    if(mode == MODE_ARQ_TELL_MISSING && newMode == MODE_ARQ_TELL_MISSING) {
+        // We have a TELL_MISSING ARQ and received new TELL_MISSING modes
+        // Merge using the union of both ARQ modes
+        mergeNcArqModesSplitUnion(newArqModes);
+    }
+    else if(mode == MODE_ARQ_TELL_MISSING && newMode == MODE_ARQ_TELL_RECEIVED) {
+        // We have a TELL_MISSING ARQ and received new TELL_RECEIVED modes
+        // Check if we can merge to a TELL_MISSING ARQ
+        if(knownGevs.size() >= getNumCombinations()) {
+            // Merge to a TELL_MISSING ARQ with the new modes inverted
+            GevArqMap inverted = invertNcArqModesSplit(newArqModes);
+            mergeNcArqModesSplitUnion(inverted);
+        }
+        else {
+            // Merge to a new TELL_RECEIVED ARQ which does not contain the old missing modes
+            // Store the old missing modes
+            GevArqMap oldMissing = ncArqs;
+
+            // Set modes to the new modes
+            setMode(MODE_ARQ_TELL_RECEIVED);
+            setNcArqs(newArqModes);
+
+            // Remove any modes that were previously marked as missing
+            mergeNcArqModesSplitWithout(oldMissing);
+        }
+    }
+    else if(mode == MODE_ARQ_TELL_RECEIVED && newMode == MODE_ARQ_TELL_MISSING) {
+        // We have a TELL_RECEIVED ARQ and received new TELL_MISSING modes
+        // Check if we can merge to a TELL_MISSING ARQ
+        if(knownGevs.size() >= getNumCombinations()) {
+            // Merge to a new TELL_MISSING ARQ with the old modes inverted
+            GevArqMap inverted = invertNcArqModesSplit(ncArqs);
+
+            // Set modes to the new modes
+            setMode(MODE_ARQ_TELL_MISSING);
+            setNcArqs(newArqModes);
+
+            mergeNcArqModesSplitUnion(inverted);
+        }
+        else {
+            // Merge to a TELL_RECEIVED ARQ which does not contain the new missing modes
+            mergeNcArqModesSplitWithout(newArqModes);
+        }
+    }
+    else {
+        // This should never happen
+        throw cRuntimeError(this, "Unexpected ARQ merge modes: current %s, new %s",
+                            cEnum::get("HaecComm::Messages::Mode")->getStringFor(mode),
+                            cEnum::get("HaecComm::Messages::Mode")->getStringFor(newMode));
+    }
+}
+
+void Flit::removeFromNcArqSplit(const GevArqMap& arqModes) {
+    // If we have a TELL_MISSING ARQ, remove the modes from the missing ones
+    // If we have a TELL_RECEIVED ARQ, add the modes as received ones
+
+    // Add new GEVs to known GEVs
+    for(auto it = arqModes.begin(); it != arqModes.end(); ++it)
+        knownGevs.insert(it->first);
+    ASSERT(knownGevs.size() <= getNumCombinations());
+
+    if(mode == MODE_ARQ_TELL_MISSING) {
+        mergeNcArqModesSplitWithout(arqModes);
+    }
+    else if(mode == MODE_ARQ_TELL_RECEIVED) {
+        mergeNcArqModesSplitUnion(arqModes);
+
+        // Check if we can convert this to a TELL_MISSING ARQ now
+        if(knownGevs.size() >= getNumCombinations()) {
+            setMode(MODE_ARQ_TELL_MISSING);
+            setNcArqs(invertNcArqModesSplit(getNcArqs()));
+        }
+    }
+}
+
 void Flit::copy(const Flit& other) {
     this->knownGevs = other.knownGevs;
 }
@@ -204,6 +288,33 @@ GevArqMap Flit::invertNcArqModesFlit(const GevArqMap& toInvert) {
             inverted.emplace(*it, ARQ_MAC);
         else if(toInvIter->second == ARQ_MAC)
             inverted.emplace(*it, ARQ_DATA);
+    }
+    return inverted;
+}
+
+void Flit::mergeNcArqModesSplitUnion(const GevArqMap& newArqModes) {
+    // Iterate over all new modes
+    for(auto it = newArqModes.begin(); it != newArqModes.end(); ++it) {
+        // Attempt to insert it (nothing happens if it is already present)
+        ncArqs.insert(*it);
+    }
+}
+
+void Flit::mergeNcArqModesSplitWithout(const GevArqMap& newArqModes) {
+    // Subtract the new modes from the current modes
+    for(auto it = newArqModes.begin(); it != newArqModes.end(); ++it) {
+        GevArqMap::iterator mergedIter = ncArqs.find(it->first);
+        if(mergedIter != ncArqs.end()) {
+            ncArqs.erase(mergedIter);
+        }
+    }
+}
+
+GevArqMap Flit::invertNcArqModesSplit(const GevArqMap& toInvert) {
+    GevArqMap inverted;
+    for(auto it = knownGevs.begin(); it != knownGevs.end(); ++it) {
+        if(!toInvert.count(*it))
+            inverted.emplace(*it, ARQ_SPLIT_NC);
     }
     return inverted;
 }

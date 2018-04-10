@@ -84,10 +84,9 @@ protected:
     SplitCache ucComputedMacsCache;
 
     // Cache arriving flits for network coded variant
-    GenCache ncReceivedDataCache;
-    GenCache ncReceivedMacCache;
-    GenCache ncDecryptedDataCache;
-    GenCache ncComputedMacCache;
+    GenCache ncReceivedSplitsCache;
+    GenCache ncDecryptedSplitsCache;
+    GenCache ncComputedMacsCache;
 
     // Cache successful MAC verifications
     PairVerCache ucVerified;
@@ -116,8 +115,8 @@ private:
     void ucTryRemoveFromPlannedArq(const IdSourceKey& key, Messages::ArqMode arqMode);
     void ucTrySendPlannedArq(const IdSourceKey& key, bool forceImmediate = false);
     void ucCleanUp(const IdSourceKey& key);
-    bool ucDeleteFromCache(SplitCache& cache, const IdSourceKey& key, Messages::Mode mode);
     bool ucDeleteFromCache(SplitCache& cache, const IdSourceKey& key);
+    bool ucDeleteFromCache(SplitCache& cache, const IdSourceKey& key, Messages::Mode mode);
 
     void ncStartDecryptAndAuth(const IdSourceKey& key, uint16_t gev);
     void ncTryVerification(const IdSourceKey& key, uint16_t gev);
