@@ -100,7 +100,8 @@ protected:
     // Network coding only: cache which (and how many) GEVs from a generation have been sent to the app
     std::map<IdSourceKey, GevSet> ncDispatchedGevs;
 
-    // Network coding only: track planned ARQs (in case we delay an ARQ to wait for verifications to finish)
+    // Track planned ARQs (in case we delay an ARQ to wait for verifications to finish)
+    FlitCache ucPlannedArqs;
     FlitCache ncPlannedArqs;
 
 private:
@@ -111,9 +112,12 @@ private:
     void ucStartDecryptAndAuth(const IdSourceKey& key, Messages::Mode mode);
     void ucTryVerification(const IdSourceKey& key, Messages::Mode mode);
     void ucTrySendToApp(const IdSourceKey& key);
-    void ucIssueArq(const IdSourceKey& key, Messages::Mode mode, Messages::ArqMode arqMode);
+    void ucIssueArq(const IdSourceKey& key, Messages::ArqMode arqMode);
+    void ucTryRemoveFromPlannedArq(const IdSourceKey& key, Messages::ArqMode arqMode);
+    void ucTrySendPlannedArq(const IdSourceKey& key, bool forceImmediate = false);
     void ucCleanUp(const IdSourceKey& key);
-    bool ucDeleteFromCache(FlitCache& cache, const IdSourceKey& key);
+    bool ucDeleteFromCache(SplitCache& cache, const IdSourceKey& key, Messages::Mode mode);
+    bool ucDeleteFromCache(SplitCache& cache, const IdSourceKey& key);
 
     void ncStartDecryptAndAuth(const IdSourceKey& key, uint16_t gev);
     void ncTryVerification(const IdSourceKey& key, uint16_t gev);
@@ -132,6 +136,9 @@ private:
 
     void setArqTimer(const IdSourceKey& key, Messages::NcMode ncMode, bool useAnswerTime = false, bool setToMax = true);
     void cancelArqTimer(const IdSourceKey& key);
+
+    bool ucCheckVerificationOngoing(const IdSourceKey& key) const;
+    bool ucCheckArqPlanned(const IdSourceKey& key) const;
 
     bool ncCheckCompleteGenerationReceived(const IdSourceKey& key, unsigned short numCombinations);
     bool ncCheckVerificationOngoing(const IdSourceKey& key) const;

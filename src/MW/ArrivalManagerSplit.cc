@@ -179,13 +179,16 @@ void ArrivalManagerSplit::handleNetMessage(Flit* flit) {
             }
         }
 
+        // In case this flit is already in a planned ARQ, remove it from there
+        ucTryRemoveFromPlannedArq(key, (mode == MODE_SPLIT_1 ? ARQ_SPLIT_1 : ARQ_SPLIT_2));
+
         // Check if both splits have arrived now
         if(splitIter->second.first && splitIter->second.second) {
             // Cancel ARQ timer
             cancelArqTimer(key);
         }
-        else {
-            // Start/update ARQ timer
+        // If there is no planned ARQ, start/update the ARQ timer
+        else if(!ucCheckArqPlanned(key)) {
             setArqTimer(key, ncMode);
         }
 
@@ -380,7 +383,7 @@ void ArrivalManagerSplit::handleCryptoMessage(Flit* flit) {
             }
 
             // Try to verify the split
-            ucTryVerification(key);
+            ucTryVerification(key, mode);
         }
         else {
             throw cRuntimeError(this, "Crypto unit sent flit with unexpected status %u (Source: %s, ID: %u)", status, source.str().c_str(), id);
@@ -488,7 +491,7 @@ void ArrivalManagerSplit::handleArqTimer(ArqTimer* timer) {
         }
 
         // Issue the ARQ
-        ucIssueArq(key, MODE_ARQ_TELL_MISSING, arqMode);
+        ucIssueArq(key, arqMode);
     }
     else { // ncMode != uncoded
         // Get parameters
@@ -572,12 +575,15 @@ void ArrivalManagerSplit::ucTryVerification(const IdSourceKey& key, Mode mode) {
     // Examine verification result
     if(equal) {
         // Verification was successful, insert into success cache
-        EV_DEBUG << "Successfully verified MAC \"" << recvMac->getName() << "\" (source: " << key.second
+        EV_DEBUG << "Successfully verified MAC for \"" << recvSplit->getName() << "\" (source: " << key.second
                  << ", ID: " << key.first << ")" << std::endl;
         (mode == MODE_SPLIT_1 ? ucVerified[key].first : ucVerified[key].second) = true;
 
         // Try to send out the decrypted splits
         ucTrySendToApp(key);
+
+        // Check if there is a planned ARQ waiting for ongoing verifications to finish
+        ucTrySendPlannedArq(key);
     }
     else {
         // Verification was not successful
@@ -592,21 +598,20 @@ void ArrivalManagerSplit::ucTryVerification(const IdSourceKey& key, Mode mode) {
             return;
         }
 
-        // Issue ARQ TODO: we need planned ARQs here
-        ucIssueArq(key, MODE_ARQ_TELL_MISSING, ARQ_DATA_MAC);
+        // Issue ARQ
+        ucIssueArq(key, ARQ_SPLITS_BOTH);
 
         // Clear received cache to ensure we can receive the retransmission
-        ucDeleteFromCache(ucReceivedDataCache, key);
-        ucDeleteFromCache(ucReceivedMacCache, key);
+        ucDeleteFromCache(ucReceivedSplitsCache, key, mode);
 
-        // Also clear the decrypted data flit or, in case it has not arrived yet,
+        // Also clear the decrypted split or, in case it has not arrived yet,
         // mark that it will be discarded on arrival
-        if(!ucDeleteFromCache(ucDecryptedDataCache, key))
-            ++ucDiscardDecrypting[key];
+        if(!ucDeleteFromCache(ucDecryptedSplitsCache, key, mode))
+            ++(mode == MODE_SPLIT_1 ? ucDiscardDecrypting[key].first : ucDiscardDecrypting[key].second);
 
         // Also clear the computed MAC to ensure that we don't compare the next
         // received MAC against the wrong computed one
-        ucDeleteFromCache(ucComputedMacCache, key);
+        ucDeleteFromCache(ucComputedMacsCache, key, mode);
     }
 }
 
@@ -631,35 +636,94 @@ void ArrivalManagerSplit::ucTrySendToApp(const IdSourceKey& key) {
     }
 }
 
-void ArrivalManagerSplit::ucIssueArq(const IdSourceKey& key, Mode mode, ArqMode arqMode) {
+void ArrivalManagerSplit::ucIssueArq(const IdSourceKey& key, ArqMode arqMode) {
     // Assert that we have not reached the maximum number of ARQs
     ASSERT(issuedArqs[key] < static_cast<unsigned int>(arqLimit));
 
-    // Create ARQ
-    Flit* arq = generateArq(key, mode, arqMode);
+    // Check if there already is a planned ARQ for this ID/source
+    FlitCache::iterator plannedIter = ucPlannedArqs.find(key);
+    if(plannedIter == ucPlannedArqs.end()) {
+        // Create a new ARQ and insert it into the planned ARQ map
+        EV_DEBUG << "Initiating planned ARQ for source " << key.second << ", ID " << key.first << ", mode "
+                 << cEnum::get("HaecComm::Messages::ArqMode")->getStringFor(arqMode) << std::endl;
+        ucPlannedArqs.emplace(key, generateArq(key, MODE_ARQ_TELL_MISSING, arqMode));
+    }
+    else {
+        // Merge the planned ARQ with the new ARQ argument
+        EV_DEBUG << "Merging planned ARQ for source " << key.second << ", ID " << key.first << " with new mode "
+                 << cEnum::get("HaecComm::Messages::ArqMode")->getStringFor(arqMode) << std::endl;
+        Flit* arq = plannedIter->second;
+        ArqMode currentMode = static_cast<ArqMode>(arq->getUcArqs());
 
-    // Send ARQ
-    EV << "Sending ARQ \"" << arq->getName() << "\" from " << arq->getSource()
-       << " to " << arq->getTarget() << " (ID: " << arq->getGidOrFid() << ") (mode "
-       << cEnum::get("HaecComm::Messages::ArqMode")->getStringFor(arqMode) << ")" << std::endl;
-    send(arq, "arqOut");
+        if(arqMode == ARQ_SPLITS_BOTH || (arqMode == ARQ_SPLIT_1 && currentMode == ARQ_SPLIT_2)
+                                      || (arqMode == ARQ_SPLIT_2 && currentMode == ARQ_SPLIT_1))
+            arq->setUcArqs(ARQ_SPLITS_BOTH);
+    }
 
-    // Increment ARQ counter
-    ++issuedArqs[key];
+    ucTrySendPlannedArq(key, !lastArqWaitForOngoingVerifications);
+}
 
-    // Set the ARQ timer
-    setArqTimer(key, NC_UNCODED, true);
+void ArrivalManagerSplit::ucTryRemoveFromPlannedArq(const IdSourceKey& key, ArqMode arqMode) {
+    // Check if there is an ARQ planned
+    FlitCache::iterator plannedIter = ucPlannedArqs.find(key);
+    if(plannedIter == ucPlannedArqs.end())
+        return;
+
+    // Remove specified mode from the ARQ
+    EV_DEBUG << "Removing " << cEnum::get("HaecComm::Messages::ArqMode")->getStringFor(arqMode) << " from planned ARQ for source "
+             << key.second << ", ID " << key.first << std::endl;
+    Flit* arq = plannedIter->second;
+    ArqMode currentMode = static_cast<ArqMode>(arq->getUcArqs());
+
+    if(arqMode == ARQ_SPLIT_1 && (currentMode == ARQ_SPLITS_BOTH || currentMode == ARQ_SPLIT_2))
+        arq->setUcArqs(ARQ_SPLIT_2);
+    else if(arqMode == ARQ_SPLIT_2 && (currentMode == ARQ_SPLITS_BOTH || currentMode == ARQ_SPLIT_1))
+        arq->setUcArqs(ARQ_SPLIT_1);
+    else {
+        // The ARQ is now empty and can be deleted
+        EV_DEBUG << "Canceling planned ARQ for source " << key.second << ", ID " << key.first << std::endl;
+        delete arq;
+        ucPlannedArqs.erase(plannedIter);
+    }
+}
+
+void ArrivalManagerSplit::ucTrySendPlannedArq(const IdSourceKey& key, bool forceImmediate) {
+    // Check if there is an ARQ planned
+    FlitCache::iterator plannedIter = ucPlannedArqs.find(key);
+    if(plannedIter == ucPlannedArqs.end())
+        return;
+
+    // Check if we can send out the ARQ now (forced, more than one ARQ remaining, or no verifications ongoing)
+    if(forceImmediate || issuedArqs[key] < static_cast<unsigned int>(arqLimit) - 1 || !ucCheckVerificationOngoing(key)) {
+        // Get ARQ
+        Flit* arq = plannedIter->second;
+
+        // Send ARQ
+        //emit(pktgenerateSignal, flit->getGidOrFid());
+        EV << "Sending ARQ \"" << arq->getName() << "\" from " << arq->getSource()
+           << " to " << arq->getTarget() << " (ID: " << arq->getGidOrFid() << ") (mode "
+           << cEnum::get("HaecComm::Messages::ArqMode")->getStringFor(arq->getUcArqs()) << ")" << std::endl;
+        send(arq, "arqOut");
+
+        // Remove from planned ARQ map
+        ucPlannedArqs.erase(plannedIter);
+
+        // Increment ARQ counter
+        ++issuedArqs[key];
+
+        // Set the ARQ timer
+        setArqTimer(key, NC_UNCODED, true);
+    }
 }
 
 void ArrivalManagerSplit::ucCleanUp(const IdSourceKey& key) {
     // Clean up all information related to this ID/address
     EV_DEBUG << "Fully cleaning up: source " << key.second << ", ID " << key.first << std::endl;
 
-    // Clear data/MAC caches
-    ucDeleteFromCache(ucReceivedDataCache, key);
-    ucDeleteFromCache(ucReceivedMacCache, key);
-    ucDeleteFromCache(ucDecryptedDataCache, key);
-    ucDeleteFromCache(ucComputedMacCache, key);
+    // Clear split caches
+    ucDeleteFromCache(ucReceivedSplitsCache, key);
+    ucDeleteFromCache(ucDecryptedSplitsCache, key);
+    ucDeleteFromCache(ucComputedMacsCache, key);
 
     // Clear verification result
     ucVerified.erase(key);
@@ -689,15 +753,48 @@ void ArrivalManagerSplit::ucCleanUp(const IdSourceKey& key) {
         cancelAndDelete(timerIter->second);
         arqTimers.erase(timerIter);
     }
+
+    // Delete any planned ARQs
+    FlitCache::iterator arqIter = ucPlannedArqs.find(key);
+    if(arqIter != ucPlannedArqs.end()) {
+        delete arqIter->second;
+        ucPlannedArqs.erase(arqIter);
+    }
 }
 
-bool ArrivalManagerSplit::ucDeleteFromCache(FlitCache& cache, const IdSourceKey& key) {
-    FlitCache::iterator element = cache.find(key);
+bool ArrivalManagerSplit::ucDeleteFromCache(SplitCache& cache, const IdSourceKey& key, Mode mode) {
+    ASSERT(mode == MODE_SPLIT_1 || mode == MODE_SPLIT_2);
+
+    SplitCache::iterator element = cache.find(key);
     if(element != cache.end()) {
-        delete element->second;
+        if(mode == MODE_SPLIT_1) {
+            if(element->second.first) {
+                delete element->second.first;
+                element->second.first = nullptr;
+                return true;
+            }
+        }
+        else {
+            if(element->second.second) {
+                delete element->second.second;
+                element->second.second = nullptr;
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+bool ArrivalManagerSplit::ucDeleteFromCache(SplitCache& cache, const IdSourceKey& key) {
+    SplitCache::iterator element = cache.find(key);
+    if(element != cache.end()) {
+        delete element->second.first;
+        delete element->second.second;
         cache.erase(element);
         return true;
     }
+
     return false;
 }
 
@@ -1036,6 +1133,31 @@ void ArrivalManagerSplit::cancelArqTimer(const IdSourceKey& key) {
         // Cancel the timer in case it is scheduled
         cancelEvent(timerIter->second);
     }
+}
+
+bool ArrivalManagerSplit::ucCheckVerificationOngoing(const IdSourceKey& key) const {
+    // Check if we are currently verifying a split
+    // This is the case when we have received a split, but
+    // there is no computed MAC for it yet
+    SplitCache::const_iterator receivedSplits = ucReceivedSplitsCache.find(key);
+    SplitCache::const_iterator computedMacs = ucComputedMacsCache.find(key);
+
+    // If the received cache is empty, there are no verifications ongoing
+    if(receivedSplits == ucReceivedSplitsCache.end())
+        return false;
+
+    // Check for the received splits if there is a corresponding computed MAC
+    if(receivedSplits->second.first && (computedMacs == ucComputedMacsCache.end() || !computedMacs->second.first))
+        return true;
+    if(receivedSplits->second.second && (computedMacs == ucComputedMacsCache.end() || !computedMacs->second.second))
+        return true;
+
+    // We have found a MAC for all received splits
+    return false;
+}
+
+bool ArrivalManagerSplit::ucCheckArqPlanned(const IdSourceKey& key) const {
+    return ucPlannedArqs.count(key);
 }
 
 bool ArrivalManagerSplit::ncCheckCompleteGenerationReceived(const IdSourceKey& key, unsigned short numCombinations) {
