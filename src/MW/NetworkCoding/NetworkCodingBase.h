@@ -39,6 +39,8 @@ protected:
 
     virtual uint32_t encodeAndSendGeneration(FlitVector& generation, const Messages::Address2D& source, const Messages::Address2D& target);
     virtual void decodeAndSendGeneration(FlitVector& combinations, uint32_t gid, const Messages::Address2D& source, const Messages::Address2D& target);
+    virtual bool checkGenerationModified(FlitVector& combinations) const;
+    virtual bool checkGenerationBitError(FlitVector& combinations) const;
 
     int generationSize;
     int numCombinations;

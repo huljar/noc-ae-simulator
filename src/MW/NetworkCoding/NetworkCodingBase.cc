@@ -108,6 +108,10 @@ void NetworkCodingBase::decodeAndSendGeneration(FlitVector& combinations, uint32
         EV << combinations[0]->getOriginalIds(i) << "+";
     EV << combinations[0]->getOriginalIds(generationSize-1) << std::endl;
 
+    // Check if a combination was modified
+    bool modified = checkGenerationModified(combinations);
+    bool bitError = checkGenerationBitError(combinations);
+
     // right now we just copy the first flit a few times because
     // there is no payload yet
     for(int i = 0; i < generationSize; ++i) {
@@ -126,6 +130,10 @@ void NetworkCodingBase::decodeAndSendGeneration(FlitVector& combinations, uint32
         // Set first original ID to the old generation ID (required for auth. method 2)
         decoded->setOriginalIds(0, static_cast<long>(gid));
 
+        // Set modified/bit error bits
+        decoded->setModified(modified);
+        decoded->setBitError(bitError);
+
         // Set name
         std::ostringstream packetName;
         packetName << "uc-" << fid << "-s" << decoded->getSource().str()
@@ -143,6 +151,22 @@ void NetworkCodingBase::decodeAndSendGeneration(FlitVector& combinations, uint32
         // Send the decoded flit
         send(decoded, "out");
     }
+}
+
+bool NetworkCodingBase::checkGenerationModified(FlitVector& combinations) const {
+    for(auto it = combinations.begin(); it != combinations.end(); ++it) {
+        if((*it)->isModified())
+            return true;
+    }
+    return false;
+}
+
+bool NetworkCodingBase::checkGenerationBitError(FlitVector& combinations) const {
+    for(auto it = combinations.begin(); it != combinations.end(); ++it) {
+        if((*it)->hasBitError())
+            return true;
+    }
+    return false;
 }
 
 }}} //namespace
