@@ -1,0 +1,91 @@
+%description:
+Test network coding: decoder module (with modified flits)
+
+%inifile: omnetpp.ini
+[General]
+sim-time-limit = 40ns
+
+**.clock.inter = 2ns
+
+**.decoder.generationSize = 2
+**.decoder.numCombinations = 3
+**.decoder.internalType = "HaecComm.MW.NetworkCoding.DecoderImplGen"
+
+%file: test.ned
+import HaecComm.Core.Clock;
+import HaecComm.MW.NetworkCoding.Decoder;
+
+network Test {
+    parameters:
+        bool useGlobalTransmissionIds = false;
+    submodules:
+        clock: Clock;
+        decoder: Decoder;
+        testapp: DecoderGenModifiedTestApp;
+    connections:
+        testapp.in <-- decoder.out;
+        testapp.out --> decoder.in;
+}
+
+%contains-regex: stdout
+Got flit uc-222-s\(0,0\)-t\(1,1\)
+Source \(0,0\)
+Target \(1,1\)
+FID 222
+Modified true
+BitError false
+OrigID0 123
+.*
+Got flit uc-333-s\(0,0\)-t\(1,1\)
+Source \(0,0\)
+Target \(1,1\)
+FID 333
+Modified true
+BitError false
+OrigID0 123
+.*
+Got flit mac12
+Source \(0,0\)
+Target \(1,1\)
+FID 123
+Modified false
+BitError false
+No OrigID0
+.*
+Got flit uc-444-s\(0,0\)-t\(1,1\)
+Source \(0,0\)
+Target \(1,1\)
+FID 444
+Modified false
+BitError true
+OrigID0 124
+.*
+Got flit uc-555-s\(0,0\)-t\(1,1\)
+Source \(0,0\)
+Target \(1,1\)
+FID 555
+Modified false
+BitError true
+OrigID0 124
+.*
+Got flit uc-666-s\(0,0\)-t\(1,1\)
+Source \(0,0\)
+Target \(1,1\)
+FID 666
+Modified false
+BitError false
+OrigID0 125
+.*
+Got flit uc-777-s\(0,0\)-t\(1,1\)
+Source \(0,0\)
+Target \(1,1\)
+FID 777
+Modified false
+BitError false
+OrigID0 125
+
+%not-contains: stdout
+undisposed object:
+
+%not-contains: stdout
+-- check module destructor
