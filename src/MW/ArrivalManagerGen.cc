@@ -136,159 +136,96 @@ void ArrivalManagerGen::handleNetMessage(Flit* flit) {
     Mode mode = static_cast<Mode>(flit->getMode());
     NcMode ncMode = static_cast<NcMode>(flit->getNcMode());
 
-    // Determine if we are network coding or not
-    if(ncMode == NC_UNCODED) {
-        // Check if this is a data or MAC flit
-        if(mode == MODE_DATA) {
-            // Check if the data cache already contains a flit
-            if(ucReceivedDataCache.count(key)) {
-                // We already have a data flit cached, we don't need this one
-                EV << "Received a data flit from " << source << " with ID " << id
-                   << ", but we already have a data flit cached" << std::endl;
-                delete flit;
-                return;
-            }
+    // Assert that we are in a network coded environment
+    ASSERT(ncMode != NC_UNCODED);
 
-            // We don't have this flit yet, cache it
-            EV_DEBUG << "Caching data flit \"" << flit->getName() << "\" from " << source << " with ID " << id << std::endl;
-            ucReceivedDataCache.emplace(key, flit);
-
-            // Check if the MAC flit has already arrived
-            if(ucReceivedMacCache.count(key)) {
-                // Cancel ARQ timer
-                cancelArqTimer(key);
-            }
-            else {
-                // Start/update ARQ timer
-                setArqTimer(key, ncMode);
-            }
-
-            // We only need the data flit to start decryption and authentication,
-            // so start it now
-            ucStartDecryptAndAuth(key);
-        }
-        else if(mode == MODE_MAC) {
-            // Check if the MAC cache already contains a flit
-            if(ucReceivedMacCache.count(key)) {
-                // We already have a MAC flit cached, we don't need this one
-                EV << "Received a MAC flit from " << source << " with ID " << id
-                   << ", but we already have a MAC flit cached" << std::endl;
-                delete flit;
-                return;
-            }
-
-            // We don't have this flit yet, cache it
-            EV_DEBUG << "Caching MAC flit \"" << flit->getName() << "\" from " << source << " with ID " << id << std::endl;
-            ucReceivedMacCache.emplace(key, flit);
-
-            // Check if the data flit has already arrived
-            if(ucReceivedDataCache.count(key)) {
-                // Cancel ARQ timer
-                cancelArqTimer(key);
-            }
-            else {
-                // Start/update ARQ timer
-                setArqTimer(key, ncMode);
-            }
-
-            // Try to verify the flit (in case the computed MAC is already there)
-            ucTryVerification(key);
-        }
-        else {
-            throw cRuntimeError(this, "Received flit with unexpected mode %u from %s (ID: %u)", mode, source.str().c_str(), id);
-        }
-    }
-    else { // ncMode != uncoded
+    // Check if this is a data or MAC flit
+    if(mode == MODE_DATA) {
         // Get parameters
         uint16_t gev = flit->getGev();
+        GevCache& gevCache = receivedDataCache[key];
 
-        // Check if this is a data or MAC flit
-        if(mode == MODE_DATA) {
-            // Get parameters
-            GevCache& gevCache = ncReceivedDataCache[key];
-
-            // Check if the data cache already contains a flit with this GEV
-            if(gevCache.count(gev)) {
-                // We already have a data flit with this GEV cached, we don't need this one
-                EV << "Received a data flit from " << source << " with GID " << id << " and GEV " << gev
-                   << ", but we already have a data flit cached" << std::endl;
-                delete flit;
-                return;
-            }
-
-            // Check if there are already enough data flits for the used NC mode
-            if((ncMode == NC_G2C3 && gevCache.size() >= 3) || (ncMode == NC_G2C4 && gevCache.size() >= 4)) {
-                EV << "Received a data flit from " << source << " with GID " << id << " and GEV " << gev
-                   << ", but we already have all the data flits from this generation" << std::endl;
-                delete flit;
-                return;
-            }
-
-            // We can safely cache the flit now
-            EV_DEBUG << "Caching data flit \"" << flit->getName() << "\" from " << source << " with ID " << id << " and GEV " << gev << std::endl;
-            gevCache.emplace(gev, flit);
-
-            // In case this flit is already in a planned ARQ, remove it from there
-            ncTryRemoveFromPlannedArq(key, GevArqMap{{gev, ARQ_DATA}});
-
-            // Check if we can cancel the ARQ timer
-            if(ncCheckCompleteGenerationReceived(key, flit->getNumCombinations())) {
-                // Cancel ARQ timer
-                cancelArqTimer(key);
-            }
-            // If there is no planned ARQ, start/update the ARQ timer
-            else if(!ncCheckArqPlanned(key)) {
-                setArqTimer(key, ncMode);
-            }
-
-            // We only need the data flit to start decryption and authentication,
-            // so start it now
-            ncStartDecryptAndAuth(key, gev);
+        // Check if the data cache already contains a flit with this GEV
+        if(gevCache.count(gev)) {
+            // We already have a data flit with this GEV cached, we don't need this one
+            EV << "Received a data flit from " << source << " with GID " << id << " and GEV " << gev
+               << ", but we already have a data flit cached" << std::endl;
+            delete flit;
+            return;
         }
-        else if(mode == MODE_MAC) {
-            // Get parameters
-            GevCache& gevCache = ncReceivedMacCache[key];
 
-            // Check if the MAC cache already contains a flit with this GEV
-            if(gevCache.count(gev)) {
-                // We already have a MAC flit with this GEV cached, we don't need this one
-                EV << "Received a MAC flit from " << source << " with GID " << id << " and GEV " << gev
-                   << ", but we already have a MAC flit cached" << std::endl;
-                delete flit;
-                return;
-            }
-
-            // Check if there are already enough MAC flits for the used NC mode
-            if((ncMode == NC_G2C3 && gevCache.size() >= 3) || (ncMode == NC_G2C4 && gevCache.size() >= 4)) {
-                EV << "Received a MAC flit from " << source << " with GID " << id << " and GEV " << gev
-                   << ", but we already have all the MAC flits from this generation" << std::endl;
-                delete flit;
-                return;
-            }
-
-            // We can safely cache the flit now
-            EV_DEBUG << "Caching MAC flit \"" << flit->getName() << "\" from " << source << " with ID " << id << " and GEV " << gev << std::endl;
-            gevCache.emplace(gev, flit);
-
-            // In case this flit is already in a planned ARQ, remove it from there
-            ncTryRemoveFromPlannedArq(key, GevArqMap{{gev, ARQ_MAC}});
-
-            // Check if we can cancel the ARQ timer
-            if(ncCheckCompleteGenerationReceived(key, flit->getNumCombinations())) {
-                // Cancel ARQ timer
-                cancelArqTimer(key);
-            }
-            // If there is no planned ARQ, start/update the ARQ timer
-            else if(!ncCheckArqPlanned(key)) {
-                setArqTimer(key, ncMode);
-            }
-
-            // Try to verify the flit (in case the computed MAC is already there)
-            ncTryVerification(key, gev);
+        // Check if there are already enough data flits for the used NC mode
+        if((ncMode == NC_G2C3 && gevCache.size() >= 3) || (ncMode == NC_G2C4 && gevCache.size() >= 4)) {
+            EV << "Received a data flit from " << source << " with GID " << id << " and GEV " << gev
+               << ", but we already have all the data flits from this generation" << std::endl;
+            delete flit;
+            return;
         }
-        else {
-            throw cRuntimeError(this, "Received flit with unexpected mode %u from %s (ID: %u)", mode, source.str().c_str(), id);
+
+        // We can safely cache the flit now
+        EV_DEBUG << "Caching data flit \"" << flit->getName() << "\" from " << source << " with ID " << id << " and GEV " << gev << std::endl;
+        gevCache.emplace(gev, flit);
+
+        // In case this flit is already in a planned ARQ, remove it from there
+        ncTryRemoveFromPlannedArq(key, GevArqMap{{gev, ARQ_DATA}});
+
+        // Check if we can cancel the ARQ timer
+        if(ncCheckCompleteGenerationReceived(key, flit->getNumCombinations())) {
+            // Cancel ARQ timer
+            cancelArqTimer(key);
         }
+        // If there is no planned ARQ, start/update the ARQ timer
+        else if(!ncCheckArqPlanned(key)) {
+            setArqTimer(key, ncMode);
+        }
+
+        // We only need the data flit to start decryption and authentication,
+        // so start it now
+        ncStartDecryptAndAuth(key, gev);
+    }
+    else if(mode == MODE_MAC) {
+        // Get parameters
+        GevCache& gevCache = ncReceivedMacCache[key];
+
+        // Check if the MAC cache already contains a flit with this GEV
+        if(gevCache.count(gev)) {
+            // We already have a MAC flit with this GEV cached, we don't need this one
+            EV << "Received a MAC flit from " << source << " with GID " << id << " and GEV " << gev
+               << ", but we already have a MAC flit cached" << std::endl;
+            delete flit;
+            return;
+        }
+
+        // Check if there are already enough MAC flits for the used NC mode
+        if((ncMode == NC_G2C3 && gevCache.size() >= 3) || (ncMode == NC_G2C4 && gevCache.size() >= 4)) {
+            EV << "Received a MAC flit from " << source << " with GID " << id << " and GEV " << gev
+               << ", but we already have all the MAC flits from this generation" << std::endl;
+            delete flit;
+            return;
+        }
+
+        // We can safely cache the flit now
+        EV_DEBUG << "Caching MAC flit \"" << flit->getName() << "\" from " << source << " with ID " << id << " and GEV " << gev << std::endl;
+        gevCache.emplace(gev, flit);
+
+        // In case this flit is already in a planned ARQ, remove it from there
+        ncTryRemoveFromPlannedArq(key, GevArqMap{{gev, ARQ_MAC}});
+
+        // Check if we can cancel the ARQ timer
+        if(ncCheckCompleteGenerationReceived(key, flit->getNumCombinations())) {
+            // Cancel ARQ timer
+            cancelArqTimer(key);
+        }
+        // If there is no planned ARQ, start/update the ARQ timer
+        else if(!ncCheckArqPlanned(key)) {
+            setArqTimer(key, ncMode);
+        }
+
+        // Try to verify the flit (in case the computed MAC is already there)
+        ncTryVerification(key, gev);
+    }
+    else {
+        throw cRuntimeError(this, "Received flit with unexpected mode %u from %s (ID: %u)", mode, source.str().c_str(), id);
     }
 }
 

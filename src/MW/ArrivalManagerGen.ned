@@ -18,7 +18,7 @@ package HaecComm.MW;
 //
 // TODO auto-generated module
 //
-simple ArrivalManagerGen {
+simple ArrivalManagerGen like IArrivalManager {
     parameters:
         @display("i=block/decrypt");
         int arqLimit;
@@ -30,6 +30,6 @@ simple ArrivalManagerGen {
         input  netIn;
         input  cryptoIn;
         output appOut;
-        output cryptoOut;
+        output decoderOut;
         output arqOut;
 }

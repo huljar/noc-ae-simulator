@@ -18,7 +18,7 @@ package HaecComm.MW;
 //
 // TODO auto-generated module
 //
-simple ArrivalManagerFlit {
+simple ArrivalManagerFlit like IArrivalManager {
     parameters:
         @display("i=block/decrypt");
         int arqLimit;

@@ -123,7 +123,6 @@ private:
     void ncCleanUp(const IdSourceKey& key);
     bool ncDeleteFromCache(GenCache& cache, const IdSourceKey& key);
     bool ncDeleteFromCache(GenCache& cache, const IdSourceKey& key, uint16_t gev);
-    // TODO: NC: do not send ARQ immediately on verification fail if we have more redundant GEVs to verify
 
     Messages::Flit* generateArq(const IdSourceKey& key, Messages::Mode mode, Messages::ArqMode arqMode);
     Messages::Flit* generateArq(const IdSourceKey& key, Messages::Mode mode, const Messages::GevArqMap& arqModes, Messages::NcMode ncMode);

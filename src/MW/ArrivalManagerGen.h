@@ -38,9 +38,11 @@ public:
     typedef std::set<uint32_t> IdSet;
     typedef std::queue<uint32_t> IdQueue;
     typedef std::set<uint16_t> GevSet;
+    typedef std::vector<Messages::Flit*> FlitVector;
     typedef std::pair<uint32_t, Messages::Address2D> IdSourceKey;
     typedef std::map<uint16_t, Messages::Flit*> GevCache;
     typedef std::map<IdSourceKey, Messages::Flit*> FlitCache;
+    typedef std::map<IdSourceKey, FlitVector> DecodedCache;
     typedef std::map<IdSourceKey, GevCache> GenCache;
     typedef std::map<IdSourceKey, Messages::ArqTimer*> TimerCache;
 
@@ -75,49 +77,40 @@ protected:
     // Track ARQ timeouts
     TimerCache arqTimers;
 
-    // Cache arriving flits (network coded)
-    GenCache ncReceivedDataCache;
-    FlitCache ncReceivedMacCache;
-    GenCache ncDecryptedDataCache;
-    FlitCache ncComputedMacCache;
+    // Cache arriving flits
+    GenCache receivedDataCache;
+    FlitCache receivedMacCache;
+    DecodedCache decodedDataCache;
+    GenCache decryptedDataCache;
+    FlitCache computedMacCache;
 
     // Cache successful MAC verifications
-    std::set<IdSourceKey> ucVerified;
-    std::map<IdSourceKey, GevSet> ncVerified;
+    std::set<IdSourceKey> verified;
 
     // Track amount of flits that are currently undergoing decryption, but have to be discarded on arrival
-    std::map<IdSourceKey, unsigned int> ucDiscardDecrypting;
-    std::map<IdSourceKey, std::map<uint16_t, unsigned int>> ncDiscardDecrypting;
-
-    // Network coding only: cache which (and how many) GEVs from a generation have been sent to the app
-    std::map<IdSourceKey, GevSet> ncDispatchedGevs;
+    std::map<IdSourceKey, unsigned int> discardDecrypting;
 
     // Network coding only: track planned ARQs (in case we delay an ARQ to wait for verifications to finish)
-    FlitCache ncPlannedArqs;
+    FlitCache plannedArqs;
 
 private:
     void handleNetMessage(Messages::Flit* flit);
+    void handleDecoderMessage(Messages::Flit* flit);
     void handleCryptoMessage(Messages::Flit* flit);
     void handleArqTimer(Messages::ArqTimer* timer);
 
-    void ucStartDecryptAndAuth(const IdSourceKey& key);
-    void ucTryVerification(const IdSourceKey& key);
-    void ucTrySendToApp(const IdSourceKey& key);
-    void ucIssueArq(const IdSourceKey& key, Messages::Mode mode, Messages::ArqMode arqMode);
-    void ucCleanUp(const IdSourceKey& key);
-    bool ucDeleteFromCache(FlitCache& cache, const IdSourceKey& key);
+    void startDecryptAndAuth(const IdSourceKey& key);
+    void tryVerification(const IdSourceKey& key);
+    void trySendToApp(const IdSourceKey& key);
+    void issueArq(const IdSourceKey& key, Messages::Mode mode, Messages::ArqMode arqMode);
+    void cleanUp(const IdSourceKey& key);
+    bool deleteFromCache(FlitCache& cache, const IdSourceKey& key);
+    // TODO: we have planned ARQs, but once a MAC is successfully verified, the ARQ can always be discarded and the generation cleaned up
 
-    void ncStartDecryptAndAuth(const IdSourceKey& key, uint16_t gev);
-    void ncTryVerification(const IdSourceKey& key, uint16_t gev);
-    void ncTrySendToApp(const IdSourceKey& key, uint16_t gev);
-    void ncIssueArq(const IdSourceKey& key, Messages::Mode mode, const Messages::GevArqMap& arqModes, Messages::NcMode ncMode);
-    void ncTryRemoveFromPlannedArq(const IdSourceKey& key, const Messages::GevArqMap& arqModes);
-    void ncTrySendPlannedArq(const IdSourceKey& key, bool forceImmediate = false);
     void ncCheckGenerationDone(const IdSourceKey& key, unsigned short generationSize);
     void ncCleanUp(const IdSourceKey& key);
     bool ncDeleteFromCache(GenCache& cache, const IdSourceKey& key);
     bool ncDeleteFromCache(GenCache& cache, const IdSourceKey& key, uint16_t gev);
-    // TODO: NC: do not send ARQ immediately on verification fail if we have more redundant GEVs to verify
 
     Messages::Flit* generateArq(const IdSourceKey& key, Messages::Mode mode, Messages::ArqMode arqMode);
     Messages::Flit* generateArq(const IdSourceKey& key, Messages::Mode mode, const Messages::GevArqMap& arqModes, Messages::NcMode ncMode);

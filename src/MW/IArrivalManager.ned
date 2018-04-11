@@ -15,21 +15,16 @@
 
 package HaecComm.MW;
 
-//
-// TODO auto-generated module
-//
-simple ArrivalManagerSplit like IArrivalManager {
+moduleinterface IArrivalManager {
     parameters:
-        @display("i=block/decrypt");
         int arqLimit;
         int arqIssueTimeout;
         int arqAnswerTimeoutBase;
         bool lastArqWaitForOngoingVerifications;
-        int finishedIdsTracked = default(100);
+        int finishedIdsTracked;
     gates:
         input  netIn;
         input  cryptoIn;
         output appOut;
-        output cryptoOut;
         output arqOut;
 }
