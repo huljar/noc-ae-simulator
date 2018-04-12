@@ -58,6 +58,7 @@ protected:
     int arqAnswerTimeoutBase;
     bool lastArqWaitForOngoingVerifications;
     int finishedIdsTracked;
+    unsigned short generationSize;
 
     int gridColumns;
     int nodeId;
@@ -83,16 +84,23 @@ protected:
     DecryptedCache decryptedDataCache;
     FlitCache computedMacCache;
 
-    // Cache GEVs that were sent to the decoder
-    std::map<IdSourceKey, GevSet> decodedGevs;
+    // Cache GEVs that were sent to the decoder together
+    std::map<IdSourceKey, std::vector<GevSet>> decodedGevs;
+
+    // Cache if we are decoding etc. right now
+    std::set<IdSourceKey> currentlyComputingMac;
 
     // Cache successful MAC verifications
     std::set<IdSourceKey> verified;
 
+    // Track which data flits (GEVs) were requested via ARQs
+    std::map<IdSourceKey, GevSet> dataRequestedViaArq;
+    std::set<IdSourceKey> macRequestedViaArq;
+
     // Track amount of flits that are currently undergoing decryption, but have to be discarded on arrival
     std::map<IdSourceKey, unsigned int> discardDecrypting;
 
-    // Network coding only: track planned ARQs (in case we delay an ARQ to wait for verifications to finish)
+    // Track planned ARQs (in case we delay an ARQ to wait for verifications to finish)
     FlitCache plannedArqs;
 
 private:
@@ -100,14 +108,18 @@ private:
     void handleCryptoMessage(Messages::Flit* flit);
     void handleArqTimer(Messages::ArqTimer* timer);
 
-    void tryStartDecodeDecryptAndAuth(const IdSourceKey& key, unsigned short generationSize);
+    bool tryStartDecodeDecryptAndAuth(const IdSourceKey& key);
     void tryVerification(const IdSourceKey& key);
     void trySendToApp(const IdSourceKey& key);
-    void issueArq(const IdSourceKey& key, Messages::Mode mode, Messages::ArqMode arqMode);
+    void issueArq(const IdSourceKey& key, Messages::Mode mode, const Messages::GevArqMap& arqModes, bool requestMac, Messages::NcMode ncMode);
     void tryRemoveFromPlannedArq(const IdSourceKey& key, const Messages::GevArqMap& arqModes);
+    void tryRemoveMacFromPlannedArq(const IdSourceKey& key);
     void trySendPlannedArq(const IdSourceKey& key, bool forceImmediate = false);
     void cleanUp(const IdSourceKey& key);
     bool deleteFromCache(FlitCache& cache, const IdSourceKey& key);
+    bool deleteFromCache(GenCache& cache, const IdSourceKey& key);
+    bool deleteFromCache(GenCache& cache, const IdSourceKey& key, uint16_t gev);
+    unsigned short deleteFromCache(DecryptedCache& cache, const IdSourceKey& key);
     // TODO: we have planned ARQs, but once a MAC is successfully verified, the ARQ can always be discarded and the generation cleaned up
 
     void ncCheckGenerationDone(const IdSourceKey& key, unsigned short generationSize);
@@ -121,7 +133,7 @@ private:
     void setArqTimer(const IdSourceKey& key, Messages::NcMode ncMode, bool useAnswerTime = false, bool setToMax = true);
     void cancelArqTimer(const IdSourceKey& key);
 
-    bool ncCheckCompleteGenerationReceived(const IdSourceKey& key, unsigned short numCombinations);
+    bool checkCompleteGenerationReceived(const IdSourceKey& key, unsigned short numCombinations);
     bool ncCheckVerificationOngoing(const IdSourceKey& key) const;
     bool ncCheckArqPlanned(const IdSourceKey& key) const;
 };
