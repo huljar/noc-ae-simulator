@@ -42,7 +42,7 @@ public:
     typedef std::pair<uint32_t, Messages::Address2D> IdSourceKey;
     typedef std::map<uint16_t, Messages::Flit*> GevCache;
     typedef std::map<IdSourceKey, Messages::Flit*> FlitCache;
-    typedef std::map<IdSourceKey, FlitVector> DecodedCache;
+    typedef std::map<IdSourceKey, FlitVector> DecryptedCache;
     typedef std::map<IdSourceKey, GevCache> GenCache;
     typedef std::map<IdSourceKey, Messages::ArqTimer*> TimerCache;
 
@@ -80,9 +80,11 @@ protected:
     // Cache arriving flits
     GenCache receivedDataCache;
     FlitCache receivedMacCache;
-    DecodedCache decodedDataCache;
-    GenCache decryptedDataCache;
+    DecryptedCache decryptedDataCache;
     FlitCache computedMacCache;
+
+    // Cache GEVs that were sent to the decoder
+    std::map<IdSourceKey, GevSet> decodedGevs;
 
     // Cache successful MAC verifications
     std::set<IdSourceKey> verified;
@@ -95,14 +97,15 @@ protected:
 
 private:
     void handleNetMessage(Messages::Flit* flit);
-    void handleDecoderMessage(Messages::Flit* flit);
     void handleCryptoMessage(Messages::Flit* flit);
     void handleArqTimer(Messages::ArqTimer* timer);
 
-    void startDecryptAndAuth(const IdSourceKey& key);
+    void tryStartDecodeDecryptAndAuth(const IdSourceKey& key, unsigned short generationSize);
     void tryVerification(const IdSourceKey& key);
     void trySendToApp(const IdSourceKey& key);
     void issueArq(const IdSourceKey& key, Messages::Mode mode, Messages::ArqMode arqMode);
+    void tryRemoveFromPlannedArq(const IdSourceKey& key, const Messages::GevArqMap& arqModes);
+    void trySendPlannedArq(const IdSourceKey& key, bool forceImmediate = false);
     void cleanUp(const IdSourceKey& key);
     bool deleteFromCache(FlitCache& cache, const IdSourceKey& key);
     // TODO: we have planned ARQs, but once a MAC is successfully verified, the ARQ can always be discarded and the generation cleaned up

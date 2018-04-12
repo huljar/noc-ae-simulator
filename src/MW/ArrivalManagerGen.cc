@@ -32,29 +32,18 @@ ArrivalManagerGen::~ArrivalManagerGen() {
     for(auto it = arqTimers.begin(); it != arqTimers.end(); ++it)
         cancelAndDelete(it->second);
 
-    for(auto it = ucReceivedDataCache.begin(); it != ucReceivedDataCache.end(); ++it)
+    for(auto it = receivedDataCache.begin(); it != receivedDataCache.end(); ++it)
+        for(auto jt = it->second.begin(); jt != it->second.end(); ++jt)
+            delete jt->second;
+    for(auto it = receivedMacCache.begin(); it != receivedMacCache.end(); ++it)
         delete it->second;
-    for(auto it = ucReceivedMacCache.begin(); it != ucReceivedMacCache.end(); ++it)
-        delete it->second;
-    for(auto it = ucDecryptedDataCache.begin(); it != ucDecryptedDataCache.end(); ++it)
-        delete it->second;
-    for(auto it = ucComputedMacCache.begin(); it != ucComputedMacCache.end(); ++it)
+    for(auto it = decryptedDataCache.begin(); it != decryptedDataCache.end(); ++it)
+        for(auto jt = it->second.begin(); jt != it->second.end(); ++jt)
+            delete *jt;
+    for(auto it = computedMacCache.begin(); it != computedMacCache.end(); ++it)
         delete it->second;
 
-    for(auto it = ncReceivedDataCache.begin(); it != ncReceivedDataCache.end(); ++it)
-        for(auto jt = it->second.begin(); jt != it->second.end(); ++jt)
-            delete jt->second;
-    for(auto it = ncReceivedMacCache.begin(); it != ncReceivedMacCache.end(); ++it)
-        for(auto jt = it->second.begin(); jt != it->second.end(); ++jt)
-            delete jt->second;
-    for(auto it = ncDecryptedDataCache.begin(); it != ncDecryptedDataCache.end(); ++it)
-        for(auto jt = it->second.begin(); jt != it->second.end(); ++jt)
-            delete jt->second;
-    for(auto it = ncComputedMacCache.begin(); it != ncComputedMacCache.end(); ++it)
-        for(auto jt = it->second.begin(); jt != it->second.end(); ++jt)
-            delete jt->second;
-
-    for(auto it = ncPlannedArqs.begin(); it != ncPlannedArqs.end(); ++it)
+    for(auto it = plannedArqs.begin(); it != plannedArqs.end(); ++it)
         delete it->second;
 }
 
@@ -167,62 +156,50 @@ void ArrivalManagerGen::handleNetMessage(Flit* flit) {
         gevCache.emplace(gev, flit);
 
         // In case this flit is already in a planned ARQ, remove it from there
-        ncTryRemoveFromPlannedArq(key, GevArqMap{{gev, ARQ_DATA}});
+        tryRemoveFromPlannedArq(key, GevArqMap{{gev, ARQ_DATA}});
 
         // Check if we can cancel the ARQ timer
-        if(ncCheckCompleteGenerationReceived(key, flit->getNumCombinations())) {
+        if(checkCompleteGenerationReceived(key, flit->getNumCombinations())) {
             // Cancel ARQ timer
             cancelArqTimer(key);
         }
         // If there is no planned ARQ, start/update the ARQ timer
-        else if(!ncCheckArqPlanned(key)) {
+        else if(!checkArqPlanned(key)) {
             setArqTimer(key, ncMode);
         }
 
-        // We only need the data flit to start decryption and authentication,
-        // so start it now
-        ncStartDecryptAndAuth(key, gev);
+        // Try to start decoding, decryption and authentication (if we have enough combinations to decode)
+        tryStartDecodeDecryptAndAuth(key);
     }
     else if(mode == MODE_MAC) {
-        // Get parameters
-        GevCache& gevCache = ncReceivedMacCache[key];
-
-        // Check if the MAC cache already contains a flit with this GEV
-        if(gevCache.count(gev)) {
-            // We already have a MAC flit with this GEV cached, we don't need this one
-            EV << "Received a MAC flit from " << source << " with GID " << id << " and GEV " << gev
+        // Check if the MAC cache already contains a flit
+        if(receivedMacCache.count(key)) {
+            // We already have a MAC flit cached, we don't need this one
+            EV << "Received a MAC flit from " << source << " with ID " << id
                << ", but we already have a MAC flit cached" << std::endl;
             delete flit;
             return;
         }
 
-        // Check if there are already enough MAC flits for the used NC mode
-        if((ncMode == NC_G2C3 && gevCache.size() >= 3) || (ncMode == NC_G2C4 && gevCache.size() >= 4)) {
-            EV << "Received a MAC flit from " << source << " with GID " << id << " and GEV " << gev
-               << ", but we already have all the MAC flits from this generation" << std::endl;
-            delete flit;
-            return;
-        }
-
-        // We can safely cache the flit now
-        EV_DEBUG << "Caching MAC flit \"" << flit->getName() << "\" from " << source << " with ID " << id << " and GEV " << gev << std::endl;
-        gevCache.emplace(gev, flit);
+        // We don't have this flit yet, cache it
+        EV_DEBUG << "Caching MAC flit \"" << flit->getName() << "\" from " << source << " with ID " << id << std::endl;
+        receivedMacCache.emplace(key, flit);
 
         // In case this flit is already in a planned ARQ, remove it from there
-        ncTryRemoveFromPlannedArq(key, GevArqMap{{gev, ARQ_MAC}});
+        tryRemoveMacFromPlannedArq(key);
 
         // Check if we can cancel the ARQ timer
-        if(ncCheckCompleteGenerationReceived(key, flit->getNumCombinations())) {
+        if(checkCompleteGenerationReceived(key, flit->getNumCombinations())) {
             // Cancel ARQ timer
             cancelArqTimer(key);
         }
         // If there is no planned ARQ, start/update the ARQ timer
-        else if(!ncCheckArqPlanned(key)) {
+        else if(!checkArqPlanned(key)) {
             setArqTimer(key, ncMode);
         }
 
         // Try to verify the flit (in case the computed MAC is already there)
-        ncTryVerification(key, gev);
+        tryVerification(key);
     }
     else {
         throw cRuntimeError(this, "Received flit with unexpected mode %u from %s (ID: %u)", mode, source.str().c_str(), id);
@@ -435,15 +412,26 @@ void ArrivalManagerGen::handleArqTimer(ArqTimer* timer) {
     }
 }
 
-void ArrivalManagerGen::ucStartDecryptAndAuth(const IdSourceKey& key) {
-    // Retrieve the requested flit from the cache and send a copy out
-    // for decryption and authentication
-    // We use a copy here so that we don't have to remove the flit from the cache,
-    // which is still used to check if the flit has already arrived
-    EV_DEBUG << "Starting flit decryption for \"" << ucReceivedDataCache.at(key)->getName()
-             << "\" (source: " << key.second << ", ID: " << key.first << ")" << std::endl;
-    Flit* copy = ucReceivedDataCache.at(key)->dup();
-    send(copy, "cryptoOut");
+void ArrivalManagerGen::tryStartDecodeDecryptAndAuth(const IdSourceKey& key, unsigned short generationSize) {
+    // Check that we have not already started to decode this generation
+    GevSet& decoded = decodedGevs[key];
+    if(decoded.empty()) {
+        // Check if we have enough combinations to decode a generation
+        GevCache& receivedData = receivedDataCache[key];
+        if(receivedData.size() >= generationSize) {
+            // Retrieve the requested flits from the cache and send copies out
+            // for decoding, decryption, and authentication
+            // We use copies here so that we don't have to remove the flits from the cache,
+            // which are still used to check if the flits have already arrived
+            // TODO: continue here
+            EV_DEBUG << "Starting flit decryption for \"" << ucReceivedDataCache.at(key)->getName()
+                     << "\" (source: " << key.second << ", ID: " << key.first << ")" << std::endl;
+            Flit* copy = ucReceivedDataCache.at(key)->dup();
+            send(copy, "cryptoOut");
+        }
+    }
+
+
 }
 
 void ArrivalManagerGen::ucTryVerification(const IdSourceKey& key) {
