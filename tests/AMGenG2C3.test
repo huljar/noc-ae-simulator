@@ -1,0 +1,168 @@
+%description:
+Test arrival manager: network coded (G2C3) data with generation MAC
+
+%inifile: omnetpp.ini
+[General]
+sim-time-limit = 500ns
+**.cmdenv-log-level = debug
+
+**.generationSize = 2
+
+**.am.arqLimit = 1
+**.am.arqIssueTimeout = 8
+**.am.arqAnswerTimeoutBase = 5
+**.am.lastArqWaitForOngoingVerifications = true
+
+**.awaitSendRequests = true
+
+**.decoder.numCombinations = 3
+**.decoder.internalType = "HaecComm.MW.NetworkCoding.DecoderImplGen"
+
+**.encUnits = 2
+**.authUnits = 2
+**.busyCyclesEnc = 5
+**.busyCyclesAuth = 5
+**.encUnit[*].computeCycles = 5
+**.authUnit[*].computeCycles = 5
+
+%file: test.ned
+import HaecComm.Core.Clock;
+import HaecComm.Buffers.PacketQueue;
+import HaecComm.MW.ArrivalManagerGen;
+import HaecComm.MW.NetworkCoding.Decoder;
+import HaecComm.MW.Crypto.*;
+
+network Test {
+    parameters:
+        int rows = 4;
+        int columns = 4;
+        int id = 0;
+        int encUnits;
+        int authUnits;
+        double clockPeriod @unit(s) = 2ns;
+        bool useGlobalTransmissionIds = true;
+    submodules:
+        clock: Clock { inter = clockPeriod; }
+        am: ArrivalManagerGen;
+        decoder: Decoder;
+        appQ: PacketQueue;
+        authQ: PacketQueue;
+        netQ: PacketQueue;
+        entryGuard: EntryGuardGen {
+            gates:
+                encOut[encUnits];
+                authOut[authUnits];
+        }
+        encUnit[encUnits]: EncFlit;
+        authUnit[authUnits]: AuthGen;
+        exitGuard: ExitGuardGen {
+            gates:
+                encIn[encUnits];
+                authIn[authUnits];
+        }
+        testapp: AMGenG2C3TestApp;
+    connections:
+        testapp.appIn <-- am.appOut;
+        testapp.arqIn <-- am.arqOut;
+        testapp.netOut --> am.netIn;
+
+        am.decoderOut --> decoder.in;
+        decoder.out --> netQ.in;
+        entryGuard.netIn <-- netQ.out;
+
+        testapp.appQOut --> appQ.in;
+        entryGuard.appIn <-- appQ.out;
+
+        exitGuard.entryOut --> authQ.in;
+        entryGuard.exitIn <-- authQ.out;
+
+        for i=0..encUnits-1 {
+            encUnit[i].in <-- entryGuard.encOut[i];
+            encUnit[i].out --> exitGuard.encIn[i];
+        }
+
+        for i=0..authUnits-1 {
+            authUnit[i].in <-- entryGuard.authOut[i];
+            authUnit[i].out --> exitGuard.authIn[i];
+        }
+
+        exitGuard.appOut --> am.cryptoIn;
+        exitGuard.netOut --> testapp.retBufIn;
+}
+
+%contains-regex: stdout
+1 Got flit uc-5-s\(3,3\)-t\(0,0\)-dec
+Source \(3,3\)
+Target \(0,0\)
+FID 5
+OldGID 123
+Mode MODE_DATA
+NC mode NC_UNCODED
+.*
+2 Got flit uc-6-s\(3,3\)-t\(0,0\)-dec
+Source \(3,3\)
+Target \(0,0\)
+FID 6
+OldGID 123
+Mode MODE_DATA
+NC mode NC_UNCODED
+
+%contains-regex: stdout
+3 Got ARQ arq-5-s\(0,0\)-t\(3,3\)
+Source \(0,0\)
+Target \(3,3\)
+GID 5
+GEV 0
+Mode MODE_ARQ_TELL_MISSING
+NC mode NC_G2C3
+ARQ modes \(1,ARQ_DATA\)\(2,ARQ_DATA\)
+ARQ MAC true
+.*
+4 Got flit uc-10-s\(3,3\)-t\(0,0\)-dec
+Source \(3,3\)
+Target \(0,0\)
+FID 10
+OldGID 5
+Mode MODE_DATA
+NC mode NC_UNCODED
+.*
+5 Got flit uc-11-s\(3,3\)-t\(0,0\)-dec
+Source \(3,3\)
+Target \(0,0\)
+FID 11
+OldGID 5
+Mode MODE_DATA
+NC mode NC_UNCODED
+
+%contains-regex: stdout
+6 Got ARQ arq-6-s\(0,0\)-t\(3,3\)
+Source \(0,0\)
+Target \(3,3\)
+GID 6
+GEV 0
+Mode MODE_ARQ_TELL_RECEIVED
+NC mode NC_G2C3
+No ARQ modes
+ARQ MAC false
+.*
+7 Got flit uc-15-s\(3,3\)-t\(0,0\)-dec
+Source \(3,3\)
+Target \(0,0\)
+FID 15
+OldGID 6
+Mode MODE_DATA
+NC mode NC_UNCODED
+.*
+8 Got flit uc-16-s\(3,3\)-t\(0,0\)-dec
+Source \(3,3\)
+Target \(0,0\)
+FID 16
+OldGID 6
+Mode MODE_DATA
+NC mode NC_UNCODED
+
+%not-contains: stdout
+undisposed object:
+
+%not-contains: stdout
+-- check module destructor

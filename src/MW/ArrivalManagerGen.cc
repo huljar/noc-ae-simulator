@@ -148,7 +148,7 @@ void ArrivalManagerGen::handleNetMessage(Flit* flit) {
             if(requested.count(gev)) {
                 // Delete the old flit
                 EV_DEBUG << "Received a data flit from " << source << " with GID " << id << " and GEV " << gev
-                         << "via an ARQ answer. Overwriting the old flit." << std::endl;
+                         << " via an ARQ answer. Overwriting the old flit." << std::endl;
 
                 delete oldFlit->second;
                 gevCache.erase(oldFlit);
@@ -205,7 +205,7 @@ void ArrivalManagerGen::handleNetMessage(Flit* flit) {
             if(macRequestedViaArq.count(key)) {
                 // Delete the old flit
                 EV_DEBUG << "Received a MAC flit from " << source << " with GID " << id
-                         << "via an ARQ answer. Overwriting the old flit." << std::endl;
+                         << " via an ARQ answer. Overwriting the old flit." << std::endl;
 
                 delete oldFlit->second;
                 receivedMacCache.erase(oldFlit);
@@ -260,7 +260,7 @@ void ArrivalManagerGen::handleNetMessage(Flit* flit) {
 
 void ArrivalManagerGen::handleCryptoMessage(Flit* flit) {
     // Get parameters
-    uint32_t id = flit->getGidOrFid();
+    uint32_t id = flit->getOriginalIds(0); // The data flits have their old FIDs restored, but we need the GID (MAC flit also has the GID here)
     Address2D source = flit->getSource();
     IdSourceKey key = std::make_pair(id, source);
     Mode mode = static_cast<Mode>(flit->getMode());
@@ -272,7 +272,7 @@ void ArrivalManagerGen::handleCryptoMessage(Flit* flit) {
     // Check if this ID is already finished
     const IdSet& finishedIdSet = finishedIds[source].first;
     if(finishedIdSet.count(id)) {
-        EV_DEBUG << "Received a decrypted/authenticated flit for finished FID " << id << std::endl;
+        EV_DEBUG << "Received a decrypted/authenticated flit for finished GID " << id << std::endl;
         delete flit;
         return;
     }
@@ -499,16 +499,16 @@ void ArrivalManagerGen::tryVerification(const IdSourceKey& key) {
                     requestedData.insert(it->first);
                 if(requestMac)
                     macRequestedViaArq.insert(key);
-
-                // Clear the decrypted data flits or, in case it some have not arrived yet,
-                // mark that they will be discarded on arrival
-                unsigned short decryptedDeleted = deleteFromCache(decryptedDataCache, key);
-                ASSERT(decryptedDeleted <= generationSize);
-                discardDecrypting[key] += generationSize - decryptedDeleted;
-
-                // Also clear the computed MAC to ensure that we don't compare against it any more
-                deleteFromCache(computedMacCache, key);
             }
+
+            // Clear the decrypted data flits or, in case it some have not arrived yet,
+            // mark that they will be discarded on arrival
+            unsigned short decryptedDeleted = deleteFromCache(decryptedDataCache, key);
+            ASSERT(decryptedDeleted <= generationSize);
+            discardDecrypting[key] += generationSize - decryptedDeleted;
+
+            // Also clear the computed MAC to ensure that we don't compare against it any more
+            deleteFromCache(computedMacCache, key);
 
             // Try to send a different combination of GEVs to the decoder
             bool anotherTry = tryStartDecodeDecryptAndAuth(key);

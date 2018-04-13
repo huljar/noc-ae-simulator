@@ -30,6 +30,7 @@ module ExitGuardGen {
     submodules:
         exitGuard: ExitGuardGenImpl {
             @display("p=80,120");
+            generationSize = generationSize;
             gates:
                 encIn[sizeof(encIn)];
                 authIn[sizeof(authIn)];
