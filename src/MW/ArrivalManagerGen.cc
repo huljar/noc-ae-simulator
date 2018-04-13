@@ -155,7 +155,7 @@ void ArrivalManagerGen::handleNetMessage(Flit* flit) {
 
                 // Remove all combinations containing this GEV from the set of decoded combinations
                 std::vector<GevSet>& decoded = decodedGevs[key];
-                auto decodedEnd = std::remove_if(decoded.begin(), decoded.end(), [](const GevSet& s) { return s.count(gev); });
+                auto decodedEnd = std::remove_if(decoded.begin(), decoded.end(), [gev](const GevSet& s) { return s.count(gev); });
                 decoded.erase(decodedEnd, decoded.end());
             }
             else {
@@ -276,8 +276,6 @@ void ArrivalManagerGen::handleCryptoMessage(Flit* flit) {
         delete flit;
         return;
     }
-
-    // TODO: set currentlyDecoding flag (when MAC arrives)
 
     // Check flit mode
     if(mode == MODE_DATA) {
@@ -592,7 +590,6 @@ void ArrivalManagerGen::trySendToApp(const IdSourceKey& key) {
 void ArrivalManagerGen::issueArq(const IdSourceKey& key, Mode mode, const GevArqMap& arqModes, bool requestMac, NcMode ncMode) {
     // Assert that we have not reached the maximum number of ARQs
     ASSERT(issuedArqs[key] < static_cast<unsigned int>(arqLimit));
-    // TODO: continue here
 
     // Check if there already is a planned ARQ for this ID/source
     FlitCache::iterator plannedIter = plannedArqs.find(key);
@@ -600,44 +597,48 @@ void ArrivalManagerGen::issueArq(const IdSourceKey& key, Mode mode, const GevArq
         // Create a new ARQ and insert it into the planned ARQ map
         EV_DEBUG << "Initiating planned ARQ for source " << key.second << ", ID " << key.first << ", mode "
                  << cEnum::get("HaecComm::Messages::Mode")->getStringFor(mode) << " " << arqModes << (requestMac ? " with MAC" : " without MAC") << std::endl;
-        plannedArqs.emplace(key, generateArq(key, mode, arqModes, ncMode));
+        plannedArqs.emplace(key, generateArq(key, mode, arqModes, requestMac, ncMode));
     }
     else {
         // Merge the planned ARQ with the new ARQ arguments
         EV_DEBUG << "Merging planned ARQ for source " << key.second << ", ID " << key.first << " with new mode "
                  << cEnum::get("HaecComm::Messages::Mode")->getStringFor(mode) << " " << arqModes << std::endl;
-        plannedIter->second->mergeNcArqModesFlit(mode, arqModes);
+        plannedIter->second->mergeNcArqModesGen(mode, arqModes, requestMac);
     }
 
-    ncTrySendPlannedArq(key, !lastArqWaitForOngoingVerifications);
+    trySendPlannedArq(key, !lastArqWaitForOngoingVerifications);
 }
 
-void ArrivalManagerGen::ncTryRemoveFromPlannedArq(const IdSourceKey& key, const GevArqMap& arqModes) {
+void ArrivalManagerGen::tryRemoveFromPlannedArq(const IdSourceKey& key, const GevArqMap& arqModes, bool removeMac) {
     // Check if there is an ARQ planned
-    FlitCache::iterator plannedIter = ncPlannedArqs.find(key);
-    if(plannedIter == ncPlannedArqs.end())
+    FlitCache::iterator plannedIter = plannedArqs.find(key);
+    if(plannedIter == plannedArqs.end())
         return;
 
     // Remove specified modes from the ARQ
-    EV_DEBUG << "Removing " << arqModes << " from planned ARQ for source " << key.second << ", ID " << key.first << std::endl;
-    plannedIter->second->removeFromNcArqFlit(arqModes);
+    EV_DEBUG << "Removing " << arqModes << (removeMac ? " and MAC" : "") << " from planned ARQ for source " << key.second << ", ID " << key.first << std::endl;
+    plannedIter->second->removeFromNcArqGen(arqModes, removeMac);
 
     // Check if the ARQ is empty now; if yes, delete it
-    if(plannedIter->second->getNcArqs().empty()) {
+    if(plannedIter->second->getNcArqs().empty() && !plannedIter->second->getNcArqGenMac()) {
         EV_DEBUG << "Canceling planned ARQ for source " << key.second << ", ID " << key.first << std::endl;
         delete plannedIter->second;
-        ncPlannedArqs.erase(plannedIter);
+        plannedArqs.erase(plannedIter);
     }
 }
 
-void ArrivalManagerGen::ncTrySendPlannedArq(const IdSourceKey& key, bool forceImmediate) {
+void ArrivalManagerGen::trySendPlannedArq(const IdSourceKey& key, bool forceImmediate) {
     // Check if there is an ARQ planned
-    FlitCache::iterator plannedIter = ncPlannedArqs.find(key);
-    if(plannedIter == ncPlannedArqs.end())
+    FlitCache::iterator plannedIter = plannedArqs.find(key);
+    if(plannedIter == plannedArqs.end())
+        return;
+
+    // Don't send the ARQ if the generation is successfully verified
+    if(verified.count(key))
         return;
 
     // Check if we can send out the ARQ now (forced, more than one ARQ remaining, or no verifications ongoing)
-    if(forceImmediate || issuedArqs[key] < static_cast<unsigned int>(arqLimit) - 1 || !ncCheckVerificationOngoing(key)) {
+    if(forceImmediate || issuedArqs[key] < static_cast<unsigned int>(arqLimit) - 1 || !checkVerificationOngoing(key)) {
         // Get ARQ
         Flit* arq = plannedIter->second;
 
@@ -646,11 +647,11 @@ void ArrivalManagerGen::ncTrySendPlannedArq(const IdSourceKey& key, bool forceIm
         EV << "Sending ARQ \"" << arq->getName() << "\" from " << arq->getSource()
            << " to " << arq->getTarget() << " (ID: " << arq->getGidOrFid() << ") (mode "
            << cEnum::get("HaecComm::Messages::Mode")->getStringFor(arq->getMode()) << " "
-           << arq->getNcArqs() << ")" << std::endl;
+           << arq->getNcArqs() << ")" << (arq->getNcArqGenMac() ? " with MAC" : " without MAC") << std::endl;
         send(arq, "arqOut");
 
         // Remove from planned ARQ map
-        ncPlannedArqs.erase(plannedIter);
+        plannedArqs.erase(plannedIter);
 
         // Increment ARQ counter
         ++issuedArqs[key];
@@ -660,198 +661,34 @@ void ArrivalManagerGen::ncTrySendPlannedArq(const IdSourceKey& key, bool forceIm
     }
 }
 
-void ArrivalManagerGen::ucIssueArq(const IdSourceKey& key, Mode mode, ArqMode arqMode) {
-    // Assert that we have not reached the maximum number of ARQs
-    ASSERT(issuedArqs[key] < static_cast<unsigned int>(arqLimit));
-
-    // Create ARQ
-    Flit* arq = generateArq(key, mode, arqMode);
-
-    // Send ARQ
-    EV << "Sending ARQ \"" << arq->getName() << "\" from " << arq->getSource()
-       << " to " << arq->getTarget() << " (ID: " << arq->getGidOrFid() << ") (mode "
-       << cEnum::get("HaecComm::Messages::ArqMode")->getStringFor(arqMode) << ")" << std::endl;
-    send(arq, "arqOut");
-
-    // Increment ARQ counter
-    ++issuedArqs[key];
-
-    // Set the ARQ timer
-    setArqTimer(key, NC_UNCODED, true);
-}
-
-void ArrivalManagerGen::ucCleanUp(const IdSourceKey& key) {
+void ArrivalManagerGen::cleanUp(const IdSourceKey& key) {
     // Clean up all information related to this ID/address
     EV_DEBUG << "Fully cleaning up: source " << key.second << ", ID " << key.first << std::endl;
 
     // Clear data/MAC caches
-    ucDeleteFromCache(ucReceivedDataCache, key);
-    ucDeleteFromCache(ucReceivedMacCache, key);
-    ucDeleteFromCache(ucDecryptedDataCache, key);
-    ucDeleteFromCache(ucComputedMacCache, key);
+    deleteFromCache(receivedDataCache, key);
+    deleteFromCache(receivedMacCache, key);
+    deleteFromCache(decryptedDataCache, key);
+    deleteFromCache(computedMacCache, key);
+
+    // Clear decoded GEVs
+    decodedGevs.erase(key);
+
+    // Clear currently computing flag
+    currentlyComputingMac.erase(key);
 
     // Clear verification result
-    ucVerified.erase(key);
+    verified.erase(key);
 
     // Clear number of issued ARQs
     issuedArqs.erase(key);
 
-    // Clear corrupted decryption counter
-    ucDiscardDecrypting.erase(key);
-
-    // Insert ID into finished ID set
-    IdSet& finishedSet = finishedIds[key.second].first;
-    IdQueue& finishedQueue = finishedIds[key.second].second;
-
-    finishedSet.insert(key.first);
-    finishedQueue.push(key.first);
-
-    // Check if the finished ID set size grew too large
-    while(finishedSet.size() > static_cast<size_t>(finishedIdsTracked)) {
-        finishedSet.erase(finishedQueue.front());
-        finishedQueue.pop();
-    }
-
-    // Cancel and delete any remaining ARQ timers
-    TimerCache::iterator timerIter = arqTimers.find(key);
-    if(timerIter != arqTimers.end()) {
-        cancelAndDelete(timerIter->second);
-        arqTimers.erase(timerIter);
-    }
-}
-
-bool ArrivalManagerGen::ucDeleteFromCache(FlitCache& cache, const IdSourceKey& key) {
-    FlitCache::iterator element = cache.find(key);
-    if(element != cache.end()) {
-        delete element->second;
-        cache.erase(element);
-        return true;
-    }
-    return false;
-}
-
-void ArrivalManagerGen::ncStartDecryptAndAuth(const IdSourceKey& key, uint16_t gev) {
-    // Retrieve the requested flit from the cache and send a copy out
-    // for decryption and authentication
-    // We use a copy here so that we don't have to remove the flit from the cache,
-    // which is still used to check if the flit has already arrived
-    EV_DEBUG << "Starting flit decryption for \"" << ncReceivedDataCache.at(key).at(gev)->getName()
-             << "\" (source: " << key.second << ", ID: " << key.first << ", GEV: " << gev << ")" << std::endl;
-    Flit* copy = ncReceivedDataCache.at(key).at(gev)->dup();
-    send(copy, "cryptoOut");
-}
-
-void ArrivalManagerGen::ncTryVerification(const IdSourceKey& key, uint16_t gev) {
-    // Get parameters
-    GevCache& recvMacCache = ncReceivedMacCache[key];
-    GevCache& compMacCache = ncComputedMacCache[key];
-
-    // Check if both computed and received MAC are present
-    GevCache::iterator recvMac = recvMacCache.find(gev);
-    GevCache::iterator compMac = compMacCache.find(gev);
-
-    if(recvMac != recvMacCache.end() && compMac != compMacCache.end()) {
-        // Verify their equality
-        bool equal = !recvMac->second->isModified() && !compMac->second->isModified() &&
-                     !recvMac->second->hasBitError() && !compMac->second->hasBitError();
-
-        // Examine verification result
-        if(equal) {
-            // Verification was successful, insert into success cache
-            EV_DEBUG << "Successfully verified MAC \"" << recvMac->second->getName() << "\" (source: " << key.second
-                     << ", ID: " << key.first << ", GEV: " << gev << ")" << std::endl;
-            ncVerified[key].insert(gev);
-
-            // Try to send out the decrypted flit
-            ncTrySendToApp(key, gev);
-
-            // Check if there is a planned ARQ waiting for ongoing verifications to finish
-            ncTrySendPlannedArq(key);
-        }
-        else {
-            // Verification was not successful
-            EV_DEBUG << "MAC verification failed for \"" << recvMac->second->getName() << "\" (source: " << key.second
-                     << ", ID: " << key.first << ", GEV: " << gev << ")" << std::endl;
-
-            // Check if we have reached the ARQ limit
-            if(issuedArqs[key] >= static_cast<unsigned int>(arqLimit)) {
-                // We have failed completely, clean up everything and discard flits from this ID
-                EV_DEBUG << "ARQ limit reached for source " << key.second << ", ID " << key.first << std::endl;
-                ncCleanUp(key);
-                return;
-            }
-
-            // Send out ARQ
-            ncIssueArq(key, MODE_ARQ_TELL_MISSING, GevArqMap{{gev, ARQ_DATA_MAC}}, static_cast<NcMode>(recvMac->second->getNcMode()));
-
-            // Clear received cache to ensure we can receive the retransmission
-            ncDeleteFromCache(ncReceivedDataCache, key, gev);
-            ncDeleteFromCache(ncReceivedMacCache, key, gev);
-
-            // Also clear the decrypted data flit or, in case it has not arrived yet,
-            // mark that it will be discarded on arrival
-            if(!ncDeleteFromCache(ncDecryptedDataCache, key, gev))
-                ++ncDiscardDecrypting[key][gev];
-
-            // Also clear the computed MAC to ensure that we don't compare the next
-            // received MAC against the wrong computed one
-            ncDeleteFromCache(ncComputedMacCache, key, gev);
-        }
-    }
-}
-
-void ArrivalManagerGen::ncTrySendToApp(const IdSourceKey& key, uint16_t gev) {
-    // Get parameters
-    GevCache& decDataCache = ncDecryptedDataCache[key];
-
-    // Check if decrypted data flit is present and MAC was successfully verified
-    GevCache::iterator decData = decDataCache.find(gev);
-    if(decData != decDataCache.end() && ncVerified[key].count(gev)) {
-        // Send out a copy of the decrypted data flit
-        // We use a copy here to avoid potential conflicts with cleanup
-        EV_DEBUG << "Sending out decrypted data flit: source " << key.second << ", ID " << key.first << ", GEV " << gev << std::endl;
-        Flit* copy = decData->second->dup();
-        send(copy, "appOut");
-
-        // Insert this GEV into the dispatched GEV set for this generation
-        ncDispatchedGevs[key].insert(gev);
-
-        // Check if this generation is done
-        ncCheckGenerationDone(key);
-    }
-}
-
-void ArrivalManagerGen::ncCheckGenerationDone(const IdSourceKey& key) {
-    // Check if we have sent enough data flits to the app in order
-    // to decode this generation
-    GevSet& dispatchedGevs = ncDispatchedGevs[key];
-    if(dispatchedGevs.size() >= generationSize) {
-        // Clean up whole generation
-        ncCleanUp(key);
-    }
-}
-
-void ArrivalManagerGen::ncCleanUp(const IdSourceKey& key) {
-    // Clean up all information related to this ID/address
-    EV_DEBUG << "Fully cleaning up: source " << key.second << ", ID " << key.first << std::endl;
-
-    // Clear data/MAC caches
-    ncDeleteFromCache(ncReceivedDataCache, key);
-    ncDeleteFromCache(ncReceivedMacCache, key);
-    ncDeleteFromCache(ncDecryptedDataCache, key);
-    ncDeleteFromCache(ncComputedMacCache, key);
-
-    // Clear verification results
-    ncVerified.erase(key);
-
-    // Clear number of issued ARQs
-    issuedArqs.erase(key);
-
-    // Clear dispatched GEV set
-    ncDispatchedGevs.erase(key);
+    // Clear requested via ARQ trackers
+    dataRequestedViaArq.erase(key);
+    macRequestedViaArq.erase(key);
 
     // Clear corrupted decryption counter
-    ncDiscardDecrypting.erase(key);
+    discardDecrypting.erase(key);
 
     // Insert ID into finished ID set
     IdSet& finishedSet = finishedIds[key.second].first;
@@ -874,14 +711,24 @@ void ArrivalManagerGen::ncCleanUp(const IdSourceKey& key) {
     }
 
     // Delete any planned ARQs
-    FlitCache::iterator arqIter = ncPlannedArqs.find(key);
-    if(arqIter != ncPlannedArqs.end()) {
+    FlitCache::iterator arqIter = plannedArqs.find(key);
+    if(arqIter != plannedArqs.end()) {
         delete arqIter->second;
-        ncPlannedArqs.erase(arqIter);
+        plannedArqs.erase(arqIter);
     }
 }
 
-bool ArrivalManagerGen::ncDeleteFromCache(GenCache& cache, const IdSourceKey& key) {
+bool ArrivalManagerGen::deleteFromCache(FlitCache& cache, const IdSourceKey& key) {
+    FlitCache::iterator element = cache.find(key);
+    if(element != cache.end()) {
+        delete element->second;
+        cache.erase(element);
+        return true;
+    }
+    return false;
+}
+
+bool ArrivalManagerGen::deleteFromCache(GenCache& cache, const IdSourceKey& key) {
     GenCache::iterator actualCacheIter = cache.find(key);
     if(actualCacheIter != cache.end()) {
         bool ret = false;
@@ -896,7 +743,7 @@ bool ArrivalManagerGen::ncDeleteFromCache(GenCache& cache, const IdSourceKey& ke
     return false;
 }
 
-bool ArrivalManagerGen::ncDeleteFromCache(GenCache& cache, const IdSourceKey& key, uint16_t gev) {
+bool ArrivalManagerGen::deleteFromCache(GenCache& cache, const IdSourceKey& key, uint16_t gev) {
     GenCache::iterator outerIter = cache.find(key);
     if(outerIter != cache.end()) {
         GevCache::iterator innerIter = outerIter->second.find(gev);
@@ -909,25 +756,20 @@ bool ArrivalManagerGen::ncDeleteFromCache(GenCache& cache, const IdSourceKey& ke
     return false;
 }
 
-Flit* ArrivalManagerGen::generateArq(const IdSourceKey& key, Mode mode, ArqMode arqMode) {
-    Address2D self(nodeX, nodeY);
-
-    // Build packet name
-    std::ostringstream packetName;
-    packetName << "arq-" << key.first << "-s" << self << "-t" << key.second;
-
-    // Create the flit
-    Flit* arq = MessageFactory::createFlit(packetName.str().c_str(), self, key.second, mode, key.first);
-    take(arq);
-
-    // Set ARQ payload
-    arq->setUcArqs(arqMode);
-
-    // Return ARQ
-    return arq;
+unsigned short ArrivalManagerGen::deleteFromCache(DecryptedCache& cache, const IdSourceKey& key) {
+    unsigned short ret = 0;
+    DecryptedCache::iterator vecIter = cache.find(key);
+    if(vecIter != cache.end()) {
+        FlitVector& vec = vecIter->second;
+        ret = vec.size();
+        for(auto it = vec.begin(); it != vec.end(); ++it)
+            delete *it;
+        cache.erase(vecIter);
+    }
+    return ret;
 }
 
-Flit* ArrivalManagerGen::generateArq(const IdSourceKey& key, Mode mode, const GevArqMap& arqModes, NcMode ncMode) {
+Flit* ArrivalManagerGen::generateArq(const IdSourceKey& key, Mode mode, const GevArqMap& arqModes, bool requestMac, NcMode ncMode) {
     Address2D self(nodeX, nodeY);
 
     // Build packet name
@@ -940,6 +782,7 @@ Flit* ArrivalManagerGen::generateArq(const IdSourceKey& key, Mode mode, const Ge
 
     // Set ARQ payload
     arq->setNcArqs(arqModes);
+    arq->setNcArqGenMac(requestMac);
 
     // Return ARQ
     return arq;
@@ -1007,35 +850,15 @@ bool ArrivalManagerGen::checkCompleteGenerationReceived(const IdSourceKey& key, 
     return receivedData.size() >= numCombinations && receivedMacCache.count(key) && !macRequestedViaArq.count(key);
 }
 
-bool ArrivalManagerGen::ncCheckVerificationOngoing(const IdSourceKey& key) const {
+bool ArrivalManagerGen::checkVerificationOngoing(const IdSourceKey& key) const {
     // Check if we are currently verifying a flit
-    // This is the case when we have received both data and mac flit, but
-    // there is no computed MAC yet (for each GEV)
-    GenCache::const_iterator receivedData = ncReceivedDataCache.find(key);
-    GenCache::const_iterator receivedMacs = ncReceivedMacCache.find(key);
-    GenCache::const_iterator computedMacs = ncComputedMacCache.find(key);
-
-    // If one of the received caches is empty, there are no verifications ongoing
-    if(receivedData == ncReceivedDataCache.end() || receivedMacs == ncReceivedMacCache.end())
-        return false;
-
-    // Iterate over all GEVs for which we have received both data and mac flit
-    for(auto it = receivedData->second.begin(); it != receivedData->second.end(); ++it) {
-        if(receivedMacs->second.count(it->first)) {
-            // We have both data and mac for this GEV; check if there is a computed MAC
-            if(computedMacs == ncComputedMacCache.end() || !computedMacs->second.count(it->first)) {
-                // No computed MAC found
-                return true;
-            }
-        }
-    }
-
-    // We have found a computed MAC for all applicable GEVs
-    return false;
+    // This is the case when the currentlyComputingMac flag is set and
+    // there is a received MAC
+    return currentlyComputingMac.count(key) && receivedMacCache.count(key);
 }
 
-bool ArrivalManagerGen::ncCheckArqPlanned(const IdSourceKey& key) const {
-    return ncPlannedArqs.count(key);
+bool ArrivalManagerGen::checkArqPlanned(const IdSourceKey& key) const {
+    return plannedArqs.count(key);
 }
 
 }} //namespace

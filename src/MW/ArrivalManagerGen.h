@@ -112,7 +112,7 @@ private:
     void tryVerification(const IdSourceKey& key);
     void trySendToApp(const IdSourceKey& key);
     void issueArq(const IdSourceKey& key, Messages::Mode mode, const Messages::GevArqMap& arqModes, bool requestMac, Messages::NcMode ncMode);
-    void tryRemoveFromPlannedArq(const IdSourceKey& key, const Messages::GevArqMap& arqModes);
+    void tryRemoveFromPlannedArq(const IdSourceKey& key, const Messages::GevArqMap& arqModes, bool removeMac);
     void tryRemoveMacFromPlannedArq(const IdSourceKey& key);
     void trySendPlannedArq(const IdSourceKey& key, bool forceImmediate = false);
     void cleanUp(const IdSourceKey& key);
@@ -120,22 +120,15 @@ private:
     bool deleteFromCache(GenCache& cache, const IdSourceKey& key);
     bool deleteFromCache(GenCache& cache, const IdSourceKey& key, uint16_t gev);
     unsigned short deleteFromCache(DecryptedCache& cache, const IdSourceKey& key);
-    // TODO: we have planned ARQs, but once a MAC is successfully verified, the ARQ can always be discarded and the generation cleaned up
 
-    void ncCheckGenerationDone(const IdSourceKey& key, unsigned short generationSize);
-    void ncCleanUp(const IdSourceKey& key);
-    bool ncDeleteFromCache(GenCache& cache, const IdSourceKey& key);
-    bool ncDeleteFromCache(GenCache& cache, const IdSourceKey& key, uint16_t gev);
-
-    Messages::Flit* generateArq(const IdSourceKey& key, Messages::Mode mode, Messages::ArqMode arqMode);
-    Messages::Flit* generateArq(const IdSourceKey& key, Messages::Mode mode, const Messages::GevArqMap& arqModes, Messages::NcMode ncMode);
+    Messages::Flit* generateArq(const IdSourceKey& key, Messages::Mode mode, const Messages::GevArqMap& arqModes, bool requestMac, Messages::NcMode ncMode);
 
     void setArqTimer(const IdSourceKey& key, Messages::NcMode ncMode, bool useAnswerTime = false, bool setToMax = true);
     void cancelArqTimer(const IdSourceKey& key);
 
     bool checkCompleteGenerationReceived(const IdSourceKey& key, unsigned short numCombinations);
-    bool ncCheckVerificationOngoing(const IdSourceKey& key) const;
-    bool ncCheckArqPlanned(const IdSourceKey& key) const;
+    bool checkVerificationOngoing(const IdSourceKey& key) const;
+    bool checkArqPlanned(const IdSourceKey& key) const;
 };
 
 }} //namespace
