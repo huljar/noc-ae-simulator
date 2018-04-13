@@ -47,6 +47,9 @@ public:
     void mergeNcArqModesFlit(Mode newMode, const GevArqMap& newArqModes);
     void removeFromNcArqFlit(const GevArqMap& arqModes);
 
+    void mergeNcArqModesGen(Mode newMode, const GevArqMap& newArqModes, bool macArqMode);
+    void removeFromNcArqGen(const GevArqMap& arqModes, bool removeMac);
+
     void mergeNcArqModesSplit(Mode newMode, const GevArqMap& newArqModes);
     void removeFromNcArqSplit(const GevArqMap& arqModes);
 
@@ -57,6 +60,10 @@ private:
     void mergeNcArqModesFlitUnion(const GevArqMap& newArqModes);
     void mergeNcArqModesFlitWithout(const GevArqMap& newArqModes);
     GevArqMap invertNcArqModesFlit(const GevArqMap& toInvert);
+
+    void mergeNcArqModesGenUnion(const GevArqMap& newArqModes, bool newMacArqMode);
+    void mergeNcArqModesGenWithout(const GevArqMap& newArqModes, bool newMacArqMode);
+    GevArqMap invertNcArqDataModesGen(const GevArqMap& toInvert);
 
     void mergeNcArqModesSplitUnion(const GevArqMap& newArqModes);
     void mergeNcArqModesSplitWithout(const GevArqMap& newArqModes);

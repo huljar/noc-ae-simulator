@@ -103,8 +103,8 @@ void RetransmissionBufferImplGen::handleArqMessage(Flit* flit) {
             return;
         }
 
-        // Get the generation MAC if requested
-        if(getGenMac && !retrieveGenerationMac(key, sendQueue)) {
+        // Get the generation MAC if it was not received
+        if(!getGenMac && !retrieveGenerationMac(key, sendQueue)) {
             EV << "Failed to answer ARQ - Generation MAC not in buffer any more" << std::endl;
             delete flit;
             return;

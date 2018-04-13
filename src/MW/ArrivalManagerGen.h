@@ -111,8 +111,8 @@ private:
     bool tryStartDecodeDecryptAndAuth(const IdSourceKey& key);
     void tryVerification(const IdSourceKey& key);
     void trySendToApp(const IdSourceKey& key);
-    void issueArq(const IdSourceKey& key, Messages::Mode mode, const Messages::GevArqMap& arqModes, bool requestMac, Messages::NcMode ncMode);
-    void tryRemoveFromPlannedArq(const IdSourceKey& key, const Messages::GevArqMap& arqModes, bool removeMac);
+    void issueArq(const IdSourceKey& key, Messages::Mode mode, const Messages::GevArqMap& arqModes, bool macArqMode, Messages::NcMode ncMode);
+    void tryRemoveDataFromPlannedArq(const IdSourceKey& key, const Messages::GevArqMap& arqModes);
     void tryRemoveMacFromPlannedArq(const IdSourceKey& key);
     void trySendPlannedArq(const IdSourceKey& key, bool forceImmediate = false);
     void cleanUp(const IdSourceKey& key);

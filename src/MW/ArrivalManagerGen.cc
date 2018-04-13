@@ -139,12 +139,12 @@ void ArrivalManagerGen::handleNetMessage(Flit* flit) {
         // Get parameters
         uint16_t gev = flit->getGev();
         GevCache& gevCache = receivedDataCache[key];
+        GevSet& requested = dataRequestedViaArq[key];
 
         // Check if the data cache already contains a flit with this GEV
         GevCache::iterator oldFlit = gevCache.find(gev);
         if(oldFlit != gevCache.end()) {
             // Check if this flit was requested via an ARQ
-            GevSet& requested = dataRequestedViaArq[key];
             if(requested.count(gev)) {
                 // Delete the old flit
                 EV_DEBUG << "Received a data flit from " << source << " with GID " << id << " and GEV " << gev
@@ -182,7 +182,7 @@ void ArrivalManagerGen::handleNetMessage(Flit* flit) {
         requested.erase(gev);
 
         // In case this flit is already in a planned ARQ, remove it from there
-        tryRemoveFromPlannedArq(key, GevArqMap{{gev, ARQ_DATA}});
+        tryRemoveDataFromPlannedArq(key, GevArqMap{{gev, ARQ_DATA}});
 
         // Check if we can cancel the ARQ timer
         if(checkCompleteGenerationReceived(key, flit->getNumCombinations())) {
@@ -331,87 +331,40 @@ void ArrivalManagerGen::handleArqTimer(ArqTimer* timer) {
 
     EV_DEBUG << "ARQ timeout triggered for source " << key.second << ", ID " << key.first << std::endl;
 
+    // Clear all requested via ARQ flags for this transmission unit
+    dataRequestedViaArq.erase(key);
+    macRequestedViaArq.erase(key);
+
     // Check if we have reached the ARQ limit
     if(issuedArqs[key] >= static_cast<unsigned int>(arqLimit)) {
-        // We have failed completely, clean up everything and discard flits from this ID
-        EV_DEBUG << "ARQ limit reached for source " << key.second << ", ID " << key.first << std::endl;
-        if(ncMode == NC_UNCODED)
-            ucCleanUp(key);
-        else
-            ncCleanUp(key);
+        // If there is no verification going on, we have failed completely: clean up everything and discard flits from this ID
+        if(!checkVerificationOngoing(key)) {
+            EV_DEBUG << "ARQ limit reached for source " << key.second << ", ID " << key.first << std::endl;
+            cleanUp(key);
+        }
+
+        // Otherwise, we let the current verification finish. All combinations of currently available coded data flits will be tried.
+        // If none of them work, cleanup will be initiated.
         return;
     }
 
-    // Check network coding
-    if(ncMode == NC_UNCODED) {
-        ArqMode arqMode;
+    // Get parameters
+    const GevCache& receivedData = receivedDataCache[key];
 
-        // Check what is missing
-        if(!ucReceivedDataCache.count(key) && !ucReceivedMacCache.count(key)) {
-            // Both flits are missing
-            arqMode = ARQ_DATA_MAC;
-        }
-        else if(ucReceivedDataCache.count(key) && !ucReceivedMacCache.count(key)) {
-            // Only MAC is missing
-            arqMode = ARQ_MAC;
-        }
-        else if(!ucReceivedDataCache.count(key) && ucReceivedMacCache.count(key)) {
-            // Only data is missing
-            arqMode = ARQ_DATA;
-        }
-        else {
-            // No flits are missing, this should never happen
-            throw cRuntimeError(this, "ARQ timeout triggered for source %s, ID %u, but no flits are missing", key.second.str().c_str(), key.first);
-        }
+    // We always use TELL_RECEIVED because there is only one flit per GEV
+    Mode flitMode = MODE_ARQ_TELL_RECEIVED;
+    GevArqMap arqModes;
 
-        // Issue the ARQ
-        ucIssueArq(key, MODE_ARQ_TELL_MISSING, arqMode);
+    // Iterate over received data flits and insert them
+    for(auto it = receivedData.begin(); it != receivedData.end(); ++it) {
+        arqModes.emplace(it->first, ARQ_DATA);
     }
-    else { // ncMode != uncoded
-        // Get parameters
-        const GevCache& receivedData = ncReceivedDataCache[key];
-        const GevCache& receivedMacs = ncReceivedMacCache[key];
 
-        Mode flitMode;
-        GevArqMap arqModes;
+    // Check if we have received the MAC
+    bool macReceived = receivedMacCache.count(key);
 
-        // Check whether we'll TELL_MISSING or TELL_RECEIVED (based on how many GEVs we know)
-        std::set<uint16_t> gevs;
-        for(auto it = receivedData.begin(); it != receivedData.end(); ++it)
-            gevs.insert(it->first);
-        for(auto it = receivedMacs.begin(); it != receivedMacs.end(); ++it)
-            gevs.insert(it->first);
-
-        if(gevs.size() >= timer->getNumCombinations()) {
-            // Use TELL_MISSING
-            flitMode = MODE_ARQ_TELL_MISSING;
-
-            // Iterate over GEVs, insert missing modes
-            for(auto it = gevs.begin(); it != gevs.end(); ++it) {
-                if(!receivedData.count(*it))
-                    arqModes.emplace(*it, ARQ_DATA);
-                else if(!receivedMacs.count(*it))
-                    arqModes.emplace(*it, ARQ_MAC);
-            }
-        }
-        else {
-            // Use TELL_RECEIVED
-            flitMode = MODE_ARQ_TELL_RECEIVED;
-
-            // Iterate over GEVs, insert received modes
-            for(auto it = gevs.begin(); it != gevs.end(); ++it) {
-                if(receivedData.count(*it) && receivedMacs.count(*it))
-                    arqModes.emplace(*it, ARQ_DATA_MAC);
-                else if(receivedData.count(*it))
-                    arqModes.emplace(*it, ARQ_DATA);
-                else
-                    arqModes.emplace(*it, ARQ_MAC);
-            }
-        }
-
-        // Issue the ARQ
-        ncIssueArq(key, flitMode, arqModes, ncMode);
-    }
+    // Issue the ARQ
+    issueArq(key, flitMode, arqModes, macReceived, ncMode);
 }
 
 bool ArrivalManagerGen::tryStartDecodeDecryptAndAuth(const IdSourceKey& key) {
@@ -420,77 +373,79 @@ bool ArrivalManagerGen::tryStartDecodeDecryptAndAuth(const IdSourceKey& key) {
         throw cRuntimeError(this, "This module currently only works with generation size 2! We received %u.", generationSize);
 
     // Check that we are not currently working on this generation
-    if(!currentlyComputingMac.count(key)) {
-        // Get the GEVs that we have received
-        GevCache& received = receivedDataCache[key];
+    if(currentlyComputingMac.count(key))
+        return false;
 
-        // Get the GEV combinations that were already decoded
-        std::vector<GevSet>& decoded = decodedGevs[key];
+    // Get the GEVs that we have received
+    GevCache& received = receivedDataCache[key];
 
-        // Set of GEVs that we will send out now (filled throughout this function
-        GevSet toSend;
+    // Get the GEV combinations that were already decoded
+    std::vector<GevSet>& decoded = decodedGevs[key];
 
-        // Is it possible to decode with previously unused GEVs only?
-        GevSet usedGevs;
-        for(auto it = decoded.begin(); it != decoded.end(); ++it)
-            usedGevs.insert(it->begin(), it->end());
+    // Set of GEVs that we will send out now (filled throughout this function
+    GevSet toSend;
 
-        if(received.size() >= usedGevs.size() + generationSize) {
-            // Use only previously unused GEVs
-            for(auto it = received.begin(); it != received.end(); ++it) {
-                if(!usedGevs.count(it->first)) {
-                    toSend.insert(it->first);
-                    if(toSend.size() == generationSize)
-                        break;
-                }
+    // Is it possible to decode with previously unused GEVs only?
+    GevSet usedGevs;
+    for(auto it = decoded.begin(); it != decoded.end(); ++it)
+        usedGevs.insert(it->begin(), it->end());
+
+    if(received.size() >= usedGevs.size() + generationSize) {
+        // Use only previously unused GEVs
+        for(auto it = received.begin(); it != received.end(); ++it) {
+            if(!usedGevs.count(it->first)) {
+                toSend.insert(it->first);
+                if(toSend.size() == generationSize)
+                    break;
             }
-            ASSERT(toSend.size() == generationSize);
         }
-        else if(received.size() >= generationSize) {
-            // Try to find a new combination of GEVs
-            for(auto it = received.begin(); it != received.end(); ++it) {
-                bool breakOuter = false;
-                for(auto jt = it + 1; jt != received.end(); ++jt) {
-                    // Examine this set
-                    GevSet candidate{it->first, jt->first};
-                    if(std::find(decoded.begin(), decoded.end(), canditate) == decoded.end()) {
-                        // Decoding this set has not been tried
-                        toSend = candidate;
-                        breakOuter = true;
-                        break;
-                    }
-                }
-                if(breakOuter) {
+        ASSERT(toSend.size() == generationSize);
+    }
+    else if(received.size() >= generationSize) {
+        // Try to find a new combination of GEVs
+        for(auto it = received.begin(); it != received.end(); ++it) {
+            bool breakOuter = false;
+            auto jt = it;
+            for(++jt; jt != received.end(); ++jt) {
+                // Examine this set
+                GevSet candidate{it->first, jt->first};
+                if(std::find(decoded.begin(), decoded.end(), candidate) == decoded.end()) {
+                    // Decoding this set has not been tried
+                    toSend = candidate;
+                    breakOuter = true;
                     break;
                 }
             }
-        }
-
-        // Check if we have found a set of GEVs to send
-        if(toSend.size() == generationSize) {
-            // Set parameters
-            currentlyComputingMac.insert(key);
-            decoded.push_back(toSend);
-
-            // Retrieve the requested flits from the cache and send copies out
-            // for decoding, decryption, and authentication
-            // We use copies here so that we don't have to remove the flits from the cache,
-            // which are still used to check if the flits have already arrived
-            EV_DEBUG << "Starting flit decoding for GEVs ";
-            for(auto it = toSend.begin(); it != toSend.end(); ++it)
-                EV_DEBUG << *it << " ";
-            EV_DEBUG << "(source: " << key.second << ", ID: " << key.first << ")" << std::endl;
-
-            for(auto it = toSend.begin(); it != toSend.end(); ++it) {
-                Flit* copy = received.at(*it)->dup();
-                send(copy, "decoderOut");
+            if(breakOuter) {
+                break;
             }
+        }
+    }
 
-            return true;
+    // Check if we have found a set of GEVs to send
+    if(toSend.size() == generationSize) {
+        // Set parameters
+        currentlyComputingMac.insert(key);
+        decoded.push_back(toSend);
+
+        // Retrieve the requested flits from the cache and send copies out
+        // for decoding, decryption, and authentication
+        // We use copies here so that we don't have to remove the flits from the cache,
+        // which are still used to check if the flits have already arrived
+        EV_DEBUG << "Starting flit decoding for GEVs ";
+        for(auto it = toSend.begin(); it != toSend.end(); ++it)
+            EV_DEBUG << *it << " ";
+        EV_DEBUG << "(source: " << key.second << ", ID: " << key.first << ")" << std::endl;
+
+        for(auto it = toSend.begin(); it != toSend.end(); ++it) {
+            Flit* copy = received.at(*it)->dup();
+            send(copy, "decoderOut");
         }
 
-        return false;
+        return true;
     }
+
+    return false;
 }
 
 void ArrivalManagerGen::tryVerification(const IdSourceKey& key) {
@@ -587,7 +542,7 @@ void ArrivalManagerGen::trySendToApp(const IdSourceKey& key) {
     }
 }
 
-void ArrivalManagerGen::issueArq(const IdSourceKey& key, Mode mode, const GevArqMap& arqModes, bool requestMac, NcMode ncMode) {
+void ArrivalManagerGen::issueArq(const IdSourceKey& key, Mode mode, const GevArqMap& arqModes, bool macArqMode, NcMode ncMode) {
     // Assert that we have not reached the maximum number of ARQs
     ASSERT(issuedArqs[key] < static_cast<unsigned int>(arqLimit));
 
@@ -596,28 +551,46 @@ void ArrivalManagerGen::issueArq(const IdSourceKey& key, Mode mode, const GevArq
     if(plannedIter == plannedArqs.end()) {
         // Create a new ARQ and insert it into the planned ARQ map
         EV_DEBUG << "Initiating planned ARQ for source " << key.second << ", ID " << key.first << ", mode "
-                 << cEnum::get("HaecComm::Messages::Mode")->getStringFor(mode) << " " << arqModes << (requestMac ? " with MAC" : " without MAC") << std::endl;
-        plannedArqs.emplace(key, generateArq(key, mode, arqModes, requestMac, ncMode));
+                 << cEnum::get("HaecComm::Messages::Mode")->getStringFor(mode) << " " << arqModes << (macArqMode ? " with MAC" : " without MAC") << std::endl;
+        plannedArqs.emplace(key, generateArq(key, mode, arqModes, macArqMode, ncMode));
     }
     else {
         // Merge the planned ARQ with the new ARQ arguments
         EV_DEBUG << "Merging planned ARQ for source " << key.second << ", ID " << key.first << " with new mode "
                  << cEnum::get("HaecComm::Messages::Mode")->getStringFor(mode) << " " << arqModes << std::endl;
-        plannedIter->second->mergeNcArqModesGen(mode, arqModes, requestMac);
+        plannedIter->second->mergeNcArqModesGen(mode, arqModes, macArqMode);
     }
 
     trySendPlannedArq(key, !lastArqWaitForOngoingVerifications);
 }
 
-void ArrivalManagerGen::tryRemoveFromPlannedArq(const IdSourceKey& key, const GevArqMap& arqModes, bool removeMac) {
+void ArrivalManagerGen::tryRemoveDataFromPlannedArq(const IdSourceKey& key, const GevArqMap& arqModes) {
     // Check if there is an ARQ planned
     FlitCache::iterator plannedIter = plannedArqs.find(key);
     if(plannedIter == plannedArqs.end())
         return;
 
     // Remove specified modes from the ARQ
-    EV_DEBUG << "Removing " << arqModes << (removeMac ? " and MAC" : "") << " from planned ARQ for source " << key.second << ", ID " << key.first << std::endl;
-    plannedIter->second->removeFromNcArqGen(arqModes, removeMac);
+    EV_DEBUG << "Removing " << arqModes << " from planned ARQ for source " << key.second << ", ID " << key.first << std::endl;
+    plannedIter->second->removeFromNcArqGen(arqModes, false);
+
+    // Check if the ARQ is empty now; if yes, delete it
+    if(plannedIter->second->getNcArqs().empty() && !plannedIter->second->getNcArqGenMac()) {
+        EV_DEBUG << "Canceling planned ARQ for source " << key.second << ", ID " << key.first << std::endl;
+        delete plannedIter->second;
+        plannedArqs.erase(plannedIter);
+    }
+}
+
+void ArrivalManagerGen::tryRemoveMacFromPlannedArq(const IdSourceKey& key) {
+    // Check if there is an ARQ planned
+    FlitCache::iterator plannedIter = plannedArqs.find(key);
+    if(plannedIter == plannedArqs.end())
+        return;
+
+    // Remove MAC from the ARQ
+    EV_DEBUG << "Removing MAC from planned ARQ for source " << key.second << ", ID " << key.first << std::endl;
+    plannedIter->second->removeFromNcArqGen(GevArqMap(), true);
 
     // Check if the ARQ is empty now; if yes, delete it
     if(plannedIter->second->getNcArqs().empty() && !plannedIter->second->getNcArqGenMac()) {
@@ -842,9 +815,9 @@ bool ArrivalManagerGen::checkCompleteGenerationReceived(const IdSourceKey& key, 
     // Check if we have received the appropriate number of combinations and the generation MAC
     // Subtract any pending flits requested via ARQ
     GevCache receivedData = receivedDataCache[key];
-    const GevSet& pending = requestedViaArq[key];
+    const GevSet& pendingData = dataRequestedViaArq[key];
 
-    for(auto it = pending.begin(); it != pending.end(); ++it)
+    for(auto it = pendingData.begin(); it != pendingData.end(); ++it)
         receivedData.erase(*it);
 
     return receivedData.size() >= numCombinations && receivedMacCache.count(key) && !macRequestedViaArq.count(key);
