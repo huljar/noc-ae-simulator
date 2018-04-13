@@ -112,7 +112,6 @@ void RBGenG2C3TestApp::receiveSignal(cComponent* source, simsignal_t signalID, u
             Flit* arq3 = MessageFactory::createFlit("arq3", Address2D(0, 0), Address2D(3, 3), MODE_ARQ_TELL_RECEIVED, 124, 0, NC_G2C3);
             take(arq3);
             arq3->setNcArqs(GevArqMap{{1, ARQ_DATA}, {3, ARQ_DATA}});
-            arq3->setNcArqGenMac(true);
 
             send(arq3, "arqOut");
         }
@@ -121,7 +120,6 @@ void RBGenG2C3TestApp::receiveSignal(cComponent* source, simsignal_t signalID, u
             Flit* arq3 = MessageFactory::createFlit("arq33", Address2D(0, 0), Address2D(3, 3), MODE_ARQ_TELL_RECEIVED, 125, 0, NC_G2C3);
             take(arq3);
             arq3->setNcArqs(GevArqMap{{2, ARQ_DATA}, {12, ARQ_DATA}});
-            arq3->setNcArqGenMac(true);
 
             send(arq3, "arqOut");
         }
@@ -130,7 +128,6 @@ void RBGenG2C3TestApp::receiveSignal(cComponent* source, simsignal_t signalID, u
             Flit* arq4 = MessageFactory::createFlit("arq4", Address2D(0, 0), Address2D(3, 3), MODE_ARQ_TELL_RECEIVED, 125, 0, NC_G2C3);
             take(arq4);
             arq4->setNcArqs(GevArqMap{{1, ARQ_DATA}, {2, ARQ_DATA}});
-            arq4->setNcArqGenMac(true);
 
             send(arq4, "arqOut");
         }
@@ -139,6 +136,7 @@ void RBGenG2C3TestApp::receiveSignal(cComponent* source, simsignal_t signalID, u
             Flit* arq4 = MessageFactory::createFlit("arq4", Address2D(0, 0), Address2D(3, 3), MODE_ARQ_TELL_RECEIVED, 125, 0, NC_G2C3);
             take(arq4);
             arq4->setNcArqs(GevArqMap{{1, ARQ_DATA}, {2, ARQ_DATA}});
+            arq4->setNcArqGenMac(true);
 
             send(arq4, "arqOut");
         }
@@ -147,6 +145,7 @@ void RBGenG2C3TestApp::receiveSignal(cComponent* source, simsignal_t signalID, u
             Flit* arq4 = MessageFactory::createFlit("arq4", Address2D(0, 0), Address2D(3, 3), MODE_ARQ_TELL_RECEIVED, 124, 0, NC_G2C3);
             take(arq4);
             arq4->setNcArqs(GevArqMap{{0, ARQ_DATA}, {2, ARQ_DATA}});
+            arq4->setNcArqGenMac(true);
 
             send(arq4, "arqOut");
         }
@@ -155,6 +154,7 @@ void RBGenG2C3TestApp::receiveSignal(cComponent* source, simsignal_t signalID, u
             Flit* arq4 = MessageFactory::createFlit("arq4", Address2D(0, 0), Address2D(3, 3), MODE_ARQ_TELL_RECEIVED, 123, 0, NC_G2C3);
             take(arq4);
             arq4->setNcArqs(GevArqMap());
+            arq4->setNcArqGenMac(true);
 
             send(arq4, "arqOut");
         }
@@ -163,7 +163,6 @@ void RBGenG2C3TestApp::receiveSignal(cComponent* source, simsignal_t signalID, u
             Flit* arq4 = MessageFactory::createFlit("arq4", Address2D(0, 0), Address2D(3, 3), MODE_ARQ_TELL_RECEIVED, 123, 0, NC_G2C3);
             take(arq4);
             arq4->setNcArqs(GevArqMap());
-            arq4->setNcArqGenMac(true);
 
             send(arq4, "arqOut");
         }

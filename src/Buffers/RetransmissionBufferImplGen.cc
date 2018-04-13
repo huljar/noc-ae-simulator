@@ -90,12 +90,12 @@ void RetransmissionBufferImplGen::handleArqMessage(Flit* flit) {
     }
     GevCache& gevCache = outerIter->second;
     const GevArqMap& gevArqModes = flit->getNcArqs();
-    bool getGenMac = flit->getNcArqGenMac();
+    bool genMac = flit->getNcArqGenMac();
 
     // Check what kind of ARQ we have
     if(mode == MODE_ARQ_TELL_RECEIVED) {
         // Count how many flits we have to find
-        unsigned int numMissing = countMissingFlits(gevArqModes, getGenMac);
+        unsigned int numMissing = countMissingFlits(gevArqModes, !genMac);
 
         if(!retrieveMissingFlits(gevCache, gevArqModes, sendQueue)) {
             EV << "Failed to answer ARQ - One of the missing flits is not in buffer any more" << std::endl;
@@ -104,7 +104,7 @@ void RetransmissionBufferImplGen::handleArqMessage(Flit* flit) {
         }
 
         // Get the generation MAC if it was not received
-        if(!getGenMac && !retrieveGenerationMac(key, sendQueue)) {
+        if(!genMac && !retrieveGenerationMac(key, sendQueue)) {
             EV << "Failed to answer ARQ - Generation MAC not in buffer any more" << std::endl;
             delete flit;
             return;
@@ -136,7 +136,7 @@ void RetransmissionBufferImplGen::handleArqMessage(Flit* flit) {
         }
 
         // Get the generation MAC if requested
-        if(getGenMac && !retrieveGenerationMac(key, sendQueue)) {
+        if(genMac && !retrieveGenerationMac(key, sendQueue)) {
             EV << "Failed to answer ARQ - Generation MAC not in buffer any more" << std::endl;
             delete flit;
             return;
