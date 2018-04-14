@@ -63,6 +63,16 @@ void RetransmissionBufferImplBase::handleMessage(cMessage* msg) {
     // Check if this is an ARQ or not
     if(flit->isArq()) {
         ASSERT(strcmp(flit->getArrivalGate()->getName(), "arqIn") == 0);
+
+        // Check if the ARQ is modified
+        // In practice, the RT cannot know if the flit was modified as long as the structure is intact. However, it would
+        // send wrong retransmissions then. We don't distinguish between these cases here.
+        if(flit->isModified() || flit->hasBitError()) {
+            EV << "Received a corrupted ARQ \"" << flit->getName() << "\" at retransmission buffer. Discarding it." << std::endl;
+            delete flit;
+            return;
+        }
+
         handleArqMessage(flit);
     }
     else {
