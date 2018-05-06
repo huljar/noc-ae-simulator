@@ -27,22 +27,31 @@ Define_Module(RouterRomm);
 
 void RouterRomm::preprocessFlit(Flit* flit, int inPort) const {
     if(inPort == -1) {
-        // If the flit arrives from the local node, randomly select an intermediate node
-        // within the rectangle spanned by sender and receiver
+        // If the flit arrives from the local node, assign an intermediate node to it
         int targetX = flit->getTarget().x();
         int targetY = flit->getTarget().y();
 
-        int interX;
-        int interY;
+        // First check if there needs to be an intermediate node (has no effect if target lies
+        // on the same row or column as the sender)
+        if(targetX == nodeX || targetY == nodeY) {
+            // We have already "reached" the intermediate node, as there is none
+            flit->setIntermediateReached(true);
+        }
+        else {
+            // Randomly select an intermediate node from
+            // within the rectangle spanned by sender and receiver
+            int interX;
+            int interY;
 
-        do {
-            interX = intrand(std::abs(targetX - nodeX) + 1) + std::min(targetX, nodeX); // +1 because intrand returns from [0,n) range
-            interY = intrand(std::abs(targetY - nodeY) + 1) + std::min(targetY, nodeY);
-        } while((interX == nodeX && interY == nodeY) || (interX == targetX && interY == targetY)); // repeat until we are not rolling this node or the target node
+            do {
+                interX = intrand(std::abs(targetX - nodeX) + 1) + std::min(targetX, nodeX); // +1 because intrand returns from [0,n) range
+                interY = intrand(std::abs(targetY - nodeY) + 1) + std::min(targetY, nodeY);
+            } while((interX == nodeX && interY == nodeY) || (interX == targetX && interY == targetY)); // repeat until we are not rolling this node or the target node
 
-        // Set flit parameters
-        flit->setIntermediateAddr(Address2D(interX, interY));
-        flit->setIntermediateReached(false);
+            // Set flit parameters
+            flit->setIntermediateAddr(Address2D(interX, interY));
+            flit->setIntermediateReached(false);
+        }
     }
     else {
         // Check if we are the intermediate node; if yes, set the flit parameter
