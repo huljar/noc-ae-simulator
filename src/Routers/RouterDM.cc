@@ -13,7 +13,8 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include "RouterRandomXOrY.h"
+#include "RouterDM.h"
+
 #include <Messages/Flit.h>
 #include <Util/Constants.h>
 
@@ -22,9 +23,9 @@ using namespace HaecComm::Util;
 
 namespace HaecComm { namespace Routers {
 
-Define_Module(RouterRandomXOrY);
+Define_Module(RouterDM);
 
-int RouterRandomXOrY::computeDestinationPort(const Flit* flit) const {
+int RouterDM::computeDestinationPort(const Flit* flit) const {
     // Get node information
     int targetX = flit->getTarget().x();
     int targetY = flit->getTarget().y();

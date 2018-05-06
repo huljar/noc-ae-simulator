@@ -149,6 +149,9 @@ void RouterBase::receiveSignal(cComponent* source, simsignal_t signalID, unsigne
                 continue;
             }
 
+            // Preprocess flit (implemented by subclasses)
+            preprocessFlit(flit, it->first);
+
             // Get destination port (implemented by subclasses)
             int destPort = computeDestinationPort(flit);
 
@@ -179,6 +182,12 @@ void RouterBase::receiveSignal(cComponent* source, simsignal_t signalID, bool b,
     if(signalID == registerSignal("queueFull")) {
         portReadyMap.at(modulePortMap.at(source->getId())) = !b;
     }
+}
+
+void RouterBase::preprocessFlit(Flit* flit, int inPort) const {
+    // Do nothing; this is for subclasses to implement if necessary
+    (void)flit;
+    (void)inPort;
 }
 
 bool RouterBase::decideToModify(const Flit* flit) const {

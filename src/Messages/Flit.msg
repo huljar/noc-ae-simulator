@@ -85,7 +85,13 @@ packet Flit {
     
     // Flit marker for the network coding mode
     uint8_t ncMode @enum(NcMode) = NC_UNCODED;
-
+    
     // Flag to specify that this flit was modified by an attacker
     bool modified @getter(isModified) = false;
+    
+    // For ROMM routing: address of the intermediate node
+    Address2D intermediateAddr;
+    
+    // For ROMM routing: was the intermediate node already reached?
+    bool intermediateReached = false;
 }

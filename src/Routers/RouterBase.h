@@ -39,6 +39,7 @@ protected:
     virtual void receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) override;
     virtual void receiveSignal(cComponent* source, simsignal_t signalID, bool b, cObject* details) override;
 
+    virtual void preprocessFlit(Messages::Flit* flit, int inPort) const;
     virtual int computeDestinationPort(const Messages::Flit* flit) const = 0;
     virtual bool decideToModify(const Messages::Flit* flit) const;
     virtual bool decideToDrop(const Messages::Flit* flit) const;

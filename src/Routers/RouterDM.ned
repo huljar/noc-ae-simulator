@@ -18,7 +18,7 @@ package HaecComm.Routers;
 //
 // TODO auto-generated module
 //
-simple RouterRandomXOrY like IRouterBase {
+simple RouterDM like IRouterBase {
     parameters:
         @signal[sendFlit](type=HaecComm::Messages::Flit);
         @signal[receiveFlit](type=HaecComm::Messages::Flit);
