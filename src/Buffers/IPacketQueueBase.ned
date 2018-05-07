@@ -22,9 +22,11 @@ moduleinterface IPacketQueueBase {
     parameters:
         @signal[queueLength](type=long); // not using unsigned because queues return signed values for length
         @signal[flitDrop](type=HaecComm::Messages::Flit);
+        @signal[timeInQueue](type=simtime_t);
         @signal[queueFull](type=bool);
         @statistic[queueLength](source=queueLength; record=max,timeavg,vector?; title="Queue Length");
         @statistic[dropCount](source=flitDrop; record=count; title="Flits dropped");
+        @statistic[timeInQueue](source=timeInQueue; record=max,avg,vector?; title="Time flits are enqueued");
         bool awaitSendRequests;
         bool syncFirstPacket;
         int maxLength;

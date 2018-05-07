@@ -69,6 +69,7 @@ void PacketQueueBase::initialize() {
     queueLengthSignal = registerSignal("queueLength");
     queueFullSignal = registerSignal("queueFull");
     flitDropSignal = registerSignal("flitDrop");
+    timeInQueueSignal = registerSignal("timeInQueue");
 }
 
 void PacketQueueBase::handleMessage(cMessage* msg) {
@@ -81,16 +82,21 @@ void PacketQueueBase::handleMessage(cMessage* msg) {
         // immediately.
         send(flit, "out");
         cycleFree = false;
+
+        // Emit a queue time of zero
+        emit(timeInQueueSignal, SimTime());
     }
     else if(maxLength == 0) {
         // Otherwise, if we don't have a queue length restriction, we can
         // freely insert the packet.
         queue->insert(flit);
+        enqueueTimes.emplace(flit, simTime());
     }
     else if(queue->getLength() < maxLength) {
         // Otherwise, if there is a length restriction, but we did not reach
         // it yet, we can also insert the packet.
         queue->insert(flit);
+        enqueueTimes.emplace(flit, simTime());
 
         // If the queue is full now, we emit the appropriate signal.
         if(queue->getLength() == maxLength)
@@ -120,17 +126,34 @@ void PacketQueueBase::receiveSignal(cComponent* source, simsignal_t signalID, un
 }
 
 void PacketQueueBase::popQueueAndSend() {
+    // Get packet at the front of the queue
     cPacket* packet = queue->pop();
     take(packet);
+
+    // Send it out
     send(packet, "out");
+
+    // If the queue was full before, indicate that it's not full any more
     if(queue->getLength() == maxLength - 1)
     	emit(queueFullSignal, false);
+
+    // Emit the time that the packet was enqueued
+    simtime_t arrival = enqueueTimes.at(packet);
+    simtime_t now = simTime();
+    emit(timeInQueueSignal, now - arrival);
+    enqueueTimes.erase(packet);
 }
 
 void PacketQueueBase::popQueueAndDiscard() {
+    // Get packet at the front of the queue
     cPacket* packet = queue->pop();
     take(packet);
+
+    // Delete it
     delete(packet);
+    enqueueTimes.erase(packet);
+
+    // If the queue was full before, indicate that it's not full any more
     if(queue->getLength() == maxLength - 1)
         emit(queueFullSignal, false);
 }

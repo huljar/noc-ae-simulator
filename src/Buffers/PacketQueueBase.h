@@ -17,6 +17,7 @@
 #define __HAECCOMM_PACKETQUEUEBASE_H_
 
 #include <omnetpp.h>
+#include <map>
 
 using namespace omnetpp;
 
@@ -50,10 +51,12 @@ protected:
 
     bool cycleFree;
     cPacketQueue* queue;
+    std::map<cPacket*, simtime_t> enqueueTimes;
 
     simsignal_t queueLengthSignal;
     simsignal_t queueFullSignal;
     simsignal_t flitDropSignal;
+    simsignal_t timeInQueueSignal;
 };
 
 }} //namespace
