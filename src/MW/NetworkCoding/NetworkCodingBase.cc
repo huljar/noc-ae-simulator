@@ -127,7 +127,7 @@ void NetworkCodingBase::decodeAndSendGeneration(FlitVector& combinations, uint32
         // Restore original flit ID
         decoded->setGidOrFid(fid);
 
-        // Set first original ID to the old generation ID (required for auth. method 2)
+        // Set first original ID to the old generation ID (required)
         decoded->setOriginalIds(0, static_cast<long>(gid));
 
         // Set modified/bit error bits

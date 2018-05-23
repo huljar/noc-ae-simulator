@@ -49,6 +49,8 @@ ArrivalManagerGen::~ArrivalManagerGen() {
 }
 
 void ArrivalManagerGen::initialize() {
+    ASSERT(getAncestorPar("networkCoding"));
+
     arqLimit = par("arqLimit");
     if(arqLimit < 1)
         throw cRuntimeError(this, "arqLimit must be greater than 0");
@@ -167,7 +169,7 @@ void ArrivalManagerGen::handleNetMessage(Flit* flit) {
             }
         }
         // else: check if there are already enough data flits for the used NC mode
-        else if((ncMode == NC_G2C3 && gevCache.size() >= 3) || (ncMode == NC_G2C4 && gevCache.size() >= 4)) {
+        else if(gevCache.size() >= flit->getNumCombinations()) {
             EV << "Received a data flit from " << source << " with GID " << id << " and GEV " << gev
                << ", but we already have all the data flits from this generation" << std::endl;
             delete flit;

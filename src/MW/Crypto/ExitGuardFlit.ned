@@ -23,9 +23,11 @@ module ExitGuardFlit {
     gates:
         input  encIn[];
         input  authIn[];
+        input  encoderIn @loose;
         output netOut;
         output appOut;
         output entryOut;
+        output encoderOut @loose;
     submodules:
         exitGuard: ExitGuardFlitImpl {
             @display("p=80,120");
@@ -57,4 +59,7 @@ module ExitGuardFlit {
         appOut <-- appSerializer.out;
         
         entryOut <-- exitGuard.entryOut;
+        
+        encoderIn --> exitGuard.encoderIn;
+        encoderOut <-- exitGuard.encoderOut;
 }

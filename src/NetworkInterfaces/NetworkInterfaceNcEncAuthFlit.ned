@@ -29,6 +29,7 @@ module NetworkInterfaceNcEncAuthFlit like INetworkInterface {
     parameters:
         @display("i=block/control");
         int id;
+        bool networkCoding;
         int generationSize;
         int numCombinations;
         int encUnits;
@@ -43,18 +44,8 @@ module NetworkInterfaceNcEncAuthFlit like INetworkInterface {
         appInputQueue: PacketQueue {
             @display("p=80,280");
         }
-        encoder: Encoder {
-            @display("p=180,280");
-            generationSize = generationSize;
-            numCombinations = numCombinations;
-            internalType = "HaecComm.MW.NetworkCoding.EncoderImplFlit";
-        }
-        appCryptoQueue: PacketQueue {
-            @display("p=280,280");
-            awaitSendRequests = true;
-        }
         entryGuard: EntryGuardFlit {
-            @display("p=380,300");
+            @display("p=250,300");
             busyCyclesEnc = encCycles;
             busyCyclesAuth = authCycles;
             gates:
@@ -75,8 +66,14 @@ module NetworkInterfaceNcEncAuthFlit like INetworkInterface {
                 encIn[encUnits];
                 authIn[authUnits];
         }
+        encoder: Encoder {
+            @display("p=580,220");
+            generationSize = generationSize;
+            numCombinations = numCombinations;
+            internalType = "HaecComm.MW.NetworkCoding.EncoderImplFlit";
+        }
         authCryptoQueue: PacketQueue {
-            @display("p=465,320");
+            @display("p=400,320");
             awaitSendRequests = true;
         }
         retransmissionBuffer: RetransmissionBuffer {
@@ -96,26 +93,25 @@ module NetworkInterfaceNcEncAuthFlit like INetworkInterface {
             @display("p=650,450");
         }
         arrivalManager: ArrivalManagerFlit {
-            @display("p=500,450");
+            @display("p=450,450");
         }
-        netCryptoQueue: PacketQueue {
-            @display("p=400,380");
+        verCryptoQueue: PacketQueue {
+            @display("p=300,390");
             awaitSendRequests = true;
         }
-        decoderQueue: PacketQueue {
-            @display("p=280,450");
-        }
         decoder: Decoder {
-            @display("p=180,450");
+            @display("p=250,450");
             generationSize = generationSize;
             numCombinations = numCombinations;
             internalType = "HaecComm.MW.NetworkCoding.DecoderImplFlit";
         }
+        decCryptoQueue: PacketQueue {
+            awaitSendRequests = true;
+            @display("p=200,380");
+        }
     connections:
         app$i --> appInputQueue.in;
-        encoder.in <-- appInputQueue.out;
-        encoder.out --> appCryptoQueue.in;
-        entryGuard.appIn <-- appCryptoQueue.out;
+        entryGuard.appIn <-- appInputQueue.out;
         entryGuard.exitIn <-- authCryptoQueue.out;
 
         for i=0..encUnits-1 {
@@ -135,14 +131,17 @@ module NetworkInterfaceNcEncAuthFlit like INetworkInterface {
         router$i --> routerInputQueue.in;
         arqSplitter.in <-- routerInputQueue.out;
         arqSplitter.othersOut --> arrivalManager.netIn;
-        arrivalManager.cryptoOut --> netCryptoQueue.in;
-        arrivalManager.appOut --> decoderQueue.in;
-        decoder.in <-- decoderQueue.out;
-        decoder.out --> app$o;
+        arrivalManager.verOut --> verCryptoQueue.in;
+        arrivalManager.decOut --> decoder.in;
+        arrivalManager.appOut --> app$o;
 
         arqSplitter.arqOut --> retransmissionBuffer.arqIn;
         exitGuard.appOut --> arrivalManager.cryptoIn;
         arrivalManager.arqOut --> netStream.in[1];
-        entryGuard.netIn <-- netCryptoQueue.out;
+        entryGuard.verIn <-- verCryptoQueue.out;
         exitGuard.entryOut --> authCryptoQueue.in;
+        exitGuard.encoderOut --> encoder.in;
+        exitGuard.encoderIn <-- encoder.out;
+        decoder.out --> decCryptoQueue.in;
+        entryGuard.decIn <-- decCryptoQueue.out;
 }

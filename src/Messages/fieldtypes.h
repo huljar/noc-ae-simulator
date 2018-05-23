@@ -112,10 +112,11 @@ enum Status : uint8_t {
     STATUS_ENCRYPTING,
     STATUS_AUTHENTICATING,
     STATUS_DECRYPTING,
-    STATUS_VERIFYING
+    STATUS_VERIFYING,
+    STATUS_ENCODING
 };
 Register_Enum(Status, (STATUS_NONE, STATUS_ENCRYPTING, STATUS_AUTHENTICATING,
-                       STATUS_DECRYPTING, STATUS_VERIFYING));
+                       STATUS_DECRYPTING, STATUS_VERIFYING, STATUS_ENCODING));
 
 /**
  * Enumerator which contains the possible network coding methods.

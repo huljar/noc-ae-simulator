@@ -38,9 +38,11 @@ public:
     typedef std::set<uint32_t> IdSet;
     typedef std::queue<uint32_t> IdQueue;
     typedef std::set<uint16_t> GevSet;
+    typedef std::vector<Messages::Flit*> FlitVector;
     typedef std::pair<uint32_t, Messages::Address2D> IdSourceKey;
     typedef std::map<uint16_t, Messages::Flit*> GevCache;
     typedef std::map<IdSourceKey, Messages::Flit*> FlitCache;
+    typedef std::map<IdSourceKey, FlitVector> DecryptedCache;
     typedef std::map<IdSourceKey, GevCache> GenCache;
     typedef std::map<IdSourceKey, Messages::ArqTimer*> TimerCache;
 
@@ -57,6 +59,7 @@ protected:
     bool lastArqWaitForOngoingVerifications;
     int finishedIdsTracked;
 
+    bool networkCoding;
     int gridColumns;
     int nodeId;
     int nodeX;
@@ -84,7 +87,7 @@ protected:
     // Cache arriving flits for network coded variant
     GenCache ncReceivedDataCache;
     GenCache ncReceivedMacCache;
-    GenCache ncDecryptedDataCache;
+    DecryptedCache ncDecryptedDataCache;
     GenCache ncComputedMacCache;
 
     // Cache successful MAC verifications
@@ -93,7 +96,7 @@ protected:
 
     // Track amount of flits that are currently undergoing decryption, but have to be discarded on arrival
     std::map<IdSourceKey, unsigned int> ucDiscardDecrypting;
-    std::map<IdSourceKey, std::map<uint16_t, unsigned int>> ncDiscardDecrypting;
+    std::map<IdSourceKey, unsigned int> ncDiscardDecrypting;
 
     // Network coding only: cache which (and how many) GEVs from a generation have been sent to the app
     std::map<IdSourceKey, GevSet> ncDispatchedGevs;

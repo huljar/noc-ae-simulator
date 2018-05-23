@@ -22,6 +22,7 @@ package HaecComm.NetworkInterfaces;
 moduleinterface INetworkInterface {
     parameters:
         int id;
+        bool networkCoding;
     gates:
         inout app;
         inout router;

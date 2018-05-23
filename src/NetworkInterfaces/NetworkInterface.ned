@@ -27,6 +27,7 @@ module NetworkInterface like INetworkInterface {
     parameters:
         @display("i=block/control");
         int id;
+        bool networkCoding;
     gates:
         inout app;
         inout router;

@@ -29,6 +29,7 @@ module NetworkInterfaceEncAuthSplit like INetworkInterface {
     parameters:
         @display("i=block/control");
         int id;
+        bool networkCoding;
         int encUnits;
         int encCycles;
         int authUnits;
