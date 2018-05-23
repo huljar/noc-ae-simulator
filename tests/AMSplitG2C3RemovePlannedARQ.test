@@ -9,6 +9,9 @@ the ARQ should be canceled.
 sim-time-limit = 500ns
 **.cmdenv-log-level = debug
 
+**.networkCoding = true
+**.generationSize = 2
+
 **.am.arqLimit = 1
 **.am.arqIssueTimeout = 4
 **.am.arqAnswerTimeoutBase = 5
@@ -31,6 +34,8 @@ import HaecComm.MW.Crypto.*;
 
 network Test {
     parameters:
+        bool networkCoding;
+        int generationSize;
         int rows = 4;
         int columns = 4;
         int id = 0;

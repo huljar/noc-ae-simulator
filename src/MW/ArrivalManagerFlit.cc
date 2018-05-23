@@ -77,12 +77,17 @@ void ArrivalManagerFlit::initialize() {
     if(finishedIdsTracked < 0)
         throw cRuntimeError(this, "finishedIdsTracked must be greater than or equal to 0");
 
-    int genSize = par("generationSize");
-    if(genSize < 1)
-        throw cRuntimeError(this, "Generation size must be greater than 0, but received %i", genSize);
-    generationSize = static_cast<unsigned short>(genSize);
-
     networkCoding = getAncestorPar("networkCoding");
+
+    if(networkCoding) {
+        int genSize = getAncestorPar("generationSize");
+        if(genSize < 1)
+            throw cRuntimeError(this, "Generation size must be greater than 0, but received %i", genSize);
+        generationSize = static_cast<unsigned short>(genSize);
+    }
+    else {
+        generationSize = 1;
+    }
 
     gridColumns = getAncestorPar("columns");
     nodeId = getAncestorPar("id");
@@ -815,9 +820,9 @@ void ArrivalManagerFlit::ncTrySendToApp(const IdSourceKey& key) {
 
     // Send out copies of the decrypted data flits
     // We use copies here to avoid potential conflicts with cleanup
-    for(auto it = decCandidate.begin(); it != decCandidate.end(); ++it) {
+    for(size_t i = 0; i < generationSize; ++i) {
         EV_DEBUG << "Sending out decrypted data flit: source " << key.second << ", ID " << key.first << std::endl;
-        Flit* copy = decDataCache.at(*it)->dup();
+        Flit* copy = decDataCache.at(i)->dup();
         send(copy, "appOut");
     }
 

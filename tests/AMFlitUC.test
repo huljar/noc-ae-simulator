@@ -6,6 +6,8 @@ Test arrival manager: uncoded data/mac flit pairs
 sim-time-limit = 100ns
 **.cmdenv-log-level = debug
 
+**.networkCoding = false
+
 **.am.arqLimit = 1
 **.am.arqIssueTimeout = 8
 **.am.arqAnswerTimeoutBase = 5
@@ -28,6 +30,7 @@ import HaecComm.MW.Crypto.*;
 
 network Test {
     parameters:
+        bool networkCoding;
         int rows = 4;
         int columns = 4;
         int id = 0;
@@ -39,7 +42,8 @@ network Test {
         am: ArrivalManagerFlit;
         appQ: PacketQueue;
         authQ: PacketQueue;
-        netQ: PacketQueue;
+        verQ: PacketQueue;
+        decQ: PacketQueue;
         entryGuard: EntryGuardFlit {
             gates:
                 encOut[encUnits];
@@ -58,8 +62,11 @@ network Test {
         testapp.arqIn <-- am.arqOut;
         testapp.netOut --> am.netIn;
 
-        am.cryptoOut --> netQ.in;
-        entryGuard.netIn <-- netQ.out;
+        am.verOut --> verQ.in;
+        entryGuard.verIn <-- verQ.out;
+
+        am.decOut --> decQ.in;
+        entryGuard.decIn <-- decQ.out;
 
         testapp.appQOut --> appQ.in;
         entryGuard.appIn <-- appQ.out;

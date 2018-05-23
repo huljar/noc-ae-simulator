@@ -81,6 +81,18 @@ void ArrivalManagerSplit::initialize() {
     if(finishedIdsTracked < 0)
         throw cRuntimeError(this, "finishedIdsTracked must be greater than or equal to 0");
 
+    networkCoding = getAncestorPar("networkCoding");
+
+    if(networkCoding) {
+        int genSize = getAncestorPar("generationSize");
+        if(genSize < 1)
+            throw cRuntimeError(this, "Generation size must be greater than 0, but received %i", genSize);
+        generationSize = static_cast<unsigned short>(genSize);
+    }
+    else {
+        generationSize = 1;
+    }
+
     gridColumns = getAncestorPar("columns");
     nodeId = getAncestorPar("id");
 

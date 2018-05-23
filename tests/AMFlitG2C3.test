@@ -6,6 +6,12 @@ Test arrival manager: network coded (G2C3) data/mac flit pairs
 sim-time-limit = 100ns
 **.cmdenv-log-level = debug
 
+**.networkCoding = true
+**.generationSize = 2
+**.numCombinations = 3
+
+**.decoder.internalType = "HaecComm.MW.NetworkCoding.DecoderImplFlit"
+
 **.am.arqLimit = 1
 **.am.arqIssueTimeout = 8
 **.am.arqAnswerTimeoutBase = 5
@@ -25,9 +31,13 @@ import HaecComm.Core.Clock;
 import HaecComm.Buffers.PacketQueue;
 import HaecComm.MW.ArrivalManagerFlit;
 import HaecComm.MW.Crypto.*;
+import HaecComm.MW.NetworkCoding.*;
 
 network Test {
     parameters:
+        bool useGlobalTransmissionIds = false;
+        bool networkCoding;
+        int generationSize;
         int rows = 4;
         int columns = 4;
         int id = 0;
@@ -39,7 +49,9 @@ network Test {
         am: ArrivalManagerFlit;
         appQ: PacketQueue;
         authQ: PacketQueue;
-        netQ: PacketQueue;
+        verQ: PacketQueue;
+        decQ: PacketQueue;
+        decoder: Decoder;
         entryGuard: EntryGuardFlit {
             gates:
                 encOut[encUnits];
@@ -58,8 +70,12 @@ network Test {
         testapp.arqIn <-- am.arqOut;
         testapp.netOut --> am.netIn;
 
-        am.cryptoOut --> netQ.in;
-        entryGuard.netIn <-- netQ.out;
+        am.verOut --> verQ.in;
+        entryGuard.verIn <-- verQ.out;
+
+        am.decOut --> decoder.in;
+        decoder.out --> decQ.in;
+        entryGuard.decIn <-- decQ.out;
 
         testapp.appQOut --> appQ.in;
         entryGuard.appIn <-- appQ.out;

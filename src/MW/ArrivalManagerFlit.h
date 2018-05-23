@@ -58,9 +58,10 @@ protected:
     int arqAnswerTimeoutBase;
     bool lastArqWaitForOngoingVerifications;
     int finishedIdsTracked;
-    unsigned short generationSize;
 
     bool networkCoding;
+    unsigned short generationSize;
+
     int gridColumns;
     int nodeId;
     int nodeX;

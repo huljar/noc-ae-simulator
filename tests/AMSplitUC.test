@@ -6,6 +6,9 @@ Test arrival manager: uncoded splits
 sim-time-limit = 100ns
 **.cmdenv-log-level = debug
 
+**.networkCoding = false
+**.generationSize = 1
+
 **.am.arqLimit = 1
 **.am.arqIssueTimeout = 8
 **.am.arqAnswerTimeoutBase = 5
@@ -28,6 +31,8 @@ import HaecComm.MW.Crypto.*;
 
 network Test {
     parameters:
+        bool networkCoding;
+        int generationSize;
         int rows = 4;
         int columns = 4;
         int id = 0;

@@ -26,7 +26,6 @@ simple ArrivalManagerFlit like IArrivalManager {
         int arqAnswerTimeoutBase;
         bool lastArqWaitForOngoingVerifications;
         int finishedIdsTracked = default(100);
-        int generationSize;
     gates:
         input  netIn;
         input  cryptoIn;

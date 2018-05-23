@@ -27,15 +27,27 @@ void AMFlitG2C3RemovePlannedARQTestApp::initialize() {
     // Send parts of a generation
     Flit* f1 = MessageFactory::createFlit("flit1", Address2D(1, 0), Address2D(0, 0), MODE_MAC, 123, 42, NC_G2C3);
     take(f1);
+    f1->setOriginalIdsArraySize(2);
+    f1->setOriginalIds(0, 222);
+    f1->setOriginalIds(1, 333);
 
     Flit* f2 = MessageFactory::createFlit("flit2", Address2D(1, 0), Address2D(0, 0), MODE_MAC, 123, 43, NC_G2C3);
     take(f2);
+    f2->setOriginalIdsArraySize(2);
+    f2->setOriginalIds(0, 222);
+    f2->setOriginalIds(1, 333);
 
     Flit* f3 = MessageFactory::createFlit("flit3", Address2D(1, 0), Address2D(0, 0), MODE_DATA, 123, 43, NC_G2C3);
     take(f3);
+    f3->setOriginalIdsArraySize(2);
+    f3->setOriginalIds(0, 222);
+    f3->setOriginalIds(1, 333);
 
     Flit* f4 = MessageFactory::createFlit("flit4", Address2D(1, 0), Address2D(0, 0), MODE_DATA, 123, 44, NC_G2C3);
     take(f4);
+    f4->setOriginalIdsArraySize(2);
+    f4->setOriginalIds(0, 222);
+    f4->setOriginalIds(1, 333);
 
     send(f1, "netOut");
     sendDelayed(f2, SimTime(2, SIMTIME_NS), "netOut");
@@ -45,9 +57,15 @@ void AMFlitG2C3RemovePlannedARQTestApp::initialize() {
     // Send rest of generation while ARQ is planned
     Flit* f5 = MessageFactory::createFlit("flit5", Address2D(1, 0), Address2D(0, 0), MODE_MAC, 123, 44, NC_G2C3);
     take(f5);
+    f5->setOriginalIdsArraySize(2);
+    f5->setOriginalIds(0, 222);
+    f5->setOriginalIds(1, 333);
 
     Flit* f6 = MessageFactory::createFlit("flit6", Address2D(1, 0), Address2D(0, 0), MODE_DATA, 123, 42, NC_G2C3);
     take(f6);
+    f6->setOriginalIdsArraySize(2);
+    f6->setOriginalIds(0, 222);
+    f6->setOriginalIds(1, 333);
 
     sendDelayed(f5, SimTime(20, SIMTIME_NS), "netOut");
     sendDelayed(f6, SimTime(22, SIMTIME_NS), "netOut");
