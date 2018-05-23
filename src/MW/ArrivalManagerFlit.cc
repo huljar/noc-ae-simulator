@@ -49,7 +49,7 @@ ArrivalManagerFlit::~ArrivalManagerFlit() {
             delete jt->second;
     for(auto it = ncDecryptedDataCache.begin(); it != ncDecryptedDataCache.end(); ++it)
         for(auto jt = it->second.begin(); jt != it->second.end(); ++jt)
-            delete jt->second;
+            delete *jt;
     for(auto it = ncComputedMacCache.begin(); it != ncComputedMacCache.end(); ++it)
         for(auto jt = it->second.begin(); jt != it->second.end(); ++jt)
             delete jt->second;
@@ -76,6 +76,11 @@ void ArrivalManagerFlit::initialize() {
     finishedIdsTracked = par("finishedIdsTracked");
     if(finishedIdsTracked < 0)
         throw cRuntimeError(this, "finishedIdsTracked must be greater than or equal to 0");
+
+    int genSize = par("generationSize");
+    if(genSize < 1)
+        throw cRuntimeError(this, "Generation size must be greater than 0, but received %i", genSize);
+    generationSize = static_cast<unsigned short>(genSize);
 
     networkCoding = getAncestorPar("networkCoding");
 
@@ -136,10 +141,11 @@ void ArrivalManagerFlit::handleNetMessage(Flit* flit) {
     // Get parameters
     IdSourceKey key = std::make_pair(id, source);
     Mode mode = static_cast<Mode>(flit->getMode());
+    NcMode ncMode = static_cast<NcMode>(flit->getNcMode());
 
     // Determine if we are network coding or not
     if(!networkCoding) {
-        ASSERT(flit->getNcMode() == NC_UNCODED);
+        ASSERT(ncMode == NC_UNCODED);
 
         // Check if this is a data or MAC flit
         if(mode == MODE_DATA) {
@@ -163,7 +169,7 @@ void ArrivalManagerFlit::handleNetMessage(Flit* flit) {
             }
             else {
                 // Start/update ARQ timer
-                setArqTimer(key);
+                setArqTimer(key, ncMode);
             }
 
             // We only need the data flit to start decryption and authentication,
@@ -191,7 +197,7 @@ void ArrivalManagerFlit::handleNetMessage(Flit* flit) {
             }
             else {
                 // Start/update ARQ timer
-                setArqTimer(key);
+                setArqTimer(key, ncMode);
             }
 
             // Try to verify the flit (in case the computed MAC is already there)
@@ -202,6 +208,8 @@ void ArrivalManagerFlit::handleNetMessage(Flit* flit) {
         }
     }
     else { // network coded
+        ASSERT(ncMode != NC_UNCODED);
+
         // Get parameters
         uint16_t gev = flit->getGev();
 
@@ -241,12 +249,12 @@ void ArrivalManagerFlit::handleNetMessage(Flit* flit) {
             }
             // If there is no planned ARQ, start/update the ARQ timer
             else if(!ncCheckArqPlanned(key)) {
-                setArqTimer(key);
+                setArqTimer(key, ncMode);
             }
 
             // We only need the data flit to start decryption and authentication,
             // so start it now
-            ncStartDecryptAndAuth(key, gev);
+            ncTryStartDecodeDecryptAndAuth(key, gev);
         }
         else if(mode == MODE_MAC) {
             // Get parameters
@@ -283,7 +291,7 @@ void ArrivalManagerFlit::handleNetMessage(Flit* flit) {
             }
             // If there is no planned ARQ, start/update the ARQ timer
             else if(!ncCheckArqPlanned(key)) {
-                setArqTimer(key);
+                setArqTimer(key, ncMode);
             }
 
             // Try to verify the flit (in case the computed MAC is already there)
@@ -381,16 +389,19 @@ void ArrivalManagerFlit::handleCryptoMessage(Flit* flit) {
             ASSERT(ncDecryptedDataCache[key].size() < generationSize);
 
             // We can safely cache the flit now
-            EV_DEBUG << "Caching decrypted data flit \"" << flit->getName() << "\" from " << source << " with ID " << id << " and GEV " << gev << std::endl;
+            EV_DEBUG << "Caching decrypted data flit \"" << flit->getName() << "\" from " << source << " with ID " << id << std::endl;
             ncDecryptedDataCache[key].push_back(flit);
 
-            // Try to send out the decrypted flit
-            ncTrySendToApp(key, gev);
+            // Try to send out the decrypted flits
+            ncTrySendToApp(key);
         }
         else if(mode == MODE_MAC) {
             // This is a computed MAC arriving from a crypto unit
             // Get parameters
+            uint32_t id = flit->getGidOrFid();
+            IdSourceKey key = std::make_pair(id, source);
             GevCache& gevCache = ncComputedMacCache[key];
+            uint16_t gev = flit->getGev();
 
             // Assert that the decrypted data cache does not contain a flit with this GEV
             ASSERT(!gevCache.count(gev));
@@ -403,7 +414,7 @@ void ArrivalManagerFlit::handleCryptoMessage(Flit* flit) {
             ncTryVerification(key, gev);
         }
         else {
-            throw cRuntimeError(this, "Crypto unit sent flit with unexpected mode %u (Source: %s, ID: %u, GEV: %u)", mode, source.str().c_str(), id, gev);
+            throw cRuntimeError(this, "Crypto unit sent flit with unexpected mode %u", mode);
         }
     }
 }
@@ -650,17 +661,68 @@ bool ArrivalManagerFlit::ucDeleteFromCache(FlitCache& cache, const IdSourceKey& 
     return false;
 }
 
-void ArrivalManagerFlit::ncStartDecryptAndAuth(const IdSourceKey& key, uint16_t gev) {
+void ArrivalManagerFlit::ncTryStartDecodeDecryptAndAuth(const IdSourceKey& key, uint16_t gev) {
+    // This currently only works with generation size 2
+    if(generationSize != 2)
+        throw cRuntimeError(this, "This module currently only works with generation size 2! We received %u.", generationSize);
+
     // Retrieve the requested flit from the cache and send a copy out
-    // for decryption and authentication
+    // for authentication
     // We use a copy here so that we don't have to remove the flit from the cache,
     // which is still used to check if the flit has already arrived
-    EV_DEBUG << "Starting flit decryption for \"" << ncReceivedDataCache.at(key).at(gev)->getName()
+    EV_DEBUG << "Starting flit verification for \"" << ncReceivedDataCache.at(key).at(gev)->getName()
              << "\" (source: " << key.second << ", ID: " << key.first << ", GEV: " << gev << ")" << std::endl;
-    Flit* decCopy = ncReceivedDataCache.at(key).at(gev)->dup();
-    Flit* verCopy = decCopy->dup();
-    send(decCopy, "decOut");
-    send(verCopy, "verOut");
+    Flit* copy = ncReceivedDataCache.at(key).at(gev)->dup();
+    send(copy, "verOut");
+
+    // Try to send this flit to the decoder
+    ncTrySendToDecoder(key, gev);
+}
+
+void ArrivalManagerFlit::ncTrySendToDecoder(const IdSourceKey& key, uint16_t gev) {
+    // Check that we have not yet sent out a non-corrupted generation to the decoder
+    GevSet& candidate = ncDecryptionCandidate[key];
+
+    if(candidate.size() < generationSize && !candidate.count(gev)) {
+        // Insert this flit so it can be sent out later
+        candidate.insert(gev);
+
+        // Check if we have enough flits to send them to the decoder
+        if(candidate.size() == generationSize) {
+            const GevCache& gevCache = ncReceivedDataCache.at(key);
+
+            // Retrieve the flits and send them to the decoder
+            for(auto it = candidate.begin(); it != candidate.end(); ++it) {
+                Flit* decCopy = gevCache.at(*it)->dup();
+                send(decCopy, "decOut");
+            }
+        }
+    }
+}
+
+void ArrivalManagerFlit::ncTrySendToDecoder(const IdSourceKey& key) {
+    // Check that we have not yet sent out a non-corrupted generation to the decoder
+    GevSet& candidate = ncDecryptionCandidate[key];
+
+    if(candidate.size() < generationSize) {
+        // Iterate over received flits
+        GevCache& gevCache = ncReceivedDataCache.at(key);
+        for(auto it = gevCache.begin(); it != gevCache.end(); ++it) {
+            // Insert this flit so it can be sent out later
+            candidate.insert(it->first);
+
+            // Check if we have enough flits to send them to the decoder
+            if(candidate.size() == generationSize) {
+                // Retrieve the flits and send them to the decoder
+                for(auto jt = candidate.begin(); jt != candidate.end(); ++jt) {
+                    Flit* decCopy = gevCache.at(*jt)->dup();
+                    send(decCopy, "decOut");
+                }
+            }
+
+            break;
+        }
+    }
 }
 
 void ArrivalManagerFlit::ncTryVerification(const IdSourceKey& key, uint16_t gev) {
@@ -684,8 +746,8 @@ void ArrivalManagerFlit::ncTryVerification(const IdSourceKey& key, uint16_t gev)
                      << ", ID: " << key.first << ", GEV: " << gev << ")" << std::endl;
             ncVerified[key].insert(gev);
 
-            // Try to send out the decrypted flit
-            ncTrySendToApp(key, gev);
+            // Try to send out the decrypted flits
+            ncTrySendToApp(key);
 
             // Check if there is a planned ARQ waiting for ongoing verifications to finish
             ncTrySendPlannedArq(key);
@@ -710,37 +772,57 @@ void ArrivalManagerFlit::ncTryVerification(const IdSourceKey& key, uint16_t gev)
             ncDeleteFromCache(ncReceivedDataCache, key, gev);
             ncDeleteFromCache(ncReceivedMacCache, key, gev);
 
-            // Also clear the decrypted data flit or, in case it has not arrived yet,
-            // mark that it will be discarded on arrival
-            if(!ncDeleteFromCache(ncDecryptedDataCache, key, gev))
-                ++ncDiscardDecrypting[key][gev];
+            // Check if this is the first authentication fail from the current decryption candidate
+            if(ncDecryptionCandidate.at(key).count(gev)) {
+                // Check if this candidate was already sent to the decoder
+                if(ncDecryptionCandidate.at(key).size() == generationSize) {
+                    // Clear the decrypted data flits or, in case it some have not arrived yet,
+                    // mark that they will be discarded on arrival
+                    unsigned short decryptedDeleted = ncDeleteFromCache(ncDecryptedDataCache, key);
+                    ASSERT(decryptedDeleted <= generationSize);
+                    ncDiscardDecrypting[key] += generationSize - decryptedDeleted;
+                }
+
+                // Clear the decryption candidate
+                ncDecryptionCandidate.at(key).clear();
+            }
 
             // Also clear the computed MAC to ensure that we don't compare the next
             // received MAC against the wrong computed one
             ncDeleteFromCache(ncComputedMacCache, key, gev);
+
+            // Try to send a new combination of GEVs to the decoder, excluding the one that just failed
+            ncTrySendToDecoder(key);
         }
     }
 }
 
-void ArrivalManagerFlit::ncTrySendToApp(const IdSourceKey& key, uint16_t gev) {
+void ArrivalManagerFlit::ncTrySendToApp(const IdSourceKey& key) {
     // Get parameters
-    GevCache& decDataCache = ncDecryptedDataCache[key];
+    FlitVector& decDataCache = ncDecryptedDataCache[key];
+    GevSet& decCandidate = ncDecryptionCandidate[key];
+    GevSet& verCache = ncVerified[key];
 
-    // Check if decrypted data flit is present and MAC was successfully verified
-    GevCache::iterator decData = decDataCache.find(gev);
-    if(decData != decDataCache.end() && ncVerified[key].count(gev)) {
-        // Send out a copy of the decrypted data flit
-        // We use a copy here to avoid potential conflicts with cleanup
-        EV_DEBUG << "Sending out decrypted data flit: source " << key.second << ", ID " << key.first << ", GEV " << gev << std::endl;
-        Flit* copy = decData->second->dup();
-        send(copy, "appOut");
+    // Are there enough flits?
+    if(decCandidate.size() < generationSize || decDataCache.size() < generationSize)
+        return;
 
-        // Insert this GEV into the dispatched GEV set for this generation
-        ncDispatchedGevs[key].insert(gev);
-
-        // Check if this generation is done
-        ncCheckGenerationDone(key, decData->second->getGenSize());
+    // Check if the MACs were successfully verified
+    for(auto it = decCandidate.begin(); it != decCandidate.end(); ++it) {
+        if(!verCache.count(*it))
+            return;
     }
+
+    // Send out copies of the decrypted data flits
+    // We use copies here to avoid potential conflicts with cleanup
+    for(auto it = decCandidate.begin(); it != decCandidate.end(); ++it) {
+        EV_DEBUG << "Sending out decrypted data flit: source " << key.second << ", ID " << key.first << std::endl;
+        Flit* copy = decDataCache.at(*it)->dup();
+        send(copy, "appOut");
+    }
+
+    // Clean up this generation
+    ncCleanUp(key);
 }
 
 void ArrivalManagerFlit::ncIssueArq(const IdSourceKey& key, Mode mode, const GevArqMap& arqModes, Messages::NcMode ncMode) {
@@ -813,16 +895,6 @@ void ArrivalManagerFlit::ncTrySendPlannedArq(const IdSourceKey& key, bool forceI
     }
 }
 
-void ArrivalManagerFlit::ncCheckGenerationDone(const IdSourceKey& key, unsigned short generationSize) {
-    // Check if we have sent enough data flits to the app in order
-    // to decode this generation
-    GevSet& dispatchedGevs = ncDispatchedGevs[key];
-    if(dispatchedGevs.size() >= generationSize) {
-        // Clean up whole generation
-        ncCleanUp(key);
-    }
-}
-
 void ArrivalManagerFlit::ncCleanUp(const IdSourceKey& key) {
     // Clean up all information related to this ID/address
     EV_DEBUG << "Fully cleaning up: source " << key.second << ", ID " << key.first << std::endl;
@@ -839,8 +911,8 @@ void ArrivalManagerFlit::ncCleanUp(const IdSourceKey& key) {
     // Clear number of issued ARQs
     issuedArqs.erase(key);
 
-    // Clear dispatched GEV set
-    ncDispatchedGevs.erase(key);
+    // Clear decryption candidate
+    ncDecryptionCandidate.erase(key);
 
     // Clear corrupted decryption counter
     ncDiscardDecrypting.erase(key);
@@ -899,6 +971,19 @@ bool ArrivalManagerFlit::ncDeleteFromCache(GenCache& cache, const IdSourceKey& k
         }
     }
     return false;
+}
+
+unsigned short ArrivalManagerFlit::ncDeleteFromCache(DecryptedCache& cache, const IdSourceKey& key) {
+    unsigned short ret = 0;
+    DecryptedCache::iterator vecIter = cache.find(key);
+    if(vecIter != cache.end()) {
+        FlitVector& vec = vecIter->second;
+        ret = vec.size();
+        for(auto it = vec.begin(); it != vec.end(); ++it)
+            delete *it;
+        cache.erase(vecIter);
+    }
+    return ret;
 }
 
 Flit* ArrivalManagerFlit::generateArq(const IdSourceKey& key, Mode mode, ArqMode arqMode) {

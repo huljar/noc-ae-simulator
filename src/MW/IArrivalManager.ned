@@ -22,6 +22,7 @@ moduleinterface IArrivalManager {
         int arqAnswerTimeoutBase;
         bool lastArqWaitForOngoingVerifications;
         int finishedIdsTracked;
+        int generationSize;
     gates:
         input  netIn;
         input  cryptoIn;

@@ -384,7 +384,7 @@ bool ArrivalManagerGen::tryStartDecodeDecryptAndAuth(const IdSourceKey& key) {
     // Get the GEV combinations that were already decoded
     std::vector<GevSet>& decoded = decodedGevs[key];
 
-    // Set of GEVs that we will send out now (filled throughout this function
+    // Set of GEVs that we will send out now (filled throughout this function)
     GevSet toSend;
 
     // Is it possible to decode with previously unused GEVs only?

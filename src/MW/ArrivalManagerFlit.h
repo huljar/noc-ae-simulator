@@ -58,6 +58,7 @@ protected:
     int arqAnswerTimeoutBase;
     bool lastArqWaitForOngoingVerifications;
     int finishedIdsTracked;
+    unsigned short generationSize;
 
     bool networkCoding;
     int gridColumns;
@@ -98,8 +99,8 @@ protected:
     std::map<IdSourceKey, unsigned int> ucDiscardDecrypting;
     std::map<IdSourceKey, unsigned int> ncDiscardDecrypting;
 
-    // Network coding only: cache which (and how many) GEVs from a generation have been sent to the app
-    std::map<IdSourceKey, GevSet> ncDispatchedGevs;
+    // Network coding only: cache GEVs that were sent to the decoder together
+    std::map<IdSourceKey, GevSet> ncDecryptionCandidate;
 
     // Network coding only: track planned ARQs (in case we delay an ARQ to wait for verifications to finish)
     FlitCache ncPlannedArqs;
@@ -116,16 +117,18 @@ private:
     void ucCleanUp(const IdSourceKey& key);
     bool ucDeleteFromCache(FlitCache& cache, const IdSourceKey& key);
 
-    void ncStartDecryptAndAuth(const IdSourceKey& key, uint16_t gev);
+    void ncTryStartDecodeDecryptAndAuth(const IdSourceKey& key, uint16_t gev);
+    void ncTrySendToDecoder(const IdSourceKey& key, uint16_t gev);
+    void ncTrySendToDecoder(const IdSourceKey& key);
     void ncTryVerification(const IdSourceKey& key, uint16_t gev);
-    void ncTrySendToApp(const IdSourceKey& key, uint16_t gev);
+    void ncTrySendToApp(const IdSourceKey& key);
     void ncIssueArq(const IdSourceKey& key, Messages::Mode mode, const Messages::GevArqMap& arqModes, Messages::NcMode ncMode);
     void ncTryRemoveFromPlannedArq(const IdSourceKey& key, const Messages::GevArqMap& arqModes);
     void ncTrySendPlannedArq(const IdSourceKey& key, bool forceImmediate = false);
-    void ncCheckGenerationDone(const IdSourceKey& key, unsigned short generationSize);
     void ncCleanUp(const IdSourceKey& key);
     bool ncDeleteFromCache(GenCache& cache, const IdSourceKey& key);
     bool ncDeleteFromCache(GenCache& cache, const IdSourceKey& key, uint16_t gev);
+    unsigned short ncDeleteFromCache(DecryptedCache& cache, const IdSourceKey& key);
 
     Messages::Flit* generateArq(const IdSourceKey& key, Messages::Mode mode, Messages::ArqMode arqMode);
     Messages::Flit* generateArq(const IdSourceKey& key, Messages::Mode mode, const Messages::GevArqMap& arqModes, Messages::NcMode ncMode);

@@ -43,7 +43,7 @@ module NetworkInterfaceEncAuthFlit like INetworkInterface {
             @display("p=80,280");
         }
         entryGuard: EntryGuardFlit {
-            @display("p=380,300");
+            @display("p=280,300");
             busyCyclesEnc = encCycles;
             busyCyclesAuth = authCycles;
             gates:
@@ -65,7 +65,7 @@ module NetworkInterfaceEncAuthFlit like INetworkInterface {
                 authIn[authUnits];
         }
         authCryptoQueue: PacketQueue {
-            @display("p=465,320");
+            @display("p=415,320");
             awaitSendRequests = true;
         }
         retransmissionBuffer: RetransmissionBuffer {
@@ -87,8 +87,12 @@ module NetworkInterfaceEncAuthFlit like INetworkInterface {
         arrivalManager: ArrivalManagerFlit {
             @display("p=500,450");
         }
-        netCryptoQueue: PacketQueue {
-            @display("p=400,380");
+        verCryptoQueue: PacketQueue {
+            @display("p=400,390");
+            awaitSendRequests = true;
+        }
+        decCryptoQueue: PacketQueue {
+            @display("p=300,410");
             awaitSendRequests = true;
         }
     connections:
@@ -113,12 +117,14 @@ module NetworkInterfaceEncAuthFlit like INetworkInterface {
         router$i --> routerInputQueue.in;
         arqSplitter.in <-- routerInputQueue.out;
         arqSplitter.othersOut --> arrivalManager.netIn;
-        arrivalManager.cryptoOut --> netCryptoQueue.in;
+        arrivalManager.verOut --> verCryptoQueue.in;
+        arrivalManager.decOut --> decCryptoQueue.in;
         arrivalManager.appOut --> app$o;
 
         arqSplitter.arqOut --> retransmissionBuffer.arqIn;
         exitGuard.appOut --> arrivalManager.cryptoIn;
         arrivalManager.arqOut --> netStream.in[1];
-        entryGuard.netIn <-- netCryptoQueue.out;
+        entryGuard.verIn <-- verCryptoQueue.out;
+        entryGuard.decIn <-- decCryptoQueue.out;
         exitGuard.entryOut --> authCryptoQueue.in;
 }
