@@ -17,11 +17,8 @@ Define_Module(DecoderGenModifiedTestApp);
 
 void DecoderGenModifiedTestApp::initialize() {
     // Second combination modified
-    Flit* f1 = MessageFactory::createFlit("flit1", Address2D(0, 0), Address2D(1, 1), MODE_DATA, 123, 5, NC_G2C3);
+    Flit* f1 = MessageFactory::createFlit("flit1", Address2D(0, 0), Address2D(1, 1), MODE_DATA, 123, 5, NC_G2C3, {222, 333});
     take(f1);
-    f1->setOriginalIdsArraySize(2);
-    f1->setOriginalIds(0, 222);
-    f1->setOriginalIds(1, 333);
 
     Flit* f2 = f1->dup();
     f2->setName("flit2");
@@ -36,11 +33,8 @@ void DecoderGenModifiedTestApp::initialize() {
     sendDelayed(mac12, SimTime(2, SIMTIME_NS), "out");
 
     // First combination modified
-    Flit* f3 = MessageFactory::createFlit("flit3", Address2D(0, 0), Address2D(1, 1), MODE_DATA, 124, 5, NC_G2C3);
+    Flit* f3 = MessageFactory::createFlit("flit3", Address2D(0, 0), Address2D(1, 1), MODE_DATA, 124, 5, NC_G2C3, {444, 555});
     take(f3);
-    f3->setOriginalIdsArraySize(2);
-    f3->setOriginalIds(0, 444);
-    f3->setOriginalIds(1, 555);
 
     Flit* f4 = f3->dup();
     f4->setName("flit4");
@@ -52,11 +46,8 @@ void DecoderGenModifiedTestApp::initialize() {
     sendDelayed(f4, SimTime(14, SIMTIME_NS), "out");
 
     // No combination modified
-    Flit* f5 = MessageFactory::createFlit("flit5", Address2D(0, 0), Address2D(1, 1), MODE_DATA, 125, 5, NC_G2C4);
+    Flit* f5 = MessageFactory::createFlit("flit5", Address2D(0, 0), Address2D(1, 1), MODE_DATA, 125, 5, NC_G2C4, {666, 777});
     take(f5);
-    f5->setOriginalIdsArraySize(2);
-    f5->setOriginalIds(0, 666);
-    f5->setOriginalIds(1, 777);
 
     Flit* f6 = f5->dup();
     f6->setName("flit6");

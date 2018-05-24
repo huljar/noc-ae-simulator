@@ -40,4 +40,13 @@ Flit* MessageFactory::createFlit(const char* name, const Address2D& source, cons
     return flit;
 }
 
+Flit* MessageFactory::createFlit(const char* name, const Address2D& source, const Address2D& target, Mode mode, uint32_t id,
+                                 uint16_t gev, NcMode ncMode, const std::vector<unsigned int>& origIds) {
+    Flit* flit = createFlit(name, source, target, mode, id, gev, ncMode);
+    flit->setOriginalIdsArraySize(origIds.size());
+    for(size_t i = 0; i < origIds.size(); ++i)
+        flit->setOriginalIds(i, origIds[i]);
+    return flit;
+}
+
 }} //namespace

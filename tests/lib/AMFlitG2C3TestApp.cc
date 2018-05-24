@@ -20,11 +20,8 @@ void AMFlitG2C3TestApp::initialize() {
     getSimulation()->getSystemModule()->subscribe("clock", this);
 
     // Test unmodified data/mac pair
-    Flit* f1 = MessageFactory::createFlit("flit1", Address2D(3, 3), Address2D(0, 0), MODE_DATA, 123, 123, NC_G2C3);
+    Flit* f1 = MessageFactory::createFlit("flit1", Address2D(3, 3), Address2D(0, 0), MODE_DATA, 123, 123, NC_G2C3, {34, 35});
     take(f1);
-    f1->setOriginalIdsArraySize(2);
-    f1->setOriginalIds(0, 34);
-    f1->setOriginalIds(1, 35);
 
     Flit* f2 = MessageFactory::createFlit("flit2", Address2D(3, 3), Address2D(0, 0), MODE_MAC, 123, 123, NC_G2C3);
     take(f2);
@@ -63,11 +60,8 @@ void AMFlitG2C3TestApp::handleMessage(cMessage* msg) {
 
         if(f->getGidOrFid() == 123 && f->getNcArqs().count(321)) {
             // Answer to ARQ with unmodified flits
-            Flit* f3 = MessageFactory::createFlit("flit3-new", Address2D(3, 3), Address2D(0, 0), MODE_DATA, 123, 321, NC_G2C3);
+            Flit* f3 = MessageFactory::createFlit("flit3-new", Address2D(3, 3), Address2D(0, 0), MODE_DATA, 123, 321, NC_G2C3, {34, 35});
             take(f3);
-            f3->setOriginalIdsArraySize(2);
-            f3->setOriginalIds(0, 34);
-            f3->setOriginalIds(1, 35);
 
             Flit* f4 = MessageFactory::createFlit("flit4-new", Address2D(3, 3), Address2D(0, 0), MODE_MAC, 123, 321, NC_G2C3);
             take(f4);
@@ -86,12 +80,9 @@ void AMFlitG2C3TestApp::receiveSignal(cComponent* source, simsignal_t signalID, 
     if(signalID == registerSignal("clock")) {
         if(l == 2) {
             // Test modified data/mac pair
-            Flit* f3 = MessageFactory::createFlit("flit3", Address2D(3, 3), Address2D(0, 0), MODE_DATA, 123, 321, NC_G2C3);
+            Flit* f3 = MessageFactory::createFlit("flit3", Address2D(3, 3), Address2D(0, 0), MODE_DATA, 123, 321, NC_G2C3, {34, 35});
             take(f3);
             f3->setModified(true);
-            f3->setOriginalIdsArraySize(2);
-            f3->setOriginalIds(0, 34);
-            f3->setOriginalIds(1, 35);
 
             Flit* f4 = MessageFactory::createFlit("flit4", Address2D(3, 3), Address2D(0, 0), MODE_MAC, 123, 321, NC_G2C3);
             take(f4);

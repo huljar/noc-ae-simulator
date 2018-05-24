@@ -16,11 +16,8 @@ protected:
 Define_Module(DecoderSplitTestApp);
 
 void DecoderSplitTestApp::initialize() {
-    Flit* f1 = MessageFactory::createFlit("flit1", Address2D(0, 0), Address2D(1, 1), MODE_SPLIT_NC, 234, 5, NC_G2C4);
+    Flit* f1 = MessageFactory::createFlit("flit1", Address2D(0, 0), Address2D(1, 1), MODE_SPLIT_NC, 234, 5, NC_G2C4, {222, 222});
     take(f1);
-    f1->setOriginalIdsArraySize(2);
-    f1->setOriginalIds(0, 222);
-    f1->setOriginalIds(1, 222);
 
     Flit* f2 = f1->dup();
     f2->setName("flit2");

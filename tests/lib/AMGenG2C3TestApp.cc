@@ -21,10 +21,7 @@ void AMGenG2C3TestApp::initialize() {
     count = 0;
 
     // Test unmodified generation
-    Flit* d11 = MessageFactory::createFlit("data11", Address2D(3, 3), Address2D(0, 0), MODE_DATA, 123, 123, NC_G2C3);
-    d11->setOriginalIdsArraySize(2);
-    d11->setOriginalIds(0, 5);
-    d11->setOriginalIds(1, 6);
+    Flit* d11 = MessageFactory::createFlit("data11", Address2D(3, 3), Address2D(0, 0), MODE_DATA, 123, 123, NC_G2C3, {5, 6});
 
     Flit* d12 = d11->dup();
     d12->setName("data12");
@@ -37,10 +34,7 @@ void AMGenG2C3TestApp::initialize() {
     sendDelayed(m1, SimTime(2, SIMTIME_NS), "netOut");
 
     // Test partially modified generation (first data flit modified) and don't answer ARQ. Verification will still succeed with 2nd+3rd flit.
-    Flit* d21 = MessageFactory::createFlit("data21", Address2D(3, 3), Address2D(0, 0), MODE_DATA, 5, 1, NC_G2C3);
-    d21->setOriginalIdsArraySize(2);
-    d21->setOriginalIds(0, 10);
-    d21->setOriginalIds(1, 11);
+    Flit* d21 = MessageFactory::createFlit("data21", Address2D(3, 3), Address2D(0, 0), MODE_DATA, 5, 1, NC_G2C3, {10, 11});
 
     Flit* d22 = d21->dup();
     d22->setName("data22");
@@ -60,10 +54,7 @@ void AMGenG2C3TestApp::initialize() {
     sendDelayed(d23, SimTime(20, SIMTIME_NS), "netOut");
 
     // Test partially modified generation (second data flit modified) and answer ARQ. Verification will succeed with 1st+2nd flit.
-    Flit* d31 = MessageFactory::createFlit("data31", Address2D(3, 3), Address2D(0, 0), MODE_DATA, 6, 1, NC_G2C3);
-    d31->setOriginalIdsArraySize(2);
-    d31->setOriginalIds(0, 15);
-    d31->setOriginalIds(1, 16);
+    Flit* d31 = MessageFactory::createFlit("data31", Address2D(3, 3), Address2D(0, 0), MODE_DATA, 6, 1, NC_G2C3, {15, 16});
 
     Flit* d32 = d31->dup();
     d32->setName("data32");
@@ -114,11 +105,8 @@ void AMGenG2C3TestApp::handleMessage(cMessage* msg) {
 
         if(f->getGidOrFid() == 6) {
             // Answer to ARQ with unmodified flits (not answering the MAC on purpose)
-            Flit* d31 = MessageFactory::createFlit("data31-new", Address2D(3, 3), Address2D(0, 0), MODE_DATA, 6, 1, NC_G2C3);
+            Flit* d31 = MessageFactory::createFlit("data31-new", Address2D(3, 3), Address2D(0, 0), MODE_DATA, 6, 1, NC_G2C3, {15, 16});
             take(d31);
-            d31->setOriginalIdsArraySize(2);
-            d31->setOriginalIds(0, 15);
-            d31->setOriginalIds(1, 16);
 
             Flit* d32 = d31->dup();
             take(d32);

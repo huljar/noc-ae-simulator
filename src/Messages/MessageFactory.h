@@ -27,6 +27,8 @@ public:
 
     static Flit* createFlit(const char* name, const Address2D& source, const Address2D& target, Mode mode, uint32_t id,
                             uint16_t gev = 0, NcMode ncMode = NC_UNCODED);
+    static Flit* createFlit(const char* name, const Address2D& source, const Address2D& target, Mode mode, uint32_t id,
+                            uint16_t gev, NcMode ncMode, const std::vector<unsigned int>& origIds);
 };
 
 }} //namespace
