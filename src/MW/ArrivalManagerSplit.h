@@ -83,12 +83,12 @@ protected:
 
     // Cache arriving flits for uncoded variant
     SplitCache ucReceivedSplitsCache;
-    SplitCache ucDecryptedSplitsCache;
+    FlitCache ucDecryptedFlitsCache;
     SplitCache ucComputedMacsCache;
 
     // Cache arriving flits for network coded variant
     GenCache ncReceivedSplitsCache;
-    GenCache ncDecryptedSplitsCache;
+    FlitCache ncDecryptedFlitsCache;
     GenCache ncComputedMacsCache;
 
     // Cache successful MAC verifications
@@ -96,11 +96,12 @@ protected:
     std::map<IdSourceKey, GevSet> ncVerified;
 
     // Track amount of flits that are currently undergoing decryption, but have to be discarded on arrival
-    std::map<IdSourceKey, std::pair<unsigned int, unsigned int>> ucDiscardDecrypting;
-    std::map<IdSourceKey, std::map<uint16_t, unsigned int>> ncDiscardDecrypting;
+    std::map<IdSourceKey, unsigned int> ucDiscardDecrypting;
+    std::map<IdSourceKey, unsigned int> ncDiscardDecrypting;
 
-    // Network coding only: cache which (and how many) GEVs from a generation have been sent to the app
-    std::map<IdSourceKey, GevSet> ncDispatchedGevs;
+    // cache GEVs/splits that were sent to the decoder together
+    std::map<IdSourceKey, bool> ucDecryptionCandidate;
+    std::map<IdSourceKey, GevSet> ncDecryptionCandidate;
 
     // Track planned ARQs (in case we delay an ARQ to wait for verifications to finish)
     FlitCache ucPlannedArqs;
@@ -111,7 +112,8 @@ private:
     void handleCryptoMessage(Messages::Flit* flit);
     void handleArqTimer(Messages::ArqTimer* timer);
 
-    void ucStartDecryptAndAuth(const IdSourceKey& key, Messages::Mode mode);
+    void ucTryStartMergeDecryptAndAuth(const IdSourceKey& key, Messages::Mode mode);
+    void ucTrySendToDecoder(const IdSourceKey& key);
     void ucTryVerification(const IdSourceKey& key, Messages::Mode mode);
     void ucTrySendToApp(const IdSourceKey& key);
     void ucIssueArq(const IdSourceKey& key, Messages::ArqMode arqMode);
@@ -121,17 +123,19 @@ private:
     bool ucDeleteFromCache(SplitCache& cache, const IdSourceKey& key);
     bool ucDeleteFromCache(SplitCache& cache, const IdSourceKey& key, Messages::Mode mode);
 
-    void ncStartDecryptAndAuth(const IdSourceKey& key, uint16_t gev);
+    void ncTryStartDecodeMergeDecryptAndAuth(const IdSourceKey& key, uint16_t gev);
+    void ncTrySendToDecoder(const IdSourceKey& key, uint16_t gev);
+    void ncTrySendToDecoder(const IdSourceKey& key);
     void ncTryVerification(const IdSourceKey& key, uint16_t gev);
-    void ncTrySendToApp(const IdSourceKey& key, uint16_t gev);
+    void ncTrySendToApp(const IdSourceKey& key);
     void ncIssueArq(const IdSourceKey& key, Messages::Mode mode, const Messages::GevArqMap& arqModes, Messages::NcMode ncMode);
     void ncTryRemoveFromPlannedArq(const IdSourceKey& key, const Messages::GevArqMap& arqModes);
     void ncTrySendPlannedArq(const IdSourceKey& key, bool forceImmediate = false);
-    void ncCheckGenerationDone(const IdSourceKey& key, unsigned short generationSize);
     void ncCleanUp(const IdSourceKey& key);
     bool ncDeleteFromCache(GenCache& cache, const IdSourceKey& key);
     bool ncDeleteFromCache(GenCache& cache, const IdSourceKey& key, uint16_t gev);
-    // TODO: NC: do not send ARQ immediately on verification fail if we have more redundant GEVs to verify
+
+    bool deleteFromCache(FlitCache& cache, const IdSourceKey& key);
 
     Messages::Flit* generateArq(const IdSourceKey& key, Messages::Mode mode, Messages::ArqMode arqMode);
     Messages::Flit* generateArq(const IdSourceKey& key, Messages::Mode mode, const Messages::GevArqMap& arqModes, Messages::NcMode ncMode);

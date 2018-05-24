@@ -36,10 +36,8 @@ ArrivalManagerSplit::~ArrivalManagerSplit() {
         delete it->second.first;
         delete it->second.second;
     }
-    for(auto it = ucDecryptedSplitsCache.begin(); it != ucDecryptedSplitsCache.end(); ++it) {
-        delete it->second.first;
-        delete it->second.second;
-    }
+    for(auto it = ucDecryptedFlitsCache.begin(); it != ucDecryptedFlitsCache.end(); ++it)
+        delete it->second;
     for(auto it = ucComputedMacsCache.begin(); it != ucComputedMacsCache.end(); ++it) {
         delete it->second.first;
         delete it->second.second;
@@ -51,9 +49,8 @@ ArrivalManagerSplit::~ArrivalManagerSplit() {
     for(auto it = ncReceivedSplitsCache.begin(); it != ncReceivedSplitsCache.end(); ++it)
         for(auto jt = it->second.begin(); jt != it->second.end(); ++jt)
             delete jt->second;
-    for(auto it = ncDecryptedSplitsCache.begin(); it != ncDecryptedSplitsCache.end(); ++it)
-        for(auto jt = it->second.begin(); jt != it->second.end(); ++jt)
-            delete jt->second;
+    for(auto it = ncDecryptedFlitsCache.begin(); it != ncDecryptedFlitsCache.end(); ++it)
+        delete it->second;
     for(auto it = ncComputedMacsCache.begin(); it != ncComputedMacsCache.end(); ++it)
         for(auto jt = it->second.begin(); jt != it->second.end(); ++jt)
             delete jt->second;
@@ -153,7 +150,9 @@ void ArrivalManagerSplit::handleNetMessage(Flit* flit) {
     NcMode ncMode = static_cast<NcMode>(flit->getNcMode());
 
     // Determine if we are network coding or not
-    if(ncMode == NC_UNCODED) {
+    if(!networkCoding) {
+        ASSERT(ncMode == NC_UNCODED);
+
         // Check if we already have something from this ID/source
         SplitCache::iterator splitIter = ucReceivedSplitsCache.find(key);
         if(splitIter != ucReceivedSplitsCache.end()) {
@@ -205,9 +204,11 @@ void ArrivalManagerSplit::handleNetMessage(Flit* flit) {
         }
 
         // Start decryption and authentication for the new split
-        ucStartDecryptAndAuth(key, mode);
+        ucTryStartMergeDecryptAndAuth(key, mode);
     }
-    else { // ncMode != uncoded
+    else { // network coded
+        ASSERT(ncMode != NC_UNCODED);
+
         // Get parameters
         uint16_t gev = flit->getGev();
         GevCache& gevCache = ncReceivedSplitsCache[key];
@@ -225,7 +226,7 @@ void ArrivalManagerSplit::handleNetMessage(Flit* flit) {
         }
 
         // Check if there are already enough splits for the used NC mode
-        if((ncMode == NC_G2C3 && gevCache.size() >= 3) || (ncMode == NC_G2C4 && gevCache.size() >= 4)) {
+        if(gevCache.size() >= flit->getNumCombinations()) {
             EV << "Received a split from " << source << " with GID " << id << " and GEV " << gev
                << ", but we already have all the splits from this generation" << std::endl;
             delete flit;
@@ -250,21 +251,21 @@ void ArrivalManagerSplit::handleNetMessage(Flit* flit) {
         }
 
         // Send the split to decryption and authentication
-        ncStartDecryptAndAuth(key, gev);
+        ncTryStartDecodeMergeDecryptAndAuth(key, gev);
     }
 }
 
 void ArrivalManagerSplit::handleCryptoMessage(Flit* flit) {
     // Get parameters
-    uint32_t id = flit->getGidOrFid();
     Address2D source = flit->getSource();
-    IdSourceKey key = std::make_pair(id, source);
     Mode mode = static_cast<Mode>(flit->getMode());
-    NcMode ncMode = static_cast<NcMode>(flit->getNcMode());
-    Status status = static_cast<Status>(flit->getStatus());
 
     // Check network coding mode
-    if(ncMode == NC_UNCODED) {
+    if(!networkCoding) {
+        // Get parameters
+        uint32_t id = flit->getGidOrFid();
+        IdSourceKey key = std::make_pair(id, source);
+
         // Check if this ID is already finished
         const IdSet& finishedIdSet = finishedIds[source].first;
         if(finishedIdSet.count(id)) {
@@ -273,134 +274,110 @@ void ArrivalManagerSplit::handleCryptoMessage(Flit* flit) {
             return;
         }
 
-        // Check flit status
-        if(status == STATUS_DECRYPTING) {
-            flit->setStatus(STATUS_NONE);
-
+        // Check flit mode
+        if(mode == MODE_DATA) {
             // This is a decrypted flit arriving from a crypto unit
-            if(mode == MODE_SPLIT_1) {
-                // Check if we have to discard this flit (because corruption was detected on MAC verification)
-                if(ucDiscardDecrypting[key].first > 0) {
-                    EV_DEBUG << "Discarding corrupted decrypted first split \"" << flit->getName()
-                             << "\" (source: " << source << ", ID: " << id << ")" << std::endl;
-                    --ucDiscardDecrypting[key].first;
-                    delete flit;
-                    return;
-                }
+            // Assert that the decrypted flit cache does not contain a flit
+            ASSERT(!ucDecryptedFlitsCache.count(key));
 
-                // Assert that there is no decrypted split yet
-                SplitPair& splits = ucDecryptedSplitsCache[key];
-                ASSERT(!splits.first);
-
-                // Insert decrypted split into the cache
-                EV_DEBUG << "Caching decrypted first split \"" << flit->getName() << "\" from " << source << " with ID " << id << std::endl;
-                splits.first = flit;
+            // Check if we have to discard this flit (because corruption was detected on MAC verification)
+            if(ucDiscardDecrypting[key] > 0) {
+                EV_DEBUG << "Discarding corrupted decrypted flit \"" << flit->getName()
+                         << "\" (source: " << source << ", ID: " << id << ")" << std::endl;
+                --ucDiscardDecrypting[key];
+                delete flit;
+                return;
             }
-            else if(mode == MODE_SPLIT_2) {
-                // Check if we have to discard this flit (because corruption was detected on MAC verification)
-                if(ucDiscardDecrypting[key].second > 0) {
-                    EV_DEBUG << "Discarding corrupted decrypted second split \"" << flit->getName()
-                             << "\" (source: " << source << ", ID: " << id << ")" << std::endl;
-                    --ucDiscardDecrypting[key].second;
-                    delete flit;
-                    return;
-                }
 
-                // Assert that there is no decrypted split yet
-                SplitPair& splits = ucDecryptedSplitsCache[key];
-                ASSERT(!splits.second);
-
-                // Insert decrypted split into the cache
-                EV_DEBUG << "Caching decrypted second split \"" << flit->getName() << "\" from " << source << " with ID " << id << std::endl;
-                splits.second = flit;
-            }
-            else {
-                throw cRuntimeError(this, "Crypto unit sent flit with unexpected mode %u (Source: %s, ID: %u)", mode, source.str().c_str(), id);
-            }
+            // Insert decrypted flit into the cache
+            EV_DEBUG << "Caching decrypted flit \"" << flit->getName() << "\" from " << source << " with ID " << id << std::endl;
+            ucDecryptedFlitsCache.emplace(key, flit);
 
             // Try to send out the decrypted splits
             ucTrySendToApp(key);
         }
-        else if(status == STATUS_VERIFYING) {
-            flit->setStatus(STATUS_NONE);
-
+        else if(mode == MODE_SPLIT_1) {
             // This is a computed MAC arriving from a crypto unit
-            if(mode == MODE_SPLIT_1) {
-                // Assert that there is no computed MAC yet
-                SplitPair& splits = ucComputedMacsCache[key];
-                ASSERT(!splits.first);
+            // Assert that there is no computed MAC yet
+            SplitPair& splits = ucComputedMacsCache[key];
+            ASSERT(!splits.first);
 
-                // Insert computed MAC into the cache
-                EV_DEBUG << "Caching computed MAC for first split \"" << flit->getName() << "\" from " << source << " with ID " << id << std::endl;
-                splits.first = flit;
-            }
-            else if(mode == MODE_SPLIT_2) {
-                // Assert that there is no computed MAC yet
-                SplitPair& splits = ucComputedMacsCache[key];
-                ASSERT(!splits.second);
+            // Insert computed MAC into the cache
+            EV_DEBUG << "Caching computed MAC for first split \"" << flit->getName() << "\" from " << source << " with ID " << id << std::endl;
+            splits.first = flit;
 
-                // Insert computed MAC into the cache
-                EV_DEBUG << "Caching computed MAC for second split \"" << flit->getName() << "\" from " << source << " with ID " << id << std::endl;
-                splits.second = flit;
-            }
-            else {
-                throw cRuntimeError(this, "Crypto unit sent flit with unexpected mode %u (Source: %s, ID: %u)", mode, source.str().c_str(), id);
-            }
+            // Try to verify the split
+            ucTryVerification(key, mode);
+        }
+        else if(mode == MODE_SPLIT_2) {
+            // This is a computed MAC arriving from a crypto unit
+            // Assert that there is no computed MAC yet
+            SplitPair& splits = ucComputedMacsCache[key];
+            ASSERT(!splits.second);
+
+            // Insert computed MAC into the cache
+            EV_DEBUG << "Caching computed MAC for second split \"" << flit->getName() << "\" from " << source << " with ID " << id << std::endl;
+            splits.second = flit;
 
             // Try to verify the split
             ucTryVerification(key, mode);
         }
         else {
-            throw cRuntimeError(this, "Crypto unit sent flit with unexpected status %u (Source: %s, ID: %u)", status, source.str().c_str(), id);
+            throw cRuntimeError(this, "Crypto unit sent flit with unexpected mode %u (Source: %s, ID: %u)", mode, source.str().c_str(), id);
         }
     }
-    else { // ncMode != uncoded
-        // Get parameters
-        uint16_t gev = flit->getGev();
-
-        // Check if this generation is already finished
-        const IdSet& finishedIdSet = finishedIds[source].first;
-        if(finishedIdSet.count(id)) {
-            EV_DEBUG << "Received a decrypted/authenticated flit for finished GID " << id << " (GEV " << gev << ")" << std::endl;
-            delete flit;
-            return;
-        }
-
-        // Check flit status
-        if(status == STATUS_DECRYPTING) {
-            flit->setStatus(STATUS_NONE);
-
-            // This is a decrypted split arriving from a crypto unit
+    else { // network coded
+        // Check flit mode
+        if(mode == MODE_DATA) {
+            // This is a decrypted flit arriving from a crypto unit
             // Get parameters
-            GevCache& gevCache = ncDecryptedSplitsCache[key];
+            uint32_t id = flit->getOriginalIds(0);
+            IdSourceKey key = std::make_pair(id, source);
 
-            // Assert that the decrypted splits cache does not contain a flit with this GEV
-            ASSERT(!gevCache.count(gev));
-
-            // Check if we have to discard this flit (because corruption was detected on MAC verification)
-            if(ncDiscardDecrypting[key][gev] > 0) {
-                EV_DEBUG << "Discarding corrupted decrypted split \"" << flit->getName()
-                         << "\" (source: " << source << ", ID: " << id << ", GEV: " << gev << ")" << std::endl;
-                --ncDiscardDecrypting[key][gev];
+            // Check if this generation is already finished
+            const IdSet& finishedIdSet = finishedIds[source].first;
+            if(finishedIdSet.count(id)) {
+                EV_DEBUG << "Received a decrypted flit for finished GID " << id << std::endl;
                 delete flit;
                 return;
             }
 
+            // Check if we have to discard this flit (because corruption was detected on MAC verification)
+            if(ncDiscardDecrypting[key] > 0) {
+                EV_DEBUG << "Discarding corrupted decrypted flit \"" << flit->getName()
+                         << "\" (source: " << source << ", ID: " << id << ")" << std::endl;
+                --ncDiscardDecrypting[key];
+                delete flit;
+                return;
+            }
+
+            // Assert that the decrypted splits cache does not already contain a flit
+            ASSERT(!ncDecryptedFlitsCache[key]);
+
             // We can safely cache the flit now
-            EV_DEBUG << "Caching decrypted split \"" << flit->getName() << "\" from " << source << " with ID " << id << " and GEV " << gev << std::endl;
-            gevCache.emplace(gev, flit);
+            EV_DEBUG << "Caching decrypted flit \"" << flit->getName() << "\" from " << source << " with ID " << id << std::endl;
+            ncDecryptedFlitsCache[key] = flit;
 
             // Try to send out the decrypted flit
-            ncTrySendToApp(key, gev);
+            ncTrySendToApp(key);
         }
-        else if(status == STATUS_VERIFYING) {
-            flit->setStatus(STATUS_NONE);
-
+        else if(mode == MODE_SPLIT_NC) {
             // This is a computed MAC arriving from a crypto unit
             // Get parameters
+            uint32_t id = flit->getGidOrFid();
+            IdSourceKey key = std::make_pair(id, source);
             GevCache& gevCache = ncComputedMacsCache[key];
+            uint16_t gev = flit->getGev();
 
-            // Assert that the decrypted data cache does not contain a flit with this GEV
+            // Check if this generation is already finished
+            const IdSet& finishedIdSet = finishedIds[source].first;
+            if(finishedIdSet.count(id)) {
+                EV_DEBUG << "Received a computed MAC for finished GID " << id << " (GEV " << gev << ")" << std::endl;
+                delete flit;
+                return;
+            }
+
+            // Assert that the computed MAC cache does not contain a flit with this GEV
             ASSERT(!gevCache.count(gev));
 
             // We can safely cache the flit now
@@ -411,7 +388,7 @@ void ArrivalManagerSplit::handleCryptoMessage(Flit* flit) {
             ncTryVerification(key, gev);
         }
         else {
-            throw cRuntimeError(this, "Crypto unit sent flit with unexpected status %u (Source: %s, ID: %u)", status, source.str().c_str(), id);
+            throw cRuntimeError(this, "Crypto unit sent flit with unexpected mode %u (Source: %s)", mode, source.str().c_str());
         }
     }
 }
@@ -437,7 +414,7 @@ void ArrivalManagerSplit::handleArqTimer(ArqTimer* timer) {
     }
 
     // Check network coding
-    if(ncMode == NC_UNCODED) {
+    if(!networkCoding) {
         ArqMode arqMode;
 
         // Check what is missing
@@ -462,7 +439,7 @@ void ArrivalManagerSplit::handleArqTimer(ArqTimer* timer) {
         // Issue the ARQ
         ucIssueArq(key, arqMode);
     }
-    else { // ncMode != uncoded
+    else { // network coded
         // Get parameters
         const GevCache& receivedSplits = ncReceivedSplitsCache[key];
 
@@ -480,24 +457,44 @@ void ArrivalManagerSplit::handleArqTimer(ArqTimer* timer) {
     }
 }
 
-void ArrivalManagerSplit::ucStartDecryptAndAuth(const IdSourceKey& key, Mode mode) {
+void ArrivalManagerSplit::ucTryStartMergeDecryptAndAuth(const IdSourceKey& key, Mode mode) {
     ASSERT(mode == MODE_SPLIT_1 || mode == MODE_SPLIT_2);
 
     // Retrieve the requested split from the cache and send a copy out
-    // for decryption and authentication
+    // for authentication
     // We use a copy here so that we don't have to remove the split from the cache,
     // which is still used to check if the split has already arrived
     if(mode == MODE_SPLIT_1) {
-        EV_DEBUG << "Starting first split decryption for \"" << ucReceivedSplitsCache.at(key).first->getName()
+        EV_DEBUG << "Starting first split verification for \"" << ucReceivedSplitsCache.at(key).first->getName()
                  << "\" (source: " << key.second << ", ID: " << key.first << ")" << std::endl;
         Flit* copy = ucReceivedSplitsCache.at(key).first->dup();
-        send(copy, "cryptoOut");
+        send(copy, "verOut");
     }
     else {
-        EV_DEBUG << "Starting second split decryption for \"" << ucReceivedSplitsCache.at(key).second->getName()
+        EV_DEBUG << "Starting second split verification for \"" << ucReceivedSplitsCache.at(key).second->getName()
                  << "\" (source: " << key.second << ", ID: " << key.first << ")" << std::endl;
         Flit* copy = ucReceivedSplitsCache.at(key).second->dup();
-        send(copy, "cryptoOut");
+        send(copy, "verOut");
+    }
+
+    // Try to send the split pair to the decoder
+    ucTrySendToDecoder(key);
+}
+
+void ArrivalManagerSplit::ucTrySendToDecoder(const IdSourceKey& key) {
+    // Check that we have received both splits
+    SplitPair& splitPair = ucReceivedSplitsCache.at(key);
+    if(splitPair.first && splitPair.second) {
+        // Debug log
+        EV_DEBUG << "Starting split pair decoding and decryption (source: "
+                 << key.second << ", ID: " << key.first << ")" << std::endl;
+
+        // Send copies to the decoder
+        send(splitPair.first->dup(), "decOut");
+        send(splitPair.second->dup(), "decOut");
+
+        // Set decryption candidate status
+        ucDecryptionCandidate[key] = true;
     }
 }
 
@@ -519,7 +516,7 @@ void ArrivalManagerSplit::ucTryVerification(const IdSourceKey& key, Mode mode) {
                  << ", ID: " << key.first << ")" << std::endl;
         (mode == MODE_SPLIT_1 ? ucVerified[key].first : ucVerified[key].second) = true;
 
-        // Try to send out the decrypted splits
+        // Try to send out the decrypted flit
         ucTrySendToApp(key);
 
         // Check if there is a planned ARQ waiting for ongoing verifications to finish
@@ -544,10 +541,19 @@ void ArrivalManagerSplit::ucTryVerification(const IdSourceKey& key, Mode mode) {
         // Clear received cache to ensure we can receive the retransmission
         ucDeleteFromCache(ucReceivedSplitsCache, key, mode);
 
-        // Also clear the decrypted split or, in case it has not arrived yet,
-        // mark that it will be discarded on arrival
-        if(!ucDeleteFromCache(ucDecryptedSplitsCache, key, mode))
-            ++(mode == MODE_SPLIT_1 ? ucDiscardDecrypting[key].first : ucDiscardDecrypting[key].second);
+        // Check if this is the first authentication fail from the current decryption candidate
+        if(ucDecryptionCandidate.at(key)) {
+            EV_DEBUG << "Clearing decryption candidate (source: "
+                     << key.second << ", ID: " << key.first << ")" << std::endl;
+
+            // Clear the decrypted flit or, in case it has not arrived yet,
+            // mark that it will be discarded on arrival
+            if(!deleteFromCache(ucDecryptedFlitsCache, key))
+                ++ucDiscardDecrypting[key];
+
+            // Clear the decryption candidate
+            ucDecryptionCandidate.at(key) = false;
+        }
 
         // Also clear the computed MAC to ensure that we don't compare the next
         // received split against the wrong MAC
@@ -556,19 +562,17 @@ void ArrivalManagerSplit::ucTryVerification(const IdSourceKey& key, Mode mode) {
 }
 
 void ArrivalManagerSplit::ucTrySendToApp(const IdSourceKey& key) {
-    // Check if both decrypted splits are present and both MACs were successfully verified
-    SplitCache::iterator decSplitIter = ucDecryptedSplitsCache.find(key);
+    // Check if the decrypted flit is present and both MACs were successfully verified
+    FlitCache::iterator decFlitIter = ucDecryptedFlitsCache.find(key);
     PairVerCache::iterator compMacIter = ucVerified.find(key);
-    if(decSplitIter != ucDecryptedSplitsCache.end() && compMacIter != ucVerified.end()) {
-        const SplitPair& decSplits = decSplitIter->second;
+    if(decFlitIter != ucDecryptedFlitsCache.end() && compMacIter != ucVerified.end()) {
         const std::pair<bool, bool>& verifications = compMacIter->second;
 
-        if(decSplits.first && decSplits.second && verifications.first && verifications.second) {
-            // Send out copies of the decrypted data splits
-            // We use copies here to avoid potential conflicts with cleanup
-            EV_DEBUG << "Sending out decrypted data splits: source " << key.second << ", ID " << key.first << std::endl;
-            send(decSplits.first->dup(), "appOut");
-            send(decSplits.second->dup(), "appOut");
+        if(decFlitIter->second && verifications.first && verifications.second) {
+            // Send out a copy of the decrypted flit
+            // We use a copy here to avoid potential conflicts with cleanup
+            EV_DEBUG << "Sending out decrypted flit: source " << key.second << ", ID " << key.first << std::endl;
+            send(decFlitIter->second->dup(), "appOut");
 
             // This split pair is done, initiate cleanup
             ucCleanUp(key);
@@ -662,7 +666,7 @@ void ArrivalManagerSplit::ucCleanUp(const IdSourceKey& key) {
 
     // Clear split caches
     ucDeleteFromCache(ucReceivedSplitsCache, key);
-    ucDeleteFromCache(ucDecryptedSplitsCache, key);
+    deleteFromCache(ucDecryptedFlitsCache, key);
     ucDeleteFromCache(ucComputedMacsCache, key);
 
     // Clear verification result
@@ -670,6 +674,9 @@ void ArrivalManagerSplit::ucCleanUp(const IdSourceKey& key) {
 
     // Clear number of issued ARQs
     issuedArqs.erase(key);
+
+    // Clear decryption candidate
+    ucDecryptionCandidate.erase(key);
 
     // Clear corrupted decryption counter
     ucDiscardDecrypting.erase(key);
@@ -738,15 +745,77 @@ bool ArrivalManagerSplit::ucDeleteFromCache(SplitCache& cache, const IdSourceKey
     return false;
 }
 
-void ArrivalManagerSplit::ncStartDecryptAndAuth(const IdSourceKey& key, uint16_t gev) {
+void ArrivalManagerSplit::ncTryStartDecodeMergeDecryptAndAuth(const IdSourceKey& key, uint16_t gev) {
     // Retrieve the requested split from the cache and send a copy out
-    // for decryption and authentication
+    // for authentication
     // We use a copy here so that we don't have to remove the split from the cache,
     // which is still used to check if the split has already arrived
-    EV_DEBUG << "Starting split decryption for \"" << ncReceivedSplitsCache.at(key).at(gev)->getName()
+    EV_DEBUG << "Starting split verification for \"" << ncReceivedSplitsCache.at(key).at(gev)->getName()
              << "\" (source: " << key.second << ", ID: " << key.first << ", GEV: " << gev << ")" << std::endl;
     Flit* copy = ncReceivedSplitsCache.at(key).at(gev)->dup();
-    send(copy, "cryptoOut");
+    send(copy, "verOut");
+
+    // Try to send this split to the decoder
+    ncTrySendToDecoder(key, gev);
+}
+
+void ArrivalManagerSplit::ncTrySendToDecoder(const IdSourceKey& key, uint16_t gev) {
+    // Check that we have not yet sent out a non-corrupted generation to the decoder
+    GevSet& candidate = ncDecryptionCandidate[key];
+
+    if(candidate.size() < generationSize && !candidate.count(gev)) {
+        // Insert this flit so it can be sent out later
+        candidate.insert(gev);
+
+        // Check if we have enough flits to send them to the decoder
+        if(candidate.size() == generationSize) {
+            const GevCache& gevCache = ncReceivedSplitsCache.at(key);
+
+            // Debug log
+            EV_DEBUG << "Starting flit decoding, merging, and decryption for GEVs " << *candidate.begin();
+            for(auto it = ++candidate.begin(); it != candidate.end(); ++it)
+                EV_DEBUG << "+" << *it;
+            EV_DEBUG << " (source: " << key.second << ", ID: " << key.first << ")" << std::endl;
+
+            // Retrieve the flits and send them to the decoder
+            for(auto it = candidate.begin(); it != candidate.end(); ++it) {
+                Flit* decCopy = gevCache.at(*it)->dup();
+                send(decCopy, "decOut");
+            }
+        }
+    }
+}
+
+void ArrivalManagerSplit::ncTrySendToDecoder(const IdSourceKey& key) {
+    // Check that we have not yet sent out a non-corrupted generation to the decoder
+    GevSet& candidate = ncDecryptionCandidate[key];
+
+    if(candidate.size() < generationSize) {
+        GevCache& gevCache = ncReceivedSplitsCache.at(key);
+
+        // Iterate over received flits
+        for(auto it = gevCache.begin(); it != gevCache.end(); ++it) {
+            // Insert this flit so it can be sent out later
+            candidate.insert(it->first);
+
+            // Check if we have enough flits to send them to the decoder
+            if(candidate.size() == generationSize) {
+                // Debug log
+                EV_DEBUG << "Starting flit decoding, merging, and decryption for GEVs " << *candidate.begin();
+                for(auto it = ++candidate.begin(); it != candidate.end(); ++it)
+                    EV_DEBUG << "+" << *it;
+                EV_DEBUG << " (source: " << key.second << ", ID: " << key.first << ")" << std::endl;
+
+                // Retrieve the flits and send them to the decoder
+                for(auto jt = candidate.begin(); jt != candidate.end(); ++jt) {
+                    Flit* decCopy = gevCache.at(*jt)->dup();
+                    send(decCopy, "decOut");
+                }
+
+                break;
+            }
+        }
+    }
 }
 
 void ArrivalManagerSplit::ncTryVerification(const IdSourceKey& key, uint16_t gev) {
@@ -765,8 +834,8 @@ void ArrivalManagerSplit::ncTryVerification(const IdSourceKey& key, uint16_t gev
                  << ", ID: " << key.first << ", GEV: " << gev << ")" << std::endl;
         ncVerified[key].insert(gev);
 
-        // Try to send out the decrypted split
-        ncTrySendToApp(key, gev);
+        // Try to send out the decrypted flit
+        ncTrySendToApp(key);
 
         // Check if there is a planned ARQ waiting for ongoing verifications to finish
         ncTrySendPlannedArq(key);
@@ -790,36 +859,55 @@ void ArrivalManagerSplit::ncTryVerification(const IdSourceKey& key, uint16_t gev
         // Clear received cache to ensure we can receive the retransmission
         ncDeleteFromCache(ncReceivedSplitsCache, key, gev);
 
-        // Also clear the decrypted split or, in case it has not arrived yet,
-        // mark that it will be discarded on arrival
-        if(!ncDeleteFromCache(ncDecryptedSplitsCache, key, gev))
-            ++ncDiscardDecrypting[key][gev];
+        // Check if this is the first authentication fail from the current decryption candidate
+        if(ncDecryptionCandidate.at(key).count(gev)) {
+            // Check if this candidate was already sent to the decoder
+            EV_DEBUG << "Clearing decryption candidate (caused by GEV " << gev << ") (source: "
+                     << key.second << ", ID: " << key.first << ")" << std::endl;
+
+            if(ncDecryptionCandidate.at(key).size() == generationSize) {
+                // Clear the decrypted data flit or, in case it it has not arrived yet,
+                // mark that it will be discarded on arrival
+                if(!deleteFromCache(ncDecryptedFlitsCache, key))
+                    ++ncDiscardDecrypting[key];
+            }
+
+            // Clear the decryption candidate
+            ncDecryptionCandidate.at(key).clear();
+        }
 
         // Also clear the computed MAC to ensure that we don't compare the next
         // received split against the wrong MAC
         ncDeleteFromCache(ncComputedMacsCache, key, gev);
+
+        // Try to send a new combination of GEVs to the decoder, excluding the one that just failed
+        ncTrySendToDecoder(key);
     }
 }
 
-void ArrivalManagerSplit::ncTrySendToApp(const IdSourceKey& key, uint16_t gev) {
+void ArrivalManagerSplit::ncTrySendToApp(const IdSourceKey& key) {
     // Get parameters
-    GevCache& decSplitsCache = ncDecryptedSplitsCache[key];
+    GevSet& decCandidate = ncDecryptionCandidate[key];
+    GevSet& verCache = ncVerified[key];
 
-    // Check if decrypted split is present and MAC was successfully verified
-    GevCache::iterator decSplit = decSplitsCache.find(gev);
-    if(decSplit != decSplitsCache.end() && ncVerified[key].count(gev)) {
-        // Send out a copy of the decrypted split
-        // We use a copy here to avoid potential conflicts with cleanup
-        EV_DEBUG << "Sending out decrypted split: source " << key.second << ", ID " << key.first << ", GEV " << gev << std::endl;
-        Flit* copy = decSplit->second->dup();
-        send(copy, "appOut");
+    // Are there enough flits?
+    if(decCandidate.size() < generationSize || !ncDecryptedFlitsCache[key])
+        return;
 
-        // Insert this GEV into the dispatched GEV set for this generation
-        ncDispatchedGevs[key].insert(gev);
-
-        // Check if this generation is done
-        ncCheckGenerationDone(key, decSplit->second->getGenSize());
+    // Check if the MACs were successfully verified
+    for(auto it = decCandidate.begin(); it != decCandidate.end(); ++it) {
+        if(!verCache.count(*it))
+            return;
     }
+
+    // Send out a copy of the decrypted data flit
+    // We use a copy here to avoid potential conflicts with cleanup
+    EV_DEBUG << "Sending out decrypted flit: source " << key.second << ", ID " << key.first << std::endl;
+    Flit* copy = ncDecryptedFlitsCache[key]->dup();
+    send(copy, "appOut");
+
+    // Clean up this generation
+    ncCleanUp(key);
 }
 
 void ArrivalManagerSplit::ncIssueArq(const IdSourceKey& key, Mode mode, const GevArqMap& arqModes, Messages::NcMode ncMode) {
@@ -892,23 +980,13 @@ void ArrivalManagerSplit::ncTrySendPlannedArq(const IdSourceKey& key, bool force
     }
 }
 
-void ArrivalManagerSplit::ncCheckGenerationDone(const IdSourceKey& key, unsigned short generationSize) {
-    // Check if we have sent enough data flits to the app in order
-    // to decode this generation
-    GevSet& dispatchedGevs = ncDispatchedGevs[key];
-    if(dispatchedGevs.size() >= generationSize) {
-        // Clean up whole generation
-        ncCleanUp(key);
-    }
-}
-
 void ArrivalManagerSplit::ncCleanUp(const IdSourceKey& key) {
     // Clean up all information related to this ID/address
     EV_DEBUG << "Fully cleaning up: source " << key.second << ", ID " << key.first << std::endl;
 
     // Clear data/MAC caches
     ncDeleteFromCache(ncReceivedSplitsCache, key);
-    ncDeleteFromCache(ncDecryptedSplitsCache, key);
+    deleteFromCache(ncDecryptedFlitsCache, key);
     ncDeleteFromCache(ncComputedMacsCache, key);
 
     // Clear verification results
@@ -917,8 +995,8 @@ void ArrivalManagerSplit::ncCleanUp(const IdSourceKey& key) {
     // Clear number of issued ARQs
     issuedArqs.erase(key);
 
-    // Clear dispatched GEV set
-    ncDispatchedGevs.erase(key);
+    // Clear decryption candidate
+    ncDecryptionCandidate.erase(key);
 
     // Clear corrupted decryption counter
     ncDiscardDecrypting.erase(key);
@@ -975,6 +1053,16 @@ bool ArrivalManagerSplit::ncDeleteFromCache(GenCache& cache, const IdSourceKey& 
             outerIter->second.erase(innerIter);
             return true;
         }
+    }
+    return false;
+}
+
+bool ArrivalManagerSplit::deleteFromCache(FlitCache& cache, const IdSourceKey& key) {
+    FlitCache::iterator element = cache.find(key);
+    if(element != cache.end()) {
+        delete element->second;
+        cache.erase(element);
+        return true;
     }
     return false;
 }

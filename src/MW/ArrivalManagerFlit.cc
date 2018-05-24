@@ -408,7 +408,15 @@ void ArrivalManagerFlit::handleCryptoMessage(Flit* flit) {
             GevCache& gevCache = ncComputedMacCache[key];
             uint16_t gev = flit->getGev();
 
-            // Assert that the decrypted data cache does not contain a flit with this GEV
+            // Check if this generation is already finished
+            const IdSet& finishedIdSet = finishedIds[source].first;
+            if(finishedIdSet.count(id)) {
+                EV_DEBUG << "Received a computed MAC for finished GID " << id << " (GEV " << gev << ")" << std::endl;
+                delete flit;
+                return;
+            }
+
+            // Assert that the computed MAC cache does not contain a flit with this GEV
             ASSERT(!gevCache.count(gev));
 
             // We can safely cache the flit now
