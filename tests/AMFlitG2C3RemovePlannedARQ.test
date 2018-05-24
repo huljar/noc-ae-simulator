@@ -103,22 +103,20 @@ network Test {
 %contains-regex: stdout
 Initiating planned ARQ.*
 Canceling planned ARQ.*
-13 Got flit flit3-dec
+14 Got flit uc-222-s\(1,0\)-t\(0,0\)-dec
 Source \(1,0\)
 Target \(0,0\)
-GID 123
-GEV 43
+FID 222
 Mode MODE_DATA
 .*
-14 Got flit flit4-dec
+14 Got flit uc-333-s\(1,0\)-t\(0,0\)-dec
 Source \(1,0\)
 Target \(0,0\)
-GID 123
-GEV 44
+FID 333
 Mode MODE_DATA
 
 %not-contains: stdout
-.*Got ARQ
+Got ARQ
 
 %not-contains: stdout
 undisposed object:

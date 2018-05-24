@@ -98,14 +98,6 @@ network Test {
 }
 
 %contains-regex: stdout
-Got flit flit1-dec
-Source \(3,3\)
-Target \(0,0\)
-GID 123
-GEV 123
-Mode MODE_DATA
-NC mode NC_G2C3
-.*
 Got ARQ arq-123-s\(0,0\)-t\(3,3\)
 Source \(0,0\)
 Target \(3,3\)
@@ -115,13 +107,19 @@ Mode MODE_ARQ_TELL_MISSING
 NC mode NC_G2C3
 ARQ modes \(321,ARQ_DATA_MAC\)
 .*
-Got flit flit3-new-dec
+Got flit uc-34-s\(3,3\)-t\(0,0\)-dec
 Source \(3,3\)
 Target \(0,0\)
-GID 123
-GEV 321
+FID 34
 Mode MODE_DATA
-NC mode NC_G2C3
+NC mode NC_UNCODED
+.*
+Got flit uc-35-s\(3,3\)-t\(0,0\)-dec
+Source \(3,3\)
+Target \(0,0\)
+FID 35
+Mode MODE_DATA
+NC mode NC_UNCODED
 
 %not-contains: stdout
 ARQ timeout triggered

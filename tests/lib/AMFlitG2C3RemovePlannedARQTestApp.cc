@@ -27,15 +27,9 @@ void AMFlitG2C3RemovePlannedARQTestApp::initialize() {
     // Send parts of a generation
     Flit* f1 = MessageFactory::createFlit("flit1", Address2D(1, 0), Address2D(0, 0), MODE_MAC, 123, 42, NC_G2C3);
     take(f1);
-    f1->setOriginalIdsArraySize(2);
-    f1->setOriginalIds(0, 222);
-    f1->setOriginalIds(1, 333);
 
     Flit* f2 = MessageFactory::createFlit("flit2", Address2D(1, 0), Address2D(0, 0), MODE_MAC, 123, 43, NC_G2C3);
     take(f2);
-    f2->setOriginalIdsArraySize(2);
-    f2->setOriginalIds(0, 222);
-    f2->setOriginalIds(1, 333);
 
     Flit* f3 = MessageFactory::createFlit("flit3", Address2D(1, 0), Address2D(0, 0), MODE_DATA, 123, 43, NC_G2C3);
     take(f3);
@@ -82,8 +76,7 @@ void AMFlitG2C3RemovePlannedARQTestApp::handleMessage(cMessage* msg) {
         EV << clock->getCurrentCycle() << " Got flit " << f->getName() << std::endl
            << "Source " << f->getSource() << std::endl
            << "Target " << f->getTarget() << std::endl
-           << "GID " << f->getGidOrFid() << std::endl
-           << "GEV " << f->getGev() << std::endl
+           << "FID " << f->getGidOrFid() << std::endl
            << "Mode " << cEnum::get("HaecComm::Messages::Mode")->getStringFor(f->getMode()) << std::endl;
     }
     else if(strcmp(f->getArrivalGate()->getName(), "arqIn") == 0) {
