@@ -30,6 +30,7 @@ simple ArrivalManagerSplit like IArrivalManager {
         input  netIn;
         input  cryptoIn;
         output appOut;
-        output cryptoOut;
+        output decOut;
+        output verOut;
         output arqOut;
 }

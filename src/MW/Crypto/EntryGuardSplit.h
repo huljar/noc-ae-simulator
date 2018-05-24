@@ -50,7 +50,8 @@ protected:
 
     Buffers::PacketQueueBase* appInputQueue;
     Buffers::PacketQueueBase* exitInputQueue;
-    Buffers::PacketQueueBase* netInputQueue;
+    Buffers::PacketQueueBase* decInputQueue;
+    Buffers::PacketQueueBase* verInputQueue;
 
     std::map<int, simsignal_t> encBusySignals;
     std::map<int, simsignal_t> authBusySignals;

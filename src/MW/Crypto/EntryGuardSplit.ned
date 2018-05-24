@@ -30,7 +30,8 @@ simple EntryGuardSplit {
     gates:
         input  appIn;
         input  exitIn;
-        input  netIn;
+        input  decIn;
+        input  verIn;
         output encOut[];
         output authOut[];
 }
