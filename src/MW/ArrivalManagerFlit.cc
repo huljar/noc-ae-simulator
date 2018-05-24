@@ -696,6 +696,12 @@ void ArrivalManagerFlit::ncTrySendToDecoder(const IdSourceKey& key, uint16_t gev
         if(candidate.size() == generationSize) {
             const GevCache& gevCache = ncReceivedDataCache.at(key);
 
+            // Debug log
+            EV_DEBUG << "Starting flit decoding and decryption for GEVs " << *candidate.begin();
+            for(auto it = ++candidate.begin(); it != candidate.end(); ++it)
+                EV_DEBUG << "+" << *it;
+            EV_DEBUG << " (source: " << key.second << ", ID: " << key.first << ")" << std::endl;
+
             // Retrieve the flits and send them to the decoder
             for(auto it = candidate.begin(); it != candidate.end(); ++it) {
                 Flit* decCopy = gevCache.at(*it)->dup();
@@ -710,22 +716,29 @@ void ArrivalManagerFlit::ncTrySendToDecoder(const IdSourceKey& key) {
     GevSet& candidate = ncDecryptionCandidate[key];
 
     if(candidate.size() < generationSize) {
-        // Iterate over received flits
         GevCache& gevCache = ncReceivedDataCache.at(key);
+
+        // Iterate over received flits
         for(auto it = gevCache.begin(); it != gevCache.end(); ++it) {
             // Insert this flit so it can be sent out later
             candidate.insert(it->first);
 
             // Check if we have enough flits to send them to the decoder
             if(candidate.size() == generationSize) {
+                // Debug log
+                EV_DEBUG << "Starting flit decoding and decryption for GEVs " << *candidate.begin();
+                for(auto it = ++candidate.begin(); it != candidate.end(); ++it)
+                    EV_DEBUG << "+" << *it;
+                EV_DEBUG << " (source: " << key.second << ", ID: " << key.first << ")" << std::endl;
+
                 // Retrieve the flits and send them to the decoder
                 for(auto jt = candidate.begin(); jt != candidate.end(); ++jt) {
                     Flit* decCopy = gevCache.at(*jt)->dup();
                     send(decCopy, "decOut");
                 }
-            }
 
-            break;
+                break;
+            }
         }
     }
 }
@@ -780,6 +793,9 @@ void ArrivalManagerFlit::ncTryVerification(const IdSourceKey& key, uint16_t gev)
             // Check if this is the first authentication fail from the current decryption candidate
             if(ncDecryptionCandidate.at(key).count(gev)) {
                 // Check if this candidate was already sent to the decoder
+                EV_DEBUG << "Clearing decryption candidate (caused by GEV " << gev << ") (source: "
+                         << key.second << ", ID: " << key.first << ")" << std::endl;
+
                 if(ncDecryptionCandidate.at(key).size() == generationSize) {
                     // Clear the decrypted data flits or, in case it some have not arrived yet,
                     // mark that they will be discarded on arrival

@@ -3,7 +3,7 @@ Test arrival manager: network coded (G2C3) data/mac flit pairs
 
 %inifile: omnetpp.ini
 [General]
-sim-time-limit = 100ns
+sim-time-limit = 200ns
 **.cmdenv-log-level = debug
 
 **.networkCoding = true
@@ -121,8 +121,53 @@ FID 35
 Mode MODE_DATA
 NC mode NC_UNCODED
 
-%not-contains: stdout
-ARQ timeout triggered
+%contains-regex: stdout
+Got ARQ arq-12-s\(0,0\)-t\(3,3\)
+Source \(0,0\)
+Target \(3,3\)
+GID 12
+GEV 0
+Mode MODE_ARQ_TELL_MISSING
+NC mode NC_G2C3
+ARQ modes \(34,ARQ_DATA_MAC\)
+.*
+Got flit uc-1-s\(3,3\)-t\(0,0\)-dec
+Source \(3,3\)
+Target \(0,0\)
+FID 1
+Mode MODE_DATA
+NC mode NC_UNCODED
+.*
+Got flit uc-2-s\(3,3\)-t\(0,0\)-dec
+Source \(3,3\)
+Target \(0,0\)
+FID 2
+Mode MODE_DATA
+NC mode NC_UNCODED
+
+%contains-regex: stdout
+Got ARQ arq-14-s\(0,0\)-t\(3,1\)
+Source \(0,0\)
+Target \(3,1\)
+GID 14
+GEV 0
+Mode MODE_ARQ_TELL_MISSING
+NC mode NC_G2C4
+ARQ modes \(56,ARQ_DATA_MAC\)\(57,ARQ_DATA_MAC\)
+.*
+Got flit uc-3-s\(3,1\)-t\(0,0\)-dec
+Source \(3,1\)
+Target \(0,0\)
+FID 3
+Mode MODE_DATA
+NC mode NC_UNCODED
+.*
+Got flit uc-4-s\(3,1\)-t\(0,0\)-dec
+Source \(3,1\)
+Target \(0,0\)
+FID 4
+Mode MODE_DATA
+NC mode NC_UNCODED
 
 %not-contains: stdout
 undisposed object:
