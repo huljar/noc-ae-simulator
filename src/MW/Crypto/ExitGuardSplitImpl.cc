@@ -39,29 +39,40 @@ void ExitGuardSplitImpl::handleMessage(cMessage* msg) {
         return;
     }
 
-    // Check flit status flag
-    if(flit->getStatus() == STATUS_ENCRYPTING) {
-        ASSERT(strcmp(flit->getArrivalGate()->getName(), "encIn") == 0);
+    // Get parameters
+    Status status = static_cast<Status>(flit->getStatus());
 
-        // Send encrypted split back for authentication
+    // Check flit status flag
+    if(status == STATUS_ENCRYPTING) {
+        ASSERT(strcmp(flit->getArrivalGate()->getName(), "encIn") == 0);
+        ASSERT(flit->getNcMode() == NC_UNCODED);
+
+        // Send encrypted flit to the splitter (and encoder in case of network coding)
+        flit->setStatus(STATUS_ENCODING);
+        send(flit, "encoderOut");
+    }
+    else if(status == STATUS_ENCODING) {
+        ASSERT(strcmp(flit->getArrivalGate()->getName(), "encoderIn") == 0);
+
+        // Send (possibly encoded) split back for authentication
         flit->setStatus(STATUS_NONE);
         send(flit, "entryOut");
     }
-    else if(flit->getStatus() == STATUS_AUTHENTICATING) {
+    else if(status == STATUS_AUTHENTICATING) {
         ASSERT(strcmp(flit->getArrivalGate()->getName(), "authIn") == 0);
 
         // Send encrypted and authenticated split out to the network
         flit->setStatus(STATUS_NONE);
         send(flit, "netOut");
     }
-    else if(flit->getStatus() == STATUS_DECRYPTING) {
+    else if(status == STATUS_DECRYPTING) {
         ASSERT(strcmp(flit->getArrivalGate()->getName(), "encIn") == 0);
 
         // Send decrypted split back to the app
         flit->setStatus(STATUS_NONE);
         send(flit, "appOut");
     }
-    else if(flit->getStatus() == STATUS_VERIFYING) {
+    else if(status == STATUS_VERIFYING) {
         ASSERT(strcmp(flit->getArrivalGate()->getName(), "authIn") == 0);
 
         // Send verification MAC back to the app

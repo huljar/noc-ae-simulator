@@ -74,6 +74,7 @@ void ExitGuardFlitImpl::handleMessage(cMessage* msg) {
         }
     }
     else if(status == STATUS_ENCODING) {
+        ASSERT(strcmp(flit->getArrivalGate()->getName(), "encoderIn") == 0);
         ASSERT(encode);
         ASSERT(flit->getNcMode() != NC_UNCODED);
 

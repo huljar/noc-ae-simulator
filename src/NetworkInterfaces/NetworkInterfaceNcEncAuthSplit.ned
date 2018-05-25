@@ -43,22 +43,10 @@ module NetworkInterfaceNcEncAuthSplit like INetworkInterface {
         //# app->net
         appInputQueue: PacketQueue {
             @display("p=80,280");
-        }
-        flitSplitter: FlitSplitter {
-            @display("p=180,280");
-        }
-        encoder: Encoder {
-            @display("p=280,280");
-            generationSize = generationSize;
-            numCombinations = numCombinations;
-            internalType = "HaecComm.MW.NetworkCoding.EncoderImplSplit";
-        }
-        appCryptoQueue: PacketQueue {
-            @display("p=380,280");
             awaitSendRequests = true;
         }
         entryGuard: EntryGuardSplit {
-            @display("p=480,300");
+            @display("p=250,300");
             busyCyclesEnc = encCycles;
             busyCyclesAuth = authCycles;
             gates:
@@ -74,13 +62,22 @@ module NetworkInterfaceNcEncAuthSplit like INetworkInterface {
             computeCycles = authCycles;
         }
         exitGuard: ExitGuardSplit {
-            @display("p=650,300");
+            @display("p=550,300");
             gates:
                 encIn[encUnits];
                 authIn[authUnits];
         }
+        flitSplitter: FlitSplitter {
+            @display("p=620,220");
+        }
+        encoder: Encoder {
+            @display("p=540,220");
+            generationSize = generationSize;
+            numCombinations = numCombinations;
+            internalType = "HaecComm.MW.NetworkCoding.EncoderImplSplit";
+        }
         authCryptoQueue: PacketQueue {
-            @display("p=565,320");
+            @display("p=415,320");
             awaitSendRequests = true;
         }
         retransmissionBuffer: RetransmissionBuffer {
@@ -94,36 +91,34 @@ module NetworkInterfaceNcEncAuthSplit like INetworkInterface {
 
         //# net->app
         routerInputQueue: PacketQueue {
-            @display("p=850,450");
-        }
-        arqSplitter: ArqSplitter {
             @display("p=750,450");
         }
-        arrivalManager: ArrivalManagerSplit {
-            @display("p=600,450");
+        arqSplitter: ArqSplitter {
+            @display("p=650,450");
         }
-        netCryptoQueue: PacketQueue {
-            @display("p=500,380");
+        arrivalManager: ArrivalManagerSplit {
+            @display("p=500,450");
+        }
+        verCryptoQueue: PacketQueue {
+            @display("p=380,380");
             awaitSendRequests = true;
         }
-        decoderQueue: PacketQueue {
-            @display("p=380,450");
+        decCryptoQueue: PacketQueue {
+            @display("p=260,380");
+            awaitSendRequests = true;
         }
         decoder: Decoder {
-            @display("p=280,450");
+            @display("p=400,450");
             generationSize = generationSize;
             numCombinations = numCombinations;
             internalType = "HaecComm.MW.NetworkCoding.DecoderImplSplit";
         }
         splitMerger: SplitMerger {
-            @display("p=180,450");
+            @display("p=320,440");
         }
     connections:
         app$i --> appInputQueue.in;
-        appInputQueue.out --> flitSplitter.in;
-        encoder.in <-- flitSplitter.out;
-        encoder.out --> appCryptoQueue.in;
-        entryGuard.appIn <-- appCryptoQueue.out;
+        entryGuard.appIn <-- appInputQueue.out;
         entryGuard.exitIn <-- authCryptoQueue.out;
 
         for i=0..encUnits-1 {
@@ -143,15 +138,20 @@ module NetworkInterfaceNcEncAuthSplit like INetworkInterface {
         router$i --> routerInputQueue.in;
         arqSplitter.in <-- routerInputQueue.out;
         arqSplitter.othersOut --> arrivalManager.netIn;
-        arrivalManager.cryptoOut --> netCryptoQueue.in;
-        arrivalManager.appOut --> decoderQueue.in;
-        decoder.in <-- decoderQueue.out;
+        arrivalManager.verOut --> verCryptoQueue.in;
+        arrivalManager.decOut --> decoder.in;
+        arrivalManager.appOut --> app$o;
+        
         decoder.out --> splitMerger.in;
-        splitMerger.out --> app$o;
+        decCryptoQueue.in <-- splitMerger.out;
+        decCryptoQueue.out --> entryGuard.decIn;
 
         arqSplitter.arqOut --> retransmissionBuffer.arqIn;
         exitGuard.appOut --> arrivalManager.cryptoIn;
         arrivalManager.arqOut --> netStream.in[1];
-        entryGuard.netIn <-- netCryptoQueue.out;
+        entryGuard.verIn <-- verCryptoQueue.out;
         exitGuard.entryOut --> authCryptoQueue.in;
+        exitGuard.encoderOut --> flitSplitter.in;
+        encoder.in <-- flitSplitter.out;
+        encoder.out --> exitGuard.encoderIn;
 }

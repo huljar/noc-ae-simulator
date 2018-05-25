@@ -24,7 +24,9 @@ simple ExitGuardSplitImpl {
     gates:
         input  encIn[];
         input  authIn[];
+        input  encoderIn;
         output netOut;
         output appOut;
         output entryOut;
+        output encoderOut;
 }

@@ -23,9 +23,11 @@ module ExitGuardSplit {
     gates:
         input  encIn[];
         input  authIn[];
+        input  encoderIn;
         output netOut;
         output appOut;
         output entryOut;
+        output encoderOut;
     submodules:
         exitGuard: ExitGuardSplitImpl {
             @display("p=80,120");
@@ -57,4 +59,7 @@ module ExitGuardSplit {
         appOut <-- appSerializer.out;
         
         entryOut <-- exitGuard.entryOut;
+        
+        encoderIn --> exitGuard.encoderIn;
+        encoderOut <-- exitGuard.encoderOut;
 }
