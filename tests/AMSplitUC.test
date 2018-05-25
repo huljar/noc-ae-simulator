@@ -27,10 +27,13 @@ sim-time-limit = 100ns
 import HaecComm.Core.Clock;
 import HaecComm.Buffers.PacketQueue;
 import HaecComm.MW.ArrivalManagerSplit;
+import HaecComm.MW.FlitSplitter;
+import HaecComm.MW.SplitMerger;
 import HaecComm.MW.Crypto.*;
 
 network Test {
     parameters:
+        bool useGlobalTransmissionIds = false;
         bool networkCoding;
         int generationSize;
         int rows = 4;
@@ -44,7 +47,9 @@ network Test {
         am: ArrivalManagerSplit;
         appQ: PacketQueue;
         authQ: PacketQueue;
-        netQ: PacketQueue;
+        verQ: PacketQueue;
+        decQ: PacketQueue;
+        splitMerger: SplitMerger;
         entryGuard: EntryGuardSplit {
             gates:
                 encOut[encUnits];
@@ -57,20 +62,28 @@ network Test {
                 encIn[encUnits];
                 authIn[authUnits];
         }
+        flitSplitter: FlitSplitter;
         testapp: AMSplitUCTestApp;
     connections:
         testapp.appIn <-- am.appOut;
         testapp.arqIn <-- am.arqOut;
         testapp.netOut --> am.netIn;
 
-        am.cryptoOut --> netQ.in;
-        entryGuard.netIn <-- netQ.out;
+        am.verOut --> verQ.in;
+        entryGuard.verIn <-- verQ.out;
+
+        am.decOut --> splitMerger.in;
+        decQ.in <-- splitMerger.out;
+        entryGuard.decIn <-- decQ.out;
 
         testapp.appQOut --> appQ.in;
         entryGuard.appIn <-- appQ.out;
 
         exitGuard.entryOut --> authQ.in;
         entryGuard.exitIn <-- authQ.out;
+
+        exitGuard.encoderOut --> flitSplitter.in;
+        exitGuard.encoderIn <-- flitSplitter.out;
 
         for i=0..encUnits-1 {
             encUnit[i].in <-- entryGuard.encOut[i];
@@ -91,13 +104,7 @@ Got flit flit1-dec
 Source \(3,3\)
 Target \(0,0\)
 FID 123
-Mode MODE_SPLIT_1
-.*
-Got flit flit2-dec
-Source \(3,3\)
-Target \(0,0\)
-FID 123
-Mode MODE_SPLIT_2
+Mode MODE_DATA
 .*
 Got ARQ arq-666-s\(0,0\)-t\(3,3\)
 Source \(0,0\)
@@ -124,25 +131,13 @@ Got flit flit3-dec
 Source \(3,3\)
 Target \(0,0\)
 FID 666
-Mode MODE_SPLIT_1
-.*
-Got flit flit4-new-dec
-Source \(3,3\)
-Target \(0,0\)
-FID 666
-Mode MODE_SPLIT_2
+Mode MODE_DATA
 .*
 Got flit flit7-new-dec
 Source \(2,3\)
 Target \(0,0\)
 FID 888
-Mode MODE_SPLIT_1
-.*
-Got flit flit8-new-dec
-Source \(2,3\)
-Target \(0,0\)
-FID 888
-Mode MODE_SPLIT_2
+Mode MODE_DATA
 
 %contains: stdout
 ARQ timeout triggered for source (3,3), ID 777

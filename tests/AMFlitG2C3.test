@@ -146,15 +146,6 @@ Mode MODE_DATA
 NC mode NC_UNCODED
 
 %contains-regex: stdout
-Got ARQ arq-14-s\(0,0\)-t\(3,1\)
-Source \(0,0\)
-Target \(3,1\)
-GID 14
-GEV 0
-Mode MODE_ARQ_TELL_MISSING
-NC mode NC_G2C4
-ARQ modes \(56,ARQ_DATA_MAC\)\(57,ARQ_DATA_MAC\)
-.*
 Got flit uc-3-s\(3,1\)-t\(0,0\)-dec
 Source \(3,1\)
 Target \(0,0\)
@@ -168,6 +159,9 @@ Target \(0,0\)
 FID 4
 Mode MODE_DATA
 NC mode NC_UNCODED
+
+%not-contains: stdout
+Got ARQ arq-14-
 
 %not-contains: stdout
 undisposed object:

@@ -51,7 +51,7 @@ void AMFlitG2C3TestApp::initialize() {
     sendDelayed(f9, SimTime(68, SIMTIME_NS), "netOut");
     sendDelayed(f10, SimTime(70, SIMTIME_NS), "netOut");
 
-    // Test removing both flits from decryption candidate
+    // Test removing both flits from decryption candidate (G2C4)
     Flit* f11 = MessageFactory::createFlit("flit11", Address2D(3, 1), Address2D(0, 0), MODE_DATA, 14, 56, NC_G2C4, {3, 4});
     Flit* f12 = MessageFactory::createFlit("flit12", Address2D(3, 1), Address2D(0, 0), MODE_DATA, 14, 57, NC_G2C4, {3, 4});
     Flit* f13 = MessageFactory::createFlit("flit13", Address2D(3, 1), Address2D(0, 0), MODE_MAC, 14, 56, NC_G2C4);

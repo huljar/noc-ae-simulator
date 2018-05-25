@@ -27,10 +27,13 @@ sim-time-limit = 100ns
 import HaecComm.Core.Clock;
 import HaecComm.Buffers.PacketQueue;
 import HaecComm.MW.ArrivalManagerSplit;
+import HaecComm.MW.FlitSplitter;
+import HaecComm.MW.SplitMerger;
 import HaecComm.MW.Crypto.*;
 
 network Test {
     parameters:
+        bool useGlobalTransmissionIds = false;
         bool networkCoding;
         int generationSize;
         int rows = 4;
@@ -44,7 +47,9 @@ network Test {
         am: ArrivalManagerSplit;
         appQ: PacketQueue;
         authQ: PacketQueue;
-        netQ: PacketQueue;
+        verQ: PacketQueue;
+        decQ: PacketQueue;
+        splitMerger: SplitMerger;
         entryGuard: EntryGuardSplit {
             gates:
                 encOut[encUnits];
@@ -57,20 +62,28 @@ network Test {
                 encIn[encUnits];
                 authIn[authUnits];
         }
+        flitSplitter: FlitSplitter;
         testapp: AMSplitUCTimeoutsTestApp;
     connections:
         testapp.appIn <-- am.appOut;
         testapp.arqIn <-- am.arqOut;
         testapp.netOut --> am.netIn;
 
-        am.cryptoOut --> netQ.in;
-        entryGuard.netIn <-- netQ.out;
+        am.verOut --> verQ.in;
+        entryGuard.verIn <-- verQ.out;
+
+        am.decOut --> splitMerger.in;
+        decQ.in <-- splitMerger.out;
+        entryGuard.decIn <-- decQ.out;
 
         testapp.appQOut --> appQ.in;
         entryGuard.appIn <-- appQ.out;
 
         exitGuard.entryOut --> authQ.in;
         entryGuard.exitIn <-- authQ.out;
+
+        exitGuard.encoderOut --> flitSplitter.in;
+        exitGuard.encoderIn <-- flitSplitter.out;
 
         for i=0..encUnits-1 {
             encUnit[i].in <-- entryGuard.encOut[i];

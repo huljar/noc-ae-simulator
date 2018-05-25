@@ -8,6 +8,9 @@ sim-time-limit = 250ns
 
 **.networkCoding = true
 **.generationSize = 2
+**.numCombinations = 3
+
+**.decoder.internalType = "HaecComm.MW.NetworkCoding.DecoderImplSplit"
 
 **.am.arqLimit = 1
 **.am.arqIssueTimeout = 8
@@ -27,10 +30,14 @@ sim-time-limit = 250ns
 import HaecComm.Core.Clock;
 import HaecComm.Buffers.PacketQueue;
 import HaecComm.MW.ArrivalManagerSplit;
+import HaecComm.MW.FlitSplitter;
+import HaecComm.MW.SplitMerger;
 import HaecComm.MW.Crypto.*;
+import HaecComm.MW.NetworkCoding.*;
 
 network Test {
     parameters:
+        bool useGlobalTransmissionIds = false;
         bool networkCoding;
         int generationSize;
         int rows = 4;
@@ -44,7 +51,10 @@ network Test {
         am: ArrivalManagerSplit;
         appQ: PacketQueue;
         authQ: PacketQueue;
-        netQ: PacketQueue;
+        verQ: PacketQueue;
+        decQ: PacketQueue;
+        decoder: Decoder;
+        splitMerger: SplitMerger;
         entryGuard: EntryGuardSplit {
             gates:
                 encOut[encUnits];
@@ -57,20 +67,29 @@ network Test {
                 encIn[encUnits];
                 authIn[authUnits];
         }
+        flitSplitter: FlitSplitter;
         testapp: AMSplitG2C3TimeoutsTestApp;
     connections:
         testapp.appIn <-- am.appOut;
         testapp.arqIn <-- am.arqOut;
         testapp.netOut --> am.netIn;
 
-        am.cryptoOut --> netQ.in;
-        entryGuard.netIn <-- netQ.out;
+        am.verOut --> verQ.in;
+        entryGuard.verIn <-- verQ.out;
+
+        am.decOut --> decoder.in;
+        decoder.out --> splitMerger.in;
+        decQ.in <-- splitMerger.out;
+        entryGuard.decIn <-- decQ.out;
 
         testapp.appQOut --> appQ.in;
         entryGuard.appIn <-- appQ.out;
 
         exitGuard.entryOut --> authQ.in;
         entryGuard.exitIn <-- authQ.out;
+
+        exitGuard.encoderOut --> flitSplitter.in;
+        exitGuard.encoderIn <-- flitSplitter.out;
 
         for i=0..encUnits-1 {
             encUnit[i].in <-- entryGuard.encOut[i];
@@ -87,55 +106,40 @@ network Test {
 }
 
 %contains-regex: stdout
-7 Got flit flit1-dec
-Source \(3,3\)
-Target \(0,0\)
-GID 123
-GEV 1
-Mode MODE_SPLIT_NC
-.*
-8 Got ARQ arq-123-s\(0,0\)-t\(3,3\)
+Got ARQ arq-123-s\(0,0\)-t\(3,3\)
 Source \(0,0\)
 Target \(3,3\)
 GID 123
 Mode MODE_ARQ_TELL_RECEIVED
 ARQ modes \(1,ARQ_SPLIT_NC\)
 .*
-9 Got flit flit2-dec
+Got flit uc-26-s\(2,2\)-t\(0,0\)-dec
 Source \(2,2\)
 Target \(0,0\)
-GID 123
-GEV 2
-Mode MODE_SPLIT_NC
+FID 26
+Mode MODE_DATA
 .*
-13 Got flit flit3-dec
-Source \(2,2\)
-Target \(0,0\)
-GID 123
-GEV 5
-Mode MODE_SPLIT_NC
-.*
-15 Got ARQ arq-222-s\(0,0\)-t\(3,3\)
+Got ARQ arq-222-s\(0,0\)-t\(3,3\)
 Source \(0,0\)
 Target \(3,3\)
 GID 222
-Mode MODE_ARQ_TELL_RECEIVED
-ARQ modes \(42,ARQ_SPLIT_NC\)
+Mode MODE_ARQ_TELL_MISSING
+ARQ modes \(1,ARQ_SPLIT_NC\)
+.*
+Got flit uc-28-s\(3,3\)-t\(0,0\)-dec
+Source \(3,3\)
+Target \(0,0\)
+FID 28
+Mode MODE_DATA
 
-%contains-regex: stdout
-.*Got flit flit5-dec
+%not-contains: stdout
+Got flit uc-24-
 
-%contains-regex: stdout
-.*Got flit flit6-dec
+%not-contains: stdout
+Got flit uc-27-
 
-%contains-regex: stdout
-.*Got flit flit8-dec
-
-%not-contains-regex: stdout
-.*Got flit flit4-dec
-
-%not-contains-regex: stdout
-.*Got flit flit7-dec
+%not-contains: stdout
+Mode MODE_SPLIT_NC
 
 %not-contains-regex: stdout
 .*Got ARQ arq-123-s\(0,0\)-t\(2,2\).*

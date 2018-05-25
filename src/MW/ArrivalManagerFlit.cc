@@ -888,7 +888,7 @@ void ArrivalManagerFlit::ncTryRemoveFromPlannedArq(const IdSourceKey& key, const
 
     // Check if the ARQ is empty now; if yes, delete it
     if(plannedIter->second->getNcArqs().empty()) {
-        EV_DEBUG << "Canceling planned ARQ for source " << key.second << ", ID " << key.first << std::endl;
+        EV_DEBUG << "Canceling planned ARQ for source " << key.second << ", ID " << key.first << " (flits have arrived)" << std::endl;
         delete plannedIter->second;
         ncPlannedArqs.erase(plannedIter);
     }
@@ -899,6 +899,14 @@ void ArrivalManagerFlit::ncTrySendPlannedArq(const IdSourceKey& key, bool forceI
     FlitCache::iterator plannedIter = ncPlannedArqs.find(key);
     if(plannedIter == ncPlannedArqs.end())
         return;
+
+    // Check if the ARQ still needs to be sent (or if we have verified enough flits for this generation)
+    if(ncVerified[key].size() >= generationSize) {
+        EV_DEBUG << "Canceling planned ARQ for source " << key.second << ", ID " << key.first << " (generation is complete)" << std::endl;
+        delete plannedIter->second;
+        ncPlannedArqs.erase(plannedIter);
+        return;
+    }
 
     // Check if we can send out the ARQ now (forced, more than one ARQ remaining, or no verifications ongoing)
     if(forceImmediate || issuedArqs[key] < static_cast<unsigned int>(arqLimit) - 1 || !ncCheckVerificationOngoing(key)) {

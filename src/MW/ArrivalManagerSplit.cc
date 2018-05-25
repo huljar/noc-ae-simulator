@@ -352,11 +352,11 @@ void ArrivalManagerSplit::handleCryptoMessage(Flit* flit) {
             }
 
             // Assert that the decrypted splits cache does not already contain a flit
-            ASSERT(!ncDecryptedFlitsCache[key]);
+            ASSERT(!ncDecryptedFlitsCache.count(key));
 
             // We can safely cache the flit now
             EV_DEBUG << "Caching decrypted flit \"" << flit->getName() << "\" from " << source << " with ID " << id << std::endl;
-            ncDecryptedFlitsCache[key] = flit;
+            ncDecryptedFlitsCache.emplace(key, flit);
 
             // Try to send out the decrypted flit
             ncTrySendToApp(key);
@@ -486,7 +486,7 @@ void ArrivalManagerSplit::ucTrySendToDecoder(const IdSourceKey& key) {
     SplitPair& splitPair = ucReceivedSplitsCache.at(key);
     if(splitPair.first && splitPair.second) {
         // Debug log
-        EV_DEBUG << "Starting split pair decoding and decryption (source: "
+        EV_DEBUG << "Starting split pair merging and decryption (source: "
                  << key.second << ", ID: " << key.first << ")" << std::endl;
 
         // Send copies to the decoder
@@ -891,7 +891,7 @@ void ArrivalManagerSplit::ncTrySendToApp(const IdSourceKey& key) {
     GevSet& verCache = ncVerified[key];
 
     // Are there enough flits?
-    if(decCandidate.size() < generationSize || !ncDecryptedFlitsCache[key])
+    if(decCandidate.size() < generationSize || !ncDecryptedFlitsCache.count(key) || !ncDecryptedFlitsCache.at(key))
         return;
 
     // Check if the MACs were successfully verified
@@ -903,7 +903,7 @@ void ArrivalManagerSplit::ncTrySendToApp(const IdSourceKey& key) {
     // Send out a copy of the decrypted data flit
     // We use a copy here to avoid potential conflicts with cleanup
     EV_DEBUG << "Sending out decrypted flit: source " << key.second << ", ID " << key.first << std::endl;
-    Flit* copy = ncDecryptedFlitsCache[key]->dup();
+    Flit* copy = ncDecryptedFlitsCache.at(key)->dup();
     send(copy, "appOut");
 
     // Clean up this generation
@@ -954,6 +954,10 @@ void ArrivalManagerSplit::ncTrySendPlannedArq(const IdSourceKey& key, bool force
     // Check if there is an ARQ planned
     FlitCache::iterator plannedIter = ncPlannedArqs.find(key);
     if(plannedIter == ncPlannedArqs.end())
+        return;
+
+    // Check if the ARQ still needs to be sent (or if we have verified enough flits for this generation)
+    if(ncVerified[key].size() >= generationSize)
         return;
 
     // Check if we can send out the ARQ now (forced, more than one ARQ remaining, or no verifications ongoing)

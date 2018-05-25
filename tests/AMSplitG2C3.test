@@ -30,6 +30,7 @@ sim-time-limit = 100ns
 import HaecComm.Core.Clock;
 import HaecComm.Buffers.PacketQueue;
 import HaecComm.MW.ArrivalManagerSplit;
+import HaecComm.MW.FlitSplitter;
 import HaecComm.MW.SplitMerger;
 import HaecComm.MW.Crypto.*;
 import HaecComm.MW.NetworkCoding.*;
@@ -53,7 +54,7 @@ network Test {
         verQ: PacketQueue;
         decQ: PacketQueue;
         decoder: Decoder;
-        merger: SplitMerger;
+        splitMerger: SplitMerger;
         entryGuard: EntryGuardSplit {
             gates:
                 encOut[encUnits];
@@ -66,6 +67,7 @@ network Test {
                 encIn[encUnits];
                 authIn[authUnits];
         }
+        flitSplitter: FlitSplitter;
         testapp: AMSplitG2C3TestApp;
     connections:
         testapp.appIn <-- am.appOut;
@@ -76,7 +78,8 @@ network Test {
         entryGuard.verIn <-- verQ.out;
 
         am.decOut --> decoder.in;
-        decoder.out --> decQ.in;
+        decoder.out --> splitMerger.in;
+        decQ.in <-- splitMerger.out;
         entryGuard.decIn <-- decQ.out;
 
         testapp.appQOut --> appQ.in;
@@ -84,6 +87,9 @@ network Test {
 
         exitGuard.entryOut --> authQ.in;
         entryGuard.exitIn <-- authQ.out;
+
+        exitGuard.encoderOut --> flitSplitter.in;
+        exitGuard.encoderIn <-- flitSplitter.out;
 
         for i=0..encUnits-1 {
             encUnit[i].in <-- entryGuard.encOut[i];
@@ -100,14 +106,6 @@ network Test {
 }
 
 %contains-regex: stdout
-Got flit flit1-dec
-Source \(3,3\)
-Target \(0,0\)
-GID 123
-GEV 123
-Mode MODE_SPLIT_NC
-NC mode NC_G2C3
-.*
 Got ARQ arq-123-s\(0,0\)-t\(3,3\)
 Source \(0,0\)
 Target \(3,3\)
@@ -117,13 +115,12 @@ Mode MODE_ARQ_TELL_MISSING
 NC mode NC_G2C3
 ARQ modes \(321,ARQ_SPLIT_NC\)
 .*
-Got flit flit2-new-dec
+Got flit uc-5-s\(3,3\)-t\(0,0\)-dec
 Source \(3,3\)
 Target \(0,0\)
-GID 123
-GEV 321
-Mode MODE_SPLIT_NC
-NC mode NC_G2C3
+FID 5
+Mode MODE_DATA
+NC mode NC_UNCODED
 
 %not-contains: stdout
 ARQ timeout triggered

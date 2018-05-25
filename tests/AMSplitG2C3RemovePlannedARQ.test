@@ -11,6 +11,9 @@ sim-time-limit = 500ns
 
 **.networkCoding = true
 **.generationSize = 2
+**.numCombinations = 3
+
+**.decoder.internalType = "HaecComm.MW.NetworkCoding.DecoderImplSplit"
 
 **.am.arqLimit = 1
 **.am.arqIssueTimeout = 4
@@ -30,10 +33,14 @@ sim-time-limit = 500ns
 import HaecComm.Core.Clock;
 import HaecComm.Buffers.PacketQueue;
 import HaecComm.MW.ArrivalManagerSplit;
+import HaecComm.MW.FlitSplitter;
+import HaecComm.MW.SplitMerger;
 import HaecComm.MW.Crypto.*;
+import HaecComm.MW.NetworkCoding.*;
 
 network Test {
     parameters:
+        bool useGlobalTransmissionIds = false;
         bool networkCoding;
         int generationSize;
         int rows = 4;
@@ -47,7 +54,10 @@ network Test {
         am: ArrivalManagerSplit;
         appQ: PacketQueue;
         authQ: PacketQueue;
-        netQ: PacketQueue;
+        verQ: PacketQueue;
+        decQ: PacketQueue;
+        decoder: Decoder;
+        splitMerger: SplitMerger;
         entryGuard: EntryGuardSplit {
             gates:
                 encOut[encUnits];
@@ -60,20 +70,29 @@ network Test {
                 encIn[encUnits];
                 authIn[authUnits];
         }
+        flitSplitter: FlitSplitter;
         testapp: AMSplitG2C3RemovePlannedARQTestApp;
     connections:
         testapp.appIn <-- am.appOut;
         testapp.arqIn <-- am.arqOut;
         testapp.netOut --> am.netIn;
 
-        am.cryptoOut --> netQ.in;
-        entryGuard.netIn <-- netQ.out;
+        am.verOut --> verQ.in;
+        entryGuard.verIn <-- verQ.out;
+
+        am.decOut --> decoder.in;
+        decoder.out --> splitMerger.in;
+        decQ.in <-- splitMerger.out;
+        entryGuard.decIn <-- decQ.out;
 
         testapp.appQOut --> appQ.in;
         entryGuard.appIn <-- appQ.out;
 
         exitGuard.entryOut --> authQ.in;
         entryGuard.exitIn <-- authQ.out;
+
+        exitGuard.encoderOut --> flitSplitter.in;
+        exitGuard.encoderIn <-- flitSplitter.out;
 
         for i=0..encUnits-1 {
             encUnit[i].in <-- entryGuard.encOut[i];
@@ -94,22 +113,14 @@ Initiating planned ARQ.*
 Canceling planned ARQ.*
 
 %contains-regex: stdout
-9 Got flit flit1-dec
+12 Got flit uc-42-s\(1,0\)-t\(0,0\)-dec
 Source \(1,0\)
 Target \(0,0\)
-GID 123
-GEV 42
-Mode MODE_SPLIT_NC
-.*
-12 Got flit flit2-dec
-Source \(1,0\)
-Target \(0,0\)
-GID 123
-GEV 43
-Mode MODE_SPLIT_NC
+FID 42
+Mode MODE_DATA
 
-%not-contains-regex: stdout
-.*Got flit flit3-dec
+%contains: stdout
+Received a computed MAC for finished GID
 
 %not-contains: stdout
 .*Got ARQ

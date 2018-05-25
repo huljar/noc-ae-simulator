@@ -8,11 +8,10 @@ using namespace HaecComm::Messages;
 
 namespace HaecCommTest {
 
-class AMSplitUCTimeoutsTestApp : public cSimpleModule, public cListener {
+class AMSplitUCTimeoutsTestApp : public cSimpleModule {
 protected:
     virtual void initialize() override;
     virtual void handleMessage(cMessage* msg) override;
-    virtual void receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) override;
 
     Clock* clock;
 };
@@ -20,7 +19,6 @@ protected:
 Define_Module(AMSplitUCTimeoutsTestApp);
 
 void AMSplitUCTimeoutsTestApp::initialize() {
-    getSimulation()->getSystemModule()->subscribe("clock", this);
     clock = dynamic_cast<Clock*>(getSimulation()->getSystemModule()->getSubmodule("clock"));
     ASSERT(clock != nullptr);
 
@@ -61,15 +59,6 @@ void AMSplitUCTimeoutsTestApp::handleMessage(cMessage* msg) {
         throw cRuntimeError(this, "Unexpected arrival gate: %s", f->getArrivalGate()->getName());
 
     delete f;
-}
-
-void AMSplitUCTimeoutsTestApp::receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) {
-    if(signalID == registerSignal("clock")) {
-
-    }
-    else {
-        throw cRuntimeError(this, "Unexpected signal!");
-    }
 }
 
 } //namespace

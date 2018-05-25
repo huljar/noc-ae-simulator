@@ -603,7 +603,7 @@ void ArrivalManagerGen::tryRemoveMacFromPlannedArq(const IdSourceKey& key) {
 
     // Check if the ARQ is empty now; if yes, delete it
     if(plannedIter->second->getNcArqs().empty() && !plannedIter->second->getNcArqGenMac()) {
-        EV_DEBUG << "Canceling planned ARQ for source " << key.second << ", ID " << key.first << std::endl;
+        EV_DEBUG << "Canceling planned ARQ for source " << key.second << ", ID " << key.first << " (flits have arrived)" << std::endl;
         delete plannedIter->second;
         plannedArqs.erase(plannedIter);
     }
@@ -616,8 +616,12 @@ void ArrivalManagerGen::trySendPlannedArq(const IdSourceKey& key, bool forceImme
         return;
 
     // Don't send the ARQ if the generation is successfully verified
-    if(verified.count(key))
+    if(verified.count(key)) {
+        EV_DEBUG << "Canceling planned ARQ for source " << key.second << ", ID " << key.first << " (generation is complete)" << std::endl;
+        delete plannedIter->second;
+        plannedArqs.erase(plannedIter);
         return;
+    }
 
     // Check if we can send out the ARQ now (forced, more than one ARQ remaining, or no verifications ongoing)
     if(forceImmediate || issuedArqs[key] < static_cast<unsigned int>(arqLimit) - 1 || !checkVerificationOngoing(key)) {

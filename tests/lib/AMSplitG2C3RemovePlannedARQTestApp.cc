@@ -8,11 +8,10 @@ using namespace HaecComm::Messages;
 
 namespace HaecCommTest {
 
-class AMSplitG2C3RemovePlannedARQTestApp : public cSimpleModule, public cListener {
+class AMSplitG2C3RemovePlannedARQTestApp : public cSimpleModule {
 protected:
     virtual void initialize() override;
     virtual void handleMessage(cMessage* msg) override;
-    virtual void receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) override;
 
     Clock* clock;
 };
@@ -20,19 +19,18 @@ protected:
 Define_Module(AMSplitG2C3RemovePlannedARQTestApp);
 
 void AMSplitG2C3RemovePlannedARQTestApp::initialize() {
-    getSimulation()->getSystemModule()->subscribe("clock", this);
     clock = dynamic_cast<Clock*>(getSimulation()->getSystemModule()->getSubmodule("clock"));
     ASSERT(clock != nullptr);
 
     // Send parts of a generation
-    Flit* f1 = MessageFactory::createFlit("flit1", Address2D(1, 0), Address2D(0, 0), MODE_SPLIT_NC, 123, 42, NC_G2C3);
-    Flit* f2 = MessageFactory::createFlit("flit2", Address2D(1, 0), Address2D(0, 0), MODE_SPLIT_NC, 123, 43, NC_G2C3);
+    Flit* f1 = MessageFactory::createFlit("flit1", Address2D(1, 0), Address2D(0, 0), MODE_SPLIT_NC, 123, 42, NC_G2C3, {42, 42});
+    Flit* f2 = MessageFactory::createFlit("flit2", Address2D(1, 0), Address2D(0, 0), MODE_SPLIT_NC, 123, 43, NC_G2C3, {42, 42});
 
     send(f1, "netOut");
     sendDelayed(f2, SimTime(6, SIMTIME_NS), "netOut");
 
     // Send rest of generation while ARQ is planned
-    Flit* f3 = MessageFactory::createFlit("flit3", Address2D(1, 0), Address2D(0, 0), MODE_SPLIT_NC, 123, 44, NC_G2C3);
+    Flit* f3 = MessageFactory::createFlit("flit3", Address2D(1, 0), Address2D(0, 0), MODE_SPLIT_NC, 123, 44, NC_G2C3, {42, 42});
 
     sendDelayed(f3, SimTime(16, SIMTIME_NS), "netOut");
 }
@@ -48,8 +46,7 @@ void AMSplitG2C3RemovePlannedARQTestApp::handleMessage(cMessage* msg) {
         EV << clock->getCurrentCycle() << " Got flit " << f->getName() << std::endl
            << "Source " << f->getSource() << std::endl
            << "Target " << f->getTarget() << std::endl
-           << "GID " << f->getGidOrFid() << std::endl
-           << "GEV " << f->getGev() << std::endl
+           << "FID " << f->getGidOrFid() << std::endl
            << "Mode " << cEnum::get("HaecComm::Messages::Mode")->getStringFor(f->getMode()) << std::endl;
     }
     else if(strcmp(f->getArrivalGate()->getName(), "arqIn") == 0) {
@@ -67,15 +64,6 @@ void AMSplitG2C3RemovePlannedARQTestApp::handleMessage(cMessage* msg) {
         throw cRuntimeError(this, "Unexpected arrival gate: %s", f->getArrivalGate()->getName());
 
     delete f;
-}
-
-void AMSplitG2C3RemovePlannedARQTestApp::receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) {
-    if(signalID == registerSignal("clock")) {
-
-    }
-    else {
-        throw cRuntimeError(this, "Unexpected signal!");
-    }
 }
 
 } //namespace
