@@ -21,7 +21,6 @@ package HaecComm.MW.Crypto;
 simple ExitGuardGenImpl {
     parameters:
         @display("i=block/cogwheel");
-        int generationSize;
     gates:
         input  encIn[];
         input  authIn[];

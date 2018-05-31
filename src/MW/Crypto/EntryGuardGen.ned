@@ -27,7 +27,6 @@ simple EntryGuardGen {
         @display("i=block/fork");
         int busyCyclesEnc;
         int busyCyclesAuth;
-        int generationSize;
     gates:
         input  appIn;
         input  exitIn;

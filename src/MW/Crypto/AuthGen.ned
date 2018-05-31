@@ -26,7 +26,6 @@ import HaecComm.MW.*;
 module AuthGen like ICryptoUnit {
     parameters:
         int computeCycles;
-        int generationSize;
         @display("i=block/encrypt");
     gates:
         input  in;
@@ -34,7 +33,6 @@ module AuthGen like ICryptoUnit {
     submodules:
         auth: AuthGenImpl {
             @display("p=60,60");
-            generationSize = generationSize;
         }
         delay: Delay {
             @display("p=160,60");

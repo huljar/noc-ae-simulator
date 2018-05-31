@@ -36,7 +36,7 @@ ExitGuardGenImpl::~ExitGuardGenImpl() {
 }
 
 void ExitGuardGenImpl::initialize() {
-    generationSize = par("generationSize");
+    generationSize = getAncestorPar("generationSize");
     if(generationSize < 1)
         throw cRuntimeError(this, "Generation size must be greater than 0, but received %i", generationSize);
 }

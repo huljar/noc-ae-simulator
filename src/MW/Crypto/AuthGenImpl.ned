@@ -27,7 +27,6 @@ import HaecComm.MW.IMiddlewareBase;
 simple AuthGenImpl like IMiddlewareBase {
     parameters:
         @display("i=block/cogwheel");
-        int generationSize;
     gates:
         input  in;
         output out;

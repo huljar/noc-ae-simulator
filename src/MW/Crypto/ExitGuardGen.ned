@@ -20,7 +20,6 @@ import HaecComm.Buffers.Serializer;
 module ExitGuardGen {
     parameters:
         @display("i=block/join");
-        int generationSize;
     gates:
         input  encIn[];
         input  authIn[];
@@ -30,7 +29,6 @@ module ExitGuardGen {
     submodules:
         exitGuard: ExitGuardGenImpl {
             @display("p=80,120");
-            generationSize = generationSize;
             gates:
                 encIn[sizeof(encIn)];
                 authIn[sizeof(authIn)];

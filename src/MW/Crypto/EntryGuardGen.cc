@@ -37,7 +37,7 @@ void EntryGuardGen::initialize() {
     if(busyCyclesAuth < 1)
         throw cRuntimeError(this, "busyCyclesAuth must be greater than 0");
 
-    generationSize = par("generationSize");
+    generationSize = getAncestorPar("generationSize");
     if(generationSize < 1)
         throw cRuntimeError(this, "Generation size must be greater than 0, but received %i", generationSize);
 
