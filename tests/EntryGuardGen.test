@@ -7,6 +7,10 @@ sim-time-limit = 200ns
 
 **.clock.inter = 2ns
 
+**.networkCoding = true
+**.generationSize = 2
+**.numCombinations = 3
+
 **.busyCyclesEnc = 4
 **.busyCyclesAuth = 8
 **.generationSize = 2
@@ -18,6 +22,8 @@ import HaecComm.Buffers.PacketQueue;
 import HaecComm.MW.Crypto.EntryGuardGen;
 
 network Test {
+    parameters:
+        int generationSize;
     submodules:
         clock: Clock;
         appInputQueue: PacketQueue;

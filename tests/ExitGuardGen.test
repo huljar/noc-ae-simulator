@@ -7,13 +7,17 @@ sim-time-limit = 200ns
 
 **.clock.inter = 2ns
 
+**.networkCoding = true
 **.generationSize = 2
+**.numCombinations = 3
 
 %file: test.ned
 import HaecComm.Core.Clock;
 import HaecComm.MW.Crypto.ExitGuardGen;
 
 network Test {
+    parameters:
+        int generationSize;
     submodules:
         clock: Clock;
         exitGuard: ExitGuardGen {
