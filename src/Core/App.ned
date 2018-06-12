@@ -31,13 +31,13 @@ module App like IApp {
         inout net;
     submodules:
         producer: GenTraffic {
-            @display("p=300,100");
+            @display("p=250,60");
         }
         inputQueue: PacketQueue {
-            @display("p=80,100");
+            @display("p=50,60");
         }
         consumer: ReportArrival {
-            @display("p=180,100");
+            @display("p=140,60");
         }
     connections:
         producer.out --> net$o;

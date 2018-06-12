@@ -43,15 +43,15 @@ network Mesh2D {
         // transmissions. The clock emits a "clock" signal in regular intervals.
         //
         clock: Clock {
-            @display("p=30,80");
+            @display("p=120,30");
             inter = clockPeriod;
         }
         //
         // The processing elements of the network. They must implement the IApp interface.
         // To set the actual type, use the appType string parameter.
         //
-        app[columns*rows]: <appType> like IApp {
-            @display("p=120,80,matrix,$columns,200,200");
+        pe[columns*rows]: <appType> like IApp {
+            @display("p=30,50,matrix,$columns,180,180");
             id = index;
         }
         //
@@ -59,7 +59,7 @@ network Mesh2D {
         // To set the actual type, use the niType string parameter.
         //
         ni[columns*rows]: <niType> like INetworkInterface {
-            @display("p=170,130,matrix,$columns,200,200");
+            @display("p=80,100,matrix,$columns,180,180");
             id = index;
         }
         //
@@ -67,14 +67,14 @@ network Mesh2D {
         // To set the actual type, use the routerType string parameter.
         //
         router[columns*rows]: <routerType> like IRouter {
-            @display("p=220,180,matrix,$columns,200,200");
+            @display("p=130,150,matrix,$columns,180,180");
             id = index;
             numPorts = 4;
         }
     connections allowunconnected:
         // port indices: top=0, right=1, bottom=2, left=3
         for i=0..rows-1, for j=0..columns-1 {
-            app[i*columns+j].net <--> ni[i*columns+j].app; // app-ni connections
+            pe[i*columns+j].net <--> ni[i*columns+j].app; // app-ni connections
             ni[i*columns+j].router <--> router[i*columns+j].local; // ni-router connections
             router[i*columns+j].port[2] <--> <channelType> like IHaecChannel <--> router[(i+1)*columns+j].port[0] if i!=rows-1;  // top-bottom connections
             router[i*columns+j].port[1] <--> <channelType> like IHaecChannel <--> router[i*columns+j+1].port[3] if j!=columns-1; // left-right connections

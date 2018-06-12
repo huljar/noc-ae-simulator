@@ -20,7 +20,7 @@ package HaecComm.MW;
 //
 simple ArrivalManagerGen like IArrivalManager {
     parameters:
-        @display("i=block/decrypt");
+        @display("i=block/cogwheel");
         int arqLimit;
         int arqIssueTimeout;
         int arqAnswerTimeoutBase;

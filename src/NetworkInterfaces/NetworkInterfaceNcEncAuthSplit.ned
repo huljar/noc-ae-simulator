@@ -25,7 +25,8 @@ import HaecComm.Util.*;
 // Default implementation of the Network Interface from the HAEC project.
 // It contains a network encoder and decoder.
 //
-module NetworkInterfaceNcEncAuthSplit like INetworkInterface {
+module NetworkInterfaceNcEncAuthSplit like INetworkInterface
+{
     parameters:
         @display("i=block/control");
         int id;
@@ -42,11 +43,11 @@ module NetworkInterfaceNcEncAuthSplit like INetworkInterface {
     submodules:
         //# app->net
         appInputQueue: PacketQueue {
-            @display("p=80,280");
+            @display("p=70,210");
             awaitSendRequests = true;
         }
         entryGuard: EntryGuardSplit {
-            @display("p=250,300");
+            @display("p=160,230");
             busyCyclesEnc = encCycles;
             busyCyclesAuth = authCycles;
             gates:
@@ -54,67 +55,68 @@ module NetworkInterfaceNcEncAuthSplit like INetworkInterface {
                 authOut[authUnits];
         }
         encUnit[encUnits]: EncSplit {
-            @display("p=150,80,row,80");
+            @display("p=110,30,row,80");
             computeCycles = encCycles;
         }
         authUnit[authUnits]: AuthSplit {
-            @display("p=150,160,row,80");
+            @display("p=110,110,row,80");
             computeCycles = authCycles;
         }
         exitGuard: ExitGuardSplit {
-            @display("p=550,300");
+            @display("p=420,230");
             gates:
                 encIn[encUnits];
                 authIn[authUnits];
         }
         flitSplitter: FlitSplitter {
-            @display("p=620,220");
+            @display("p=500,170");
         }
         encoder: Encoder {
-            @display("p=540,220");
+            @display("p=430,150");
             generationSize = generationSize;
             numCombinations = numCombinations;
             internalType = "HaecComm.MW.NetworkCoding.EncoderImplSplit";
         }
         authCryptoQueue: PacketQueue {
-            @display("p=415,320");
+            @display("p=300,230");
             awaitSendRequests = true;
         }
         retransmissionBuffer: RetransmissionBuffer {
-            @display("p=750,280");
+            @display("p=520,250");
             internalType = "HaecComm.Buffers.RetransmissionBufferImplSplit";
         }
         netStream: MultiInputSerializer {
-            @display("p=850,320");
-            gates: in[2];
+            @display("p=630,270");
+            gates:
+                in[2];
         }
 
         //# net->app
         routerInputQueue: PacketQueue {
-            @display("p=750,450");
+            @display("p=570,365");
         }
         arqSplitter: ArqSplitter {
-            @display("p=650,450");
+            @display("p=480,365");
         }
         arrivalManager: ArrivalManagerSplit {
-            @display("p=500,450");
+            @display("p=380,365");
         }
         verCryptoQueue: PacketQueue {
-            @display("p=380,380");
+            @display("p=270,300");
             awaitSendRequests = true;
         }
         decCryptoQueue: PacketQueue {
-            @display("p=260,380");
+            @display("p=160,310");
             awaitSendRequests = true;
         }
         decoder: Decoder {
-            @display("p=400,450");
+            @display("p=290,380");
             generationSize = generationSize;
             numCombinations = numCombinations;
             internalType = "HaecComm.MW.NetworkCoding.DecoderImplSplit";
         }
         splitMerger: SplitMerger {
-            @display("p=320,440");
+            @display("p=210,380");
         }
     connections:
         app$i --> appInputQueue.in;
@@ -141,7 +143,7 @@ module NetworkInterfaceNcEncAuthSplit like INetworkInterface {
         arrivalManager.verOut --> verCryptoQueue.in;
         arrivalManager.decOut --> decoder.in;
         arrivalManager.appOut --> app$o;
-        
+
         decoder.out --> splitMerger.in;
         decCryptoQueue.in <-- splitMerger.out;
         decCryptoQueue.out --> entryGuard.decIn;
