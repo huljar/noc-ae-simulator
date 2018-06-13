@@ -12,8 +12,8 @@ outputDir = 'plots/'
 
 def dbConnect():
     # Database paths
-    pathSca = '../simulations/results/General-0-sca.sqlite3'
-    pathVec = '../simulations/results/General-0-vec.sqlite3'
+    pathSca = '../simulations/results/NC-Enc-Auth-Flit-0-sca.sqlite3'
+    pathVec = '../simulations/results/NC-Enc-Auth-Flit-0-vec.sqlite3'
 
     # Database URIs with read only mode
     uriSca = 'file:' + pathSca + '?mode=ro'
@@ -78,6 +78,32 @@ def plotRouterQueueLengths(cursorVec, routerNum = -1, portNum = -1):
             # Run gnuplot
             gp.gnuplot('queuelength.gpi', args, data)
 
+def getNumberOfGeneratedFlits(cursorVec):
+    cursorVec.execute(
+            '''select vectorCount
+               from vector
+               where vector.vectorName = :vecName''',
+            {'vecName': 'flitsGenerated:vector(flitId)'}
+    )
+    flitsPerPe = cursorVec.fetchall()
+    totalFlits = 0
+    for pe in flitsPerPe:
+        totalFlits += pe[0]
+    return totalFlits
+
+def getNumberOfGeneratedArqs(cursorVec):
+    cursorVec.execute(
+            '''select vectorCount
+               from vector
+               where vector.vectorName = :vecName''',
+            {'vecName': 'arqsGenerated:vector(flitId)'}
+    )
+    arqsPerNi = cursorVec.fetchall()
+    totalArqs = 0
+    for ni in arqsPerNi:
+        totalArqs += ni[0]
+    return totalArqs
+
 def getFlitEndToEndLatency(cursorVec, sourceId, targetId):
     sourceIds = []
     targetIds = []
@@ -119,7 +145,14 @@ if __name__ == '__main__':
     cursorVec = connVec.cursor()
 
     # Plot queue lengths of routers
-    plotRouterQueueLengths(cursorVec, portNum = 5)
-    
+    #plotRouterQueueLengths(cursorVec, portNum = 5)
+
+    # Print average number of ARQs per flit created at PE
+    numFlits = getNumberOfGeneratedFlits(cursorVec)
+    numArqs = getNumberOfGeneratedArqs(cursorVec)
+    print('Number of flits generated at the processing elements: ' + str(numFlits))
+    print('Number of ARQs generated: ' + str(numArqs))
+    print('... that means we have ' + str(numArqs / numFlits) + ' ARQs per source flit.')
+
     # Close DB connections
     dbClose(connSca, connVec)
