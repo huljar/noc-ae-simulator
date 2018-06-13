@@ -106,6 +106,9 @@ protected:
     // Network coding only: track planned ARQs (in case we delay an ARQ to wait for verifications to finish)
     FlitCache ncPlannedArqs;
 
+    // Signals
+    simsignal_t generateArqSignal;
+
 private:
     void handleNetMessage(Messages::Flit* flit);
     void handleCryptoMessage(Messages::Flit* flit);

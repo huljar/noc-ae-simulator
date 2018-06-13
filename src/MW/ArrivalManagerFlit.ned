@@ -20,6 +20,8 @@ package HaecComm.MW;
 //
 simple ArrivalManagerFlit like IArrivalManager {
     parameters:
+        @signal[generateArq](type=HaecComm::Messages::Flit);
+        @statistic[arqsGenerated](source=generateArq; record=vector(flitId),vector(flitTarget)?; title="Generated ARQs");
         @display("i=block/cogwheel");
         int arqLimit;
         int arqIssueTimeout;

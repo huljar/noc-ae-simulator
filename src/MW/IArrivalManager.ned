@@ -17,6 +17,8 @@ package HaecComm.MW;
 
 moduleinterface IArrivalManager {
     parameters:
+        @signal[generateArq](type=HaecComm::Messages::Flit);
+        @statistic[arqsGenerated](source=generateArq; record=vector(flitId),vector(flitTarget)?; title="Generated ARQs");
         int arqLimit;
         int arqIssueTimeout;
         int arqAnswerTimeoutBase;

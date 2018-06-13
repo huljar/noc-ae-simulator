@@ -107,6 +107,9 @@ protected:
     FlitCache ucPlannedArqs;
     FlitCache ncPlannedArqs;
 
+    // Signals
+    simsignal_t generateArqSignal;
+
 private:
     void handleNetMessage(Messages::Flit* flit);
     void handleCryptoMessage(Messages::Flit* flit);

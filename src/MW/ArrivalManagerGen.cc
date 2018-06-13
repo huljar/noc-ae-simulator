@@ -96,6 +96,8 @@ void ArrivalManagerGen::initialize() {
             }
         }
     }
+
+    generateArqSignal = registerSignal("generateArq");
 }
 
 void ArrivalManagerGen::handleMessage(cMessage* msg) {
@@ -629,7 +631,7 @@ void ArrivalManagerGen::trySendPlannedArq(const IdSourceKey& key, bool forceImme
         Flit* arq = plannedIter->second;
 
         // Send ARQ
-        //emit(pktgenerateSignal, flit->getGidOrFid());
+        emit(generateArqSignal, arq);
         EV << "Sending ARQ \"" << arq->getName() << "\" from " << arq->getSource()
            << " to " << arq->getTarget() << " (ID: " << arq->getGidOrFid() << ") (mode "
            << cEnum::get("HaecComm::Messages::Mode")->getStringFor(arq->getMode()) << " "

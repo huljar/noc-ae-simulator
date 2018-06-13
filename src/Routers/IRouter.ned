@@ -24,6 +24,8 @@ moduleinterface IRouter {
         int id;
         string internalType;
         int numPorts;
+        double modificationProb;
+        double dropProb;
     gates:
         inout local;
         inout port[numPorts];

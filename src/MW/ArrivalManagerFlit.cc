@@ -104,6 +104,8 @@ void ArrivalManagerFlit::initialize() {
             }
         }
     }
+
+    generateArqSignal = registerSignal("generateArq");
 }
 
 void ArrivalManagerFlit::handleMessage(cMessage* msg) {
@@ -612,6 +614,7 @@ void ArrivalManagerFlit::ucIssueArq(const IdSourceKey& key, Mode mode, ArqMode a
     Flit* arq = generateArq(key, mode, arqMode);
 
     // Send ARQ
+    emit(generateArqSignal, arq);
     EV << "Sending ARQ \"" << arq->getName() << "\" from " << arq->getSource()
        << " to " << arq->getTarget() << " (ID: " << arq->getGidOrFid() << ") (mode "
        << cEnum::get("HaecComm::Messages::ArqMode")->getStringFor(arqMode) << ")" << std::endl;
@@ -914,7 +917,7 @@ void ArrivalManagerFlit::ncTrySendPlannedArq(const IdSourceKey& key, bool forceI
         Flit* arq = plannedIter->second;
 
         // Send ARQ
-        //emit(pktgenerateSignal, flit->getGidOrFid());
+        emit(generateArqSignal, arq);
         EV << "Sending ARQ \"" << arq->getName() << "\" from " << arq->getSource()
            << " to " << arq->getTarget() << " (ID: " << arq->getGidOrFid() << ") (mode "
            << cEnum::get("HaecComm::Messages::Mode")->getStringFor(arq->getMode()) << " "
