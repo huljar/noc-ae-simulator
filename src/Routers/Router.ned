@@ -30,27 +30,27 @@ module Router like IRouter {
         inout port[numPorts];
     submodules:
         localInputQueue: PacketQueue {
-            @display("p=80,250");
+            @display("p=60,120");
             awaitSendRequests = true;
         }
-        routerImpl: <internalType> like IRouterBase {
-            @display("p=230,250");
+        switch: <internalType> like IRouterBase {
+            @display("p=180,120");
             modificationProb = modificationProb;
             dropProb = dropProb;
             gates: port[numPorts];
         }
         nodeInputQueue[numPorts]: PacketQueue {
-            @display("p=380,100,column,100");
+            @display("p=70,50,matrix,2,220,140");
             awaitSendRequests = true;
         }
     connections:
         localInputQueue.in <-- local$i;
-        localInputQueue.out --> routerImpl.local$i;
-        local$o <-- routerImpl.local$o;
+        localInputQueue.out --> switch.local$i;
+        local$o <-- switch.local$o;
         
         for i=0..numPorts-1 {
             port$i[i] --> nodeInputQueue[i].in;
-            routerImpl.port$i[i] <-- nodeInputQueue[i].out;
-            routerImpl.port$o[i] --> port$o[i];
+            switch.port$i[i] <-- nodeInputQueue[i].out;
+            switch.port$o[i] --> port$o[i];
         }
 }

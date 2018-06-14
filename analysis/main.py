@@ -31,6 +31,19 @@ def dbClose(connSca, connVec):
     connSca.close()
     connVec.close()
 
+def getInjectionRate(cursorSca, numCycles):
+    cursorSca.execute(
+            '''select scalarValue
+               from scalar
+               where moduleName like :modName and scalarName = :scaName''',
+            {'modName': 'Mesh2D.ni[%].netStream', 'scaName': 'sendCount:count'}
+    )
+    flitsPerNode = cursorSca.fetchall()
+    totalFlits = 0
+    for node in flitsPerNode:
+        totalFlits += node[0]
+    return totalFlits / (meshRows * meshCols * numCycles)
+
 def plotRouterQueueLengths(cursorVec, routerNum = -1, portNum = -1):
     routerNames = []
     moduleNames = []
@@ -144,6 +157,10 @@ if __name__ == '__main__':
     cursorSca = connSca.cursor()
     cursorVec = connVec.cursor()
 
+    # Print injection rate
+    injectionRate = getInjectionRate(cursorSca, 50000)
+    print('The network injection rate is ' + str(injectionRate) + '.\n')
+
     # Plot queue lengths of routers
     #plotRouterQueueLengths(cursorVec, portNum = 5)
 
@@ -152,7 +169,7 @@ if __name__ == '__main__':
     numArqs = getNumberOfGeneratedArqs(cursorVec)
     print('Number of flits generated at the processing elements: ' + str(numFlits))
     print('Number of ARQs generated: ' + str(numArqs))
-    print('... that means we have ' + str(numArqs / numFlits) + ' ARQs per source flit.')
+    print('... that means we have ' + str(numArqs / numFlits) + ' ARQs per source flit.\n')
 
     # Close DB connections
     dbClose(connSca, connVec)

@@ -62,10 +62,6 @@ protected:
     int nodeX;
     int nodeY;
 
-    bool useCachedTarget;
-    int cachedTargetX;
-    int cachedTargetY;
-
     simsignal_t generateFlitSignal;
 };
 

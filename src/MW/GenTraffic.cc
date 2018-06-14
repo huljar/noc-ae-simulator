@@ -38,9 +38,6 @@ GenTraffic::GenTraffic()
     , nodeId(0)
     , nodeX(0)
     , nodeY(0)
-    , useCachedTarget(false)
-    , cachedTargetX(0)
-    , cachedTargetY(0)
 {
 }
 
@@ -89,46 +86,35 @@ void GenTraffic::receiveSignal(cComponent* source, simsignal_t signalID, unsigne
 	    if(!enabled)
 	        return;
 
-	    // First, check if we need to serve the second flit of a pair
-	    if(useCachedTarget) {
-	        // Generate flit
-	        generateFlit(cachedTargetX, cachedTargetY);
+        // Decide if we should generate a packet based on injection probability parameter
+        if(uniform(0.0, 1.0) < injectionProb) {
+            // Generate a flit
+            int targetNodeId;
 
-	        // Mark that we have served the second flit
-	        useCachedTarget = false;
-	    }
-	    else {
-            // Decide if we should generate a packet based on injection probability parameter
-            if(uniform(0.0, 1.0) < injectionProb) {
-                // Generate a flit
-                int targetNodeId;
-
-                // Check if single target is enabled
-                if(singleTarget) {
-                    targetNodeId = singleTargetId;
-                }
-                else {
-                    // Uniform target selection
-                    do {
-                        targetNodeId = static_cast<int>(intrand(gridRows * gridColumns));
-                    } while(targetNodeId == nodeId);
-                }
-
-                // Get target X and Y
-                int targetX = targetNodeId % gridColumns;
-                int targetY = targetNodeId / gridColumns;
-
-                // Generate flit
-                generateFlit(targetX, targetY);
-
-                // If pair generation is enabled, set the parameters for next clock tick
-                if(generatePairs) {
-                    useCachedTarget = true;
-                    cachedTargetX = targetX;
-                    cachedTargetY = targetY;
-                }
+            // Check if single target is enabled
+            if(singleTarget) {
+                targetNodeId = singleTargetId;
             }
-	    }
+            else {
+                // Uniform target selection
+                do {
+                    targetNodeId = static_cast<int>(intrand(gridRows * gridColumns));
+                } while(targetNodeId == nodeId);
+            }
+
+            // Get target X and Y
+            int targetX = targetNodeId % gridColumns;
+            int targetY = targetNodeId / gridColumns;
+
+            // Generate flit
+            generateFlit(targetX, targetY);
+
+            // If pair generation is enabled, create another one
+            // It's ok to do this on the same clock tick because they are serialized anyway as soon as the enter the NI
+            if(generatePairs) {
+                generateFlit(targetX, targetY);
+            }
+        }
 	}
 }
 

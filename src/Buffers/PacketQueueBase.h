@@ -53,6 +53,7 @@ protected:
     cPacketQueue* queue;
     std::map<cPacket*, simtime_t> enqueueTimes;
 
+    simsignal_t flitSentSignal;
     simsignal_t queueLengthSignal;
     simsignal_t queueFullSignal;
     simsignal_t flitDropSignal;

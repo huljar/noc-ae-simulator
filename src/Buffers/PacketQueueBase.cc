@@ -66,6 +66,7 @@ void PacketQueueBase::initialize() {
 
     queue = new cPacketQueue;
 
+    flitSentSignal = registerSignal("flitSent");
     queueLengthSignal = registerSignal("queueLength");
     queueFullSignal = registerSignal("queueFull");
     flitDropSignal = registerSignal("flitDrop");
@@ -80,6 +81,10 @@ void PacketQueueBase::handleMessage(cMessage* msg) {
         // If we don't wait for requests, don't sync the first packet
         // and did not already send a packet this cycle, we can send it
         // immediately.
+
+        // Emit that a packet was sent
+        emit(flitSentSignal, flit);
+
         send(flit, "out");
         cycleFree = false;
 
@@ -129,6 +134,9 @@ void PacketQueueBase::popQueueAndSend() {
     // Get packet at the front of the queue
     cPacket* packet = queue->pop();
     take(packet);
+
+    // Emit that a packet was sent
+    emit(flitSentSignal, packet);
 
     // Send it out
     send(packet, "out");
