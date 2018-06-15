@@ -16,6 +16,7 @@
 #include "PacketQueueBase.h"
 #include <Messages/Flit.h>
 
+using namespace HaecComm::Core;
 using namespace HaecComm::Messages;
 
 namespace HaecComm { namespace Buffers {
@@ -58,6 +59,9 @@ void PacketQueueBase::initialize() {
     // subscribe to clock signal
     getSimulation()->getSystemModule()->subscribe("clock", this);
 
+    // get clock module
+    clock = check_and_cast<Clock*>(getSimulation()->getSystemModule()->getSubmodule("clock"));
+
 	awaitSendRequests = par("awaitSendRequests");
 	syncFirstPacket = par("syncFirstPacket");
 	maxLength = par("maxLength");
@@ -89,19 +93,19 @@ void PacketQueueBase::handleMessage(cMessage* msg) {
         cycleFree = false;
 
         // Emit a queue time of zero
-        emit(timeInQueueSignal, SimTime());
+        emit(timeInQueueSignal, 0UL);
     }
     else if(maxLength == 0) {
         // Otherwise, if we don't have a queue length restriction, we can
         // freely insert the packet.
         queue->insert(flit);
-        enqueueTimes.emplace(flit, simTime());
+        enqueueTimes.emplace(flit, clock->getCurrentCycle());
     }
     else if(queue->getLength() < maxLength) {
         // Otherwise, if there is a length restriction, but we did not reach
         // it yet, we can also insert the packet.
         queue->insert(flit);
-        enqueueTimes.emplace(flit, simTime());
+        enqueueTimes.emplace(flit, clock->getCurrentCycle());
 
         // If the queue is full now, we emit the appropriate signal.
         if(queue->getLength() == maxLength)
@@ -146,8 +150,8 @@ void PacketQueueBase::popQueueAndSend() {
     	emit(queueFullSignal, false);
 
     // Emit the time that the packet was enqueued
-    simtime_t arrival = enqueueTimes.at(packet);
-    simtime_t now = simTime();
+    unsigned long arrival = enqueueTimes.at(packet);
+    unsigned long now = clock->getCurrentCycle();
     emit(timeInQueueSignal, now - arrival);
     enqueueTimes.erase(packet);
 }
