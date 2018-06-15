@@ -41,10 +41,14 @@ module NetworkInterfaceNcEncAuthFlit like INetworkInterface {
         inout router;
     submodules:
         //# app->net
-        appInputQueue: PacketQueue {
-            @display("p=80,280");
+        helperSer: Serializer {
+            @display("p=40,280");
         }
-        entryGuard: EntryGuardFlit {
+        encryptQueue: PacketQueue {
+            @display("p=80,280");
+            awaitSendRequests = true;
+        }
+        cryptoEntry: EntryGuardFlit {
             @display("p=250,300");
             busyCyclesEnc = encCycles;
             busyCyclesAuth = authCycles;
@@ -60,7 +64,7 @@ module NetworkInterfaceNcEncAuthFlit like INetworkInterface {
             @display("p=150,160,row,80");
             computeCycles = authCycles;
         }
-        exitGuard: ExitGuardFlit {
+        cryptoExit: ExitGuardFlit {
             @display("p=550,300");
             gates:
                 encIn[encUnits];
@@ -72,7 +76,7 @@ module NetworkInterfaceNcEncAuthFlit like INetworkInterface {
             numCombinations = numCombinations;
             internalType = "HaecComm.MW.NetworkCoding.EncoderImplFlit";
         }
-        authCryptoQueue: PacketQueue {
+        authenticateQueue: PacketQueue {
             @display("p=400,320");
             awaitSendRequests = true;
         }
@@ -86,7 +90,7 @@ module NetworkInterfaceNcEncAuthFlit like INetworkInterface {
         }
 
         //# net->app
-        routerInputQueue: PacketQueue {
+        arrivalQueue: PacketQueue {
             @display("p=750,450");
         }
         arqSplitter: ArqSplitter {
@@ -95,7 +99,7 @@ module NetworkInterfaceNcEncAuthFlit like INetworkInterface {
         arrivalManager: ArrivalManagerFlit {
             @display("p=450,450");
         }
-        verCryptoQueue: PacketQueue {
+        verifyQueue: PacketQueue {
             @display("p=300,390");
             awaitSendRequests = true;
         }
@@ -105,43 +109,44 @@ module NetworkInterfaceNcEncAuthFlit like INetworkInterface {
             numCombinations = numCombinations;
             internalType = "HaecComm.MW.NetworkCoding.DecoderImplFlit";
         }
-        decCryptoQueue: PacketQueue {
-            awaitSendRequests = true;
+        decryptQueue: PacketQueue {
             @display("p=200,380");
+            awaitSendRequests = true;
         }
     connections:
-        app$i --> appInputQueue.in;
-        entryGuard.appIn <-- appInputQueue.out;
-        entryGuard.exitIn <-- authCryptoQueue.out;
+        app$i --> helperSer.in;
+        encryptQueue.in <-- helperSer.out;
+        cryptoEntry.appIn <-- encryptQueue.out;
+        cryptoEntry.exitIn <-- authenticateQueue.out;
 
         for i=0..encUnits-1 {
-            encUnit[i].in <-- entryGuard.encOut[i];
-            encUnit[i].out --> exitGuard.encIn[i];
+            encUnit[i].in <-- cryptoEntry.encOut[i];
+            encUnit[i].out --> cryptoExit.encIn[i];
         }
 
         for i=0..authUnits-1 {
-            authUnit[i].in <-- entryGuard.authOut[i];
-            authUnit[i].out --> exitGuard.authIn[i];
+            authUnit[i].in <-- cryptoEntry.authOut[i];
+            authUnit[i].out --> cryptoExit.authIn[i];
         }
 
-        exitGuard.netOut --> retransmissionBuffer.dataIn;
+        cryptoExit.netOut --> retransmissionBuffer.dataIn;
         netStream.in[0] <-- retransmissionBuffer.out;
         netStream.out --> router$o;
 
-        router$i --> routerInputQueue.in;
-        arqSplitter.in <-- routerInputQueue.out;
+        router$i --> arrivalQueue.in;
+        arqSplitter.in <-- arrivalQueue.out;
         arqSplitter.othersOut --> arrivalManager.netIn;
-        arrivalManager.verOut --> verCryptoQueue.in;
+        arrivalManager.verOut --> verifyQueue.in;
         arrivalManager.decOut --> decoder.in;
         arrivalManager.appOut --> app$o;
 
         arqSplitter.arqOut --> retransmissionBuffer.arqIn;
-        exitGuard.appOut --> arrivalManager.cryptoIn;
+        cryptoExit.appOut --> arrivalManager.cryptoIn;
         arrivalManager.arqOut --> netStream.in[1];
-        entryGuard.verIn <-- verCryptoQueue.out;
-        exitGuard.entryOut --> authCryptoQueue.in;
-        exitGuard.encoderOut --> encoder.in;
-        exitGuard.encoderIn <-- encoder.out;
-        decoder.out --> decCryptoQueue.in;
-        entryGuard.decIn <-- decCryptoQueue.out;
+        cryptoEntry.verIn <-- verifyQueue.out;
+        cryptoExit.entryOut --> authenticateQueue.in;
+        cryptoExit.encoderOut --> encoder.in;
+        cryptoExit.encoderIn <-- encoder.out;
+        decoder.out --> decryptQueue.in;
+        cryptoEntry.decIn <-- decryptQueue.out;
 }

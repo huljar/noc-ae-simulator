@@ -42,6 +42,9 @@ module NetworkInterfaceNcEncAuthSplit like INetworkInterface
         inout router;
     submodules:
         //# app->net
+        helperSer: Serializer {
+            @display("p=40,280");
+        }
         encryptQueue: PacketQueue {
             @display("p=70,210");
             awaitSendRequests = true;
@@ -119,7 +122,8 @@ module NetworkInterfaceNcEncAuthSplit like INetworkInterface
             @display("p=210,380");
         }
     connections:
-        app$i --> encryptQueue.in;
+        app$i --> helperSer.in;
+        encryptQueue.in <-- helperSer.out;
         cryptoEntry.appIn <-- encryptQueue.out;
         cryptoEntry.exitIn <-- authenticateQueue.out;
 

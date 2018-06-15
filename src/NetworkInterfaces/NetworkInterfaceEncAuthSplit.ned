@@ -39,11 +39,14 @@ module NetworkInterfaceEncAuthSplit like INetworkInterface {
         inout router;
     submodules:
         //# app->net
-        appInputQueue: PacketQueue {
+        helperSer: Serializer {
+            @display("p=40,280");
+        }
+        encryptQueue: PacketQueue {
             @display("p=80,280");
             awaitSendRequests = true;
         }
-        entryGuard: EntryGuardSplit {
+        cryptoEntry: EntryGuardSplit {
             @display("p=280,300");
             busyCyclesEnc = encCycles;
             busyCyclesAuth = authCycles;
@@ -59,7 +62,7 @@ module NetworkInterfaceEncAuthSplit like INetworkInterface {
             @display("p=150,160,row,80");
             computeCycles = authCycles;
         }
-        exitGuard: ExitGuardSplit {
+        cryptoExit: ExitGuardSplit {
             @display("p=550,300");
             gates:
                 encIn[encUnits];
@@ -68,7 +71,7 @@ module NetworkInterfaceEncAuthSplit like INetworkInterface {
         flitSplitter: FlitSplitter {
             @display("p=580,220");
         }
-        authCryptoQueue: PacketQueue {
+        authenticateQueue: PacketQueue {
             @display("p=415,320");
             awaitSendRequests = true;
         }
@@ -82,7 +85,7 @@ module NetworkInterfaceEncAuthSplit like INetworkInterface {
         }
 
         //# net->app
-        routerInputQueue: PacketQueue {
+        arrivalQueue: PacketQueue {
             @display("p=750,450");
         }
         arqSplitter: ArqSplitter {
@@ -91,11 +94,11 @@ module NetworkInterfaceEncAuthSplit like INetworkInterface {
         arrivalManager: ArrivalManagerSplit {
             @display("p=500,450");
         }
-        verCryptoQueue: PacketQueue {
+        verifyQueue: PacketQueue {
             @display("p=400,390");
             awaitSendRequests = true;
         }
-        decCryptoQueue: PacketQueue {
+        decryptQueue: PacketQueue {
             @display("p=280,400");
             awaitSendRequests = true;
         }
@@ -103,38 +106,39 @@ module NetworkInterfaceEncAuthSplit like INetworkInterface {
             @display("p=360,460");
         }
     connections:
-        app$i --> appInputQueue.in;
-        entryGuard.appIn <-- appInputQueue.out;
-        entryGuard.exitIn <-- authCryptoQueue.out;
+        app$i --> helperSer.in;
+        encryptQueue.in <-- helperSer.out;
+        cryptoEntry.appIn <-- encryptQueue.out;
+        cryptoEntry.exitIn <-- authenticateQueue.out;
 
         for i=0..encUnits-1 {
-            encUnit[i].in <-- entryGuard.encOut[i];
-            encUnit[i].out --> exitGuard.encIn[i];
+            encUnit[i].in <-- cryptoEntry.encOut[i];
+            encUnit[i].out --> cryptoExit.encIn[i];
         }
 
         for i=0..authUnits-1 {
-            authUnit[i].in <-- entryGuard.authOut[i];
-            authUnit[i].out --> exitGuard.authIn[i];
+            authUnit[i].in <-- cryptoEntry.authOut[i];
+            authUnit[i].out --> cryptoExit.authIn[i];
         }
 
-        exitGuard.netOut --> retransmissionBuffer.dataIn;
+        cryptoExit.netOut --> retransmissionBuffer.dataIn;
         netStream.in[0] <-- retransmissionBuffer.out;
         netStream.out --> router$o;
 
-        router$i --> routerInputQueue.in;
-        arqSplitter.in <-- routerInputQueue.out;
+        router$i --> arrivalQueue.in;
+        arqSplitter.in <-- arrivalQueue.out;
         arqSplitter.othersOut --> arrivalManager.netIn;
-        arrivalManager.verOut --> verCryptoQueue.in;
+        arrivalManager.verOut --> verifyQueue.in;
         arrivalManager.decOut --> splitMerger.in;
         arrivalManager.appOut --> app$o;
 
         arqSplitter.arqOut --> retransmissionBuffer.arqIn;
-        exitGuard.appOut --> arrivalManager.cryptoIn;
+        cryptoExit.appOut --> arrivalManager.cryptoIn;
         arrivalManager.arqOut --> netStream.in[1];
-        entryGuard.verIn <-- verCryptoQueue.out;
-        exitGuard.entryOut --> authCryptoQueue.in;
-        exitGuard.encoderOut --> flitSplitter.in;
-        exitGuard.encoderIn <-- flitSplitter.out;
-        splitMerger.out --> decCryptoQueue.in;
-        entryGuard.decIn <-- decCryptoQueue.out;
+        cryptoEntry.verIn <-- verifyQueue.out;
+        cryptoExit.entryOut --> authenticateQueue.in;
+        cryptoExit.encoderOut --> flitSplitter.in;
+        cryptoExit.encoderIn <-- flitSplitter.out;
+        splitMerger.out --> decryptQueue.in;
+        cryptoEntry.decIn <-- decryptQueue.out;
 }
