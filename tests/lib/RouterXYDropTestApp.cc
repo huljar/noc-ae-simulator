@@ -15,12 +15,16 @@ protected:
     virtual void initialize() override;
     virtual void handleMessage(cMessage* msg) override;
     virtual void receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) override;
+
+    int count[2];
 };
 
 Define_Module(RouterXYDropTestApp);
 
 void RouterXYDropTestApp::initialize() {
     getSimulation()->getSystemModule()->subscribe("clock", this);
+    count[0] = 0;
+    count[1] = 0;
 
     // Send 10 flits to each router
     for(int i = 0; i < 10; ++i) {
@@ -45,6 +49,9 @@ void RouterXYDropTestApp::handleMessage(cMessage* msg) {
     EV << "Got flit from router " << srcRouter << " " << f->getName() << std::endl
        << "Modified " << std::boolalpha << f->isModified() << std::noboolalpha << std::endl;
     delete f;
+
+    ++count[srcRouter];
+    EV << "Received a total of " << count[srcRouter] << " flits from router " << srcRouter << std::endl;
 }
 
 void RouterXYDropTestApp::receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) {

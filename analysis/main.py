@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import sys
 import sqlite3 as sql
 import numpy as np
 import gnuplotpy as gp
@@ -12,8 +13,9 @@ outputDir = 'plots/'
 
 def dbConnect():
     # Database paths
-    pathSca = '../simulations/results/NC-Enc-Auth-Flit-0-sca.sqlite3'
-    pathVec = '../simulations/results/NC-Enc-Auth-Flit-0-vec.sqlite3'
+    configName = sys.argv[1]
+    pathSca = '../simulations/results/' + configName + '-0-sca.sqlite3'
+    pathVec = '../simulations/results/' + configName + '-0-vec.sqlite3'
 
     # Database URIs with read only mode
     uriSca = 'file:' + pathSca + '?mode=ro'

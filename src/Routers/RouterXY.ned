@@ -29,8 +29,7 @@ simple RouterXY like IRouterBase {
         @statistic[flitsReceived](source=receiveFlit; record=vector(flitId); title="Packets arriving from the network");
         @statistic[flitsForwarded](source=forwardFlit; record=vector(flitId); title="Packets forwarded");
         @display("i=block/routing");
-        double modificationProb;
-        double dropProb;
+        double attackProb;
     gates:
         inout local;
         inout port[];

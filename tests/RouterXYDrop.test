@@ -12,13 +12,11 @@ sim-time-limit = 100ns
 **.router1.id = 4
 **.router1.internalType = "HaecComm.Routers.RouterXY"
 **.router1.numPorts = 4
-**.router1.dropProb = 1.0
-**.router1.modificationProb = 0.8
 
 **.router2.id = 5
 **.router2.internalType = "HaecComm.Routers.RouterXY"
 **.router2.numPorts = 4
-**.router2.modificationProb = 1.0
+**.router2.attackProb = 1.0
 
 %file: test.ned
 import HaecComm.Core.Clock;
@@ -58,38 +56,41 @@ network Test {
 }
 
 %contains-regex: stdout
-Got flit from router 2 2flit0
-Modified true
+Got flit from router 1 1flit0
+Modified false
 .*
-Got flit from router 2 2flit1
-Modified true
+Got flit from router 1 1flit1
+Modified false
 .*
-Got flit from router 2 2flit2
-Modified true
+Got flit from router 1 1flit2
+Modified false
 .*
-Got flit from router 2 2flit3
-Modified true
+Got flit from router 1 1flit3
+Modified false
 .*
-Got flit from router 2 2flit4
-Modified true
+Got flit from router 1 1flit4
+Modified false
 .*
-Got flit from router 2 2flit5
-Modified true
+Got flit from router 1 1flit5
+Modified false
 .*
-Got flit from router 2 2flit6
-Modified true
+Got flit from router 1 1flit6
+Modified false
 .*
-Got flit from router 2 2flit7
-Modified true
+Got flit from router 1 1flit7
+Modified false
 .*
-Got flit from router 2 2flit8
-Modified true
+Got flit from router 1 1flit8
+Modified false
 .*
-Got flit from router 2 2flit9
-Modified true
+Got flit from router 1 1flit9
+Modified false
+
+%contains: stdout
+Received a total of 10 flits from router 1
 
 %not-contains: stdout
-Got flit from router 1
+Received a total of 10 flits from router 2
 
 %not-contains: stdout
 undisposed object:

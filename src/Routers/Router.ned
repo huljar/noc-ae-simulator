@@ -23,8 +23,7 @@ module Router like IRouter {
         int id;
         string internalType;
         int numPorts;
-        double modificationProb = default(0.0);
-        double dropProb = default(0.0);
+        double attackProb = default(0.0);
     gates:
         inout local;
         inout port[numPorts];
@@ -35,8 +34,7 @@ module Router like IRouter {
         }
         switch: <internalType> like IRouterBase {
             @display("p=180,120");
-            modificationProb = modificationProb;
-            dropProb = dropProb;
+            attackProb = attackProb;
             gates: port[numPorts];
         }
         nodeInputQueue[numPorts]: PacketQueue {

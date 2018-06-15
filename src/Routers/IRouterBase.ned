@@ -27,8 +27,7 @@ moduleinterface IRouterBase {
         @statistic[flitsSent](source=sendFlit; record=vector(flitId); title="Packets sent into the network");
         @statistic[flitsReceived](source=receiveFlit; record=vector(flitId); title="Packets arriving from the network");
         @statistic[flitsForwarded](source=forwardFlit; record=vector(flitId); title="Packets forwarded");
-        double modificationProb;
-        double dropProb;
+        double attackProb;
     gates:
         inout local;
         inout port[];

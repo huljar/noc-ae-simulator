@@ -36,13 +36,9 @@ void RouterBase::initialize() {
     nodeX = nodeId % gridColumns;
     nodeY = nodeId / gridColumns;
 
-    modificationProb = par("modificationProb");
-    if(modificationProb < 0.0 || modificationProb > 1.0)
-        throw cRuntimeError(this, "Modification probability must be between 0 and 1, but is %f", modificationProb);
-
-    dropProb = par("dropProb");
-    if(dropProb < 0.0 || dropProb > 1.0)
-        throw cRuntimeError(this, "Drop probability must be between 0 and 1, but is %f", dropProb);
+    attackProb = par("attackProb");
+    if(attackProb < 0.0 || attackProb > 1.0)
+        throw cRuntimeError(this, "Attack probability must be between 0 and 1, but is %f", attackProb);
 
     sendFlitSignal = registerSignal("sendFlit");
     receiveFlitSignal = registerSignal("receiveFlit");
@@ -108,15 +104,17 @@ void RouterBase::handleMessage(cMessage* msg) {
 
     EV_DEBUG << "Routing flit: " << flit->getSource().str() << " -> " << flit->getTarget().str() << std::endl;
 
-    // Check if we are malicious enough to drop the packet
-    if(decideToDrop(flit)) {
-        EV_DEBUG << "Maliciously dropping flit " << flit->getName() << std::endl;
-        delete flit;
-        return;
-    }
+    // Check if we are malicious enough to attack the packet
+    if(decideToAttack(flit)) {
+        // Check if we drop or modify the flit
+        if(uniform(0.0, 1.0) < 0.5) {
+            // Drop
+            EV_DEBUG << "Maliciously dropping flit " << flit->getName() << std::endl;
+            delete flit;
+            return;
+        }
 
-    // In case we don't drop, check if we are malicious enough to modify the packet
-    if(decideToModify(flit)) {
+        // Modify
         EV_DEBUG << "Maliciously modifying flit " << flit->getName() << std::endl;
         flit->setModified(true);
     }
@@ -190,18 +188,11 @@ void RouterBase::preprocessFlit(Flit* flit, int inPort) const {
     (void)inPort;
 }
 
-bool RouterBase::decideToModify(const Flit* flit) const {
+bool RouterBase::decideToAttack(const Flit* flit) const {
     (void)flit;
 
-    // Use a uniform probability distribution to decide whether to modify a packet
-    return uniform(0.0, 1.0) < modificationProb;
-}
-
-bool RouterBase::decideToDrop(const Flit* flit) const {
-    (void)flit;
-
-    // Use a uniform probability distribution to decide whether to drop a packet
-    return uniform(0.0, 1.0) < dropProb;
+    // Use a uniform probability distribution to decide whether to attack a packet
+    return uniform(0.0, 1.0) < attackProb;
 }
 
 }} //namespace

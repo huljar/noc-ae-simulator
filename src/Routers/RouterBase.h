@@ -41,8 +41,7 @@ protected:
 
     virtual void preprocessFlit(Messages::Flit* flit, int inPort) const;
     virtual int computeDestinationPort(const Messages::Flit* flit) const = 0;
-    virtual bool decideToModify(const Messages::Flit* flit) const;
-    virtual bool decideToDrop(const Messages::Flit* flit) const;
+    virtual bool decideToAttack(const Messages::Flit* flit) const;
 
 	int gridColumns;
 	int nodeId;
@@ -50,8 +49,7 @@ protected:
 	int nodeX;
 	int nodeY;
 
-	double modificationProb;
-	double dropProb;
+	double attackProb;
 
 	simsignal_t sendFlitSignal;
 	simsignal_t receiveFlitSignal;
