@@ -57,7 +57,7 @@ void RetransmissionBufferImplGen::handleDataMessage(Flit* flit) {
     while(ncFlitQueue.size() > static_cast<size_t>(bufSize)) {
         Messages::Flit* front = ncFlitQueue.front();
         if(front->getMode() == MODE_MAC) {
-            macCache.erase(std::make_pair(front->getGidOrFid(), front->getTarget()));
+            macRemoveFromCache(front);
         }
         else {
             ncRemoveFromCache(front);
@@ -154,6 +154,17 @@ void RetransmissionBufferImplGen::handleArqMessage(Flit* flit) {
 
     // Delete ARQ flit
     delete flit;
+}
+
+void RetransmissionBufferImplGen::macRemoveFromCache(Flit* flit) {
+    ASSERT(flit->getMode() == MODE_MAC);
+
+    // Get parameters
+    IdTargetKey key = std::make_pair(flit->getGidOrFid(), flit->getTarget());
+
+    // Delete flit
+    delete macCache.at(key);
+    macCache.erase(key);
 }
 
 bool RetransmissionBufferImplGen::retrieveSpecifiedFlits(const ModeCache& cache, ArqMode mode, FlitQueue& outQueue) {

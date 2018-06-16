@@ -37,6 +37,8 @@ protected:
     virtual void handleDataMessage(Messages::Flit* flit) override;
     virtual void handleArqMessage(Messages::Flit* flit) override;
 
+    void macRemoveFromCache(Messages::Flit* flit);
+
     MacCache macCache;
 
 private:

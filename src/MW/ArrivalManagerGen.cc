@@ -223,8 +223,7 @@ void ArrivalManagerGen::handleNetMessage(Flit* flit) {
 
                 // Remove all combinations from the set of decoded combinations (except the last if it is still being verified)
                 std::vector<GevSet>& decoded = decodedGevs[key];
-                if(currentlyComputingMac.count(key)) {
-                    ASSERT(!decoded.empty());
+                if(currentlyWorkingOn.count(key) && !decoded.empty()) {
                     decoded.front() = decoded.back();
                     decoded.erase(decoded.begin() + 1, decoded.end());
                 }
@@ -319,9 +318,6 @@ void ArrivalManagerGen::handleCryptoMessage(Flit* flit) {
         EV_DEBUG << "Caching computed MAC flit \"" << flit->getName() << "\" from " << source << " with ID " << id << std::endl;
         computedMacCache.emplace(key, flit);
 
-        // Unset the flag that a MAC is currently being computed
-        currentlyComputingMac.erase(key);
-
         // Try to verify the flit (in case the received MAC is already there)
         tryVerification(key);
     }
@@ -384,7 +380,7 @@ bool ArrivalManagerGen::tryStartDecodeDecryptAndAuth(const IdSourceKey& key) {
         throw cRuntimeError(this, "This module currently only works with generation size 2! We received %u.", generationSize);
 
     // Check that we are not currently working on this generation
-    if(currentlyComputingMac.count(key))
+    if(currentlyWorkingOn.count(key))
         return false;
 
     // Get the GEVs that we have received
@@ -436,7 +432,7 @@ bool ArrivalManagerGen::tryStartDecodeDecryptAndAuth(const IdSourceKey& key) {
     // Check if we have found a set of GEVs to send
     if(toSend.size() == generationSize) {
         // Set parameters
-        currentlyComputingMac.insert(key);
+        currentlyWorkingOn.insert(key);
         decoded.push_back(toSend);
 
         // Retrieve the requested flits from the cache and send copies out
@@ -465,6 +461,9 @@ void ArrivalManagerGen::tryVerification(const IdSourceKey& key) {
     FlitCache::iterator compMac = computedMacCache.find(key);
 
     if(recvMac != receivedMacCache.end() && compMac != computedMacCache.end()) {
+        // Unset the flag that we are currently working on the verification process
+        currentlyWorkingOn.erase(key);
+
         // Verify their equality
         bool equal = !recvMac->second->isModified() && !compMac->second->isModified() &&
                      !recvMac->second->hasBitError() && !compMac->second->hasBitError();
@@ -492,12 +491,14 @@ void ArrivalManagerGen::tryVerification(const IdSourceKey& key) {
                 // Issue ARQ for the last set of combinations that was sent to the decoder and for the MAC
                 // If there was already an ARQ sent for one of them, don't send another one
                 const std::vector<GevSet>& decoded = decodedGevs[key];
-                ASSERT(!decoded.empty() && decoded.back().size() == generationSize);
+                ASSERT(decoded.empty() || decoded.back().size() == generationSize);
 
                 GevArqMap arqModes;
-                for(auto it = decoded.back().begin(); it != decoded.back().end(); ++it) {
-                    if(!requestedData.count(*it))
-                        arqModes.emplace(*it, ARQ_DATA);
+                if(!decoded.empty()) {
+                    for(auto it = decoded.back().begin(); it != decoded.back().end(); ++it) {
+                        if(!requestedData.count(*it))
+                            arqModes.emplace(*it, ARQ_DATA);
+                    }
                 }
                 bool requestMac = !macRequestedViaArq.count(key);
                 ASSERT(!arqModes.empty() || requestMac);
@@ -663,7 +664,7 @@ void ArrivalManagerGen::cleanUp(const IdSourceKey& key) {
     decodedGevs.erase(key);
 
     // Clear currently computing flag
-    currentlyComputingMac.erase(key);
+    currentlyWorkingOn.erase(key);
 
     // Clear verification result
     verified.erase(key);
@@ -840,9 +841,9 @@ bool ArrivalManagerGen::checkCompleteGenerationReceived(const IdSourceKey& key, 
 
 bool ArrivalManagerGen::checkVerificationOngoing(const IdSourceKey& key) const {
     // Check if we are currently verifying a flit
-    // This is the case when the currentlyComputingMac flag is set and
+    // This is the case when the currentlyWorkingOn flag is set and
     // there is a received MAC
-    return currentlyComputingMac.count(key) && receivedMacCache.count(key);
+    return currentlyWorkingOn.count(key) && receivedMacCache.count(key);
 }
 
 bool ArrivalManagerGen::checkArqPlanned(const IdSourceKey& key) const {

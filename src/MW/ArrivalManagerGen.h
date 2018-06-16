@@ -89,8 +89,8 @@ protected:
     // Cache GEVs that were sent to the decoder together
     std::map<IdSourceKey, std::vector<GevSet>> decodedGevs;
 
-    // Cache if we are decoding etc. right now
-    std::set<IdSourceKey> currentlyComputingMac;
+    // Cache if we are decoding etc. right now or waiting for the network MAC to do verification
+    std::set<IdSourceKey> currentlyWorkingOn;
 
     // Cache successful MAC verifications
     std::set<IdSourceKey> verified;
