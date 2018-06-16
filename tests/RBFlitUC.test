@@ -16,6 +16,8 @@ import HaecComm.Core.Clock;
 import HaecComm.Buffers.RetransmissionBuffer;
 
 network Test {
+    parameters:
+        bool networkCoding = false;
     submodules:
         clock: Clock;
         rt: RetransmissionBuffer;

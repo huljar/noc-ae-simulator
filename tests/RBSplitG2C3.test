@@ -17,6 +17,7 @@ import HaecComm.Buffers.RetransmissionBuffer;
 
 network Test {
     parameters:
+        bool networkCoding = true;
         int numCombinations = 3;
     submodules:
         clock: Clock;

@@ -99,8 +99,8 @@ protected:
     std::map<IdSourceKey, unsigned int> ucDiscardDecrypting;
     std::map<IdSourceKey, unsigned int> ncDiscardDecrypting;
 
-    // cache GEVs/splits that were sent to the decoder together
-    std::map<IdSourceKey, bool> ucDecryptionCandidate;
+    // cache GEVs/splits that were sent to the decoder together (UC: track if something was sent to the decoder)
+    std::set<IdSourceKey> ucDecryptionCandidate;
     std::map<IdSourceKey, GevSet> ncDecryptionCandidate;
 
     // Track planned ARQs (in case we delay an ARQ to wait for verifications to finish)

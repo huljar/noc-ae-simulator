@@ -40,15 +40,13 @@ void RetransmissionBufferImplBase::initialize() {
     if(bufSize < 0)
         throw cRuntimeError(this, "Retransmission buffer size must be greater or equal to 0, but received %i", bufSize);
 
-    try {
-        numCombinations = getAncestorPar("numCombinations");
-    }
-    catch(const cRuntimeError& e) {
-        EV_DEBUG << "Retransmission buffer is not in a network coded environment" << std::endl;
-    }
+    networkCoding = getAncestorPar("networkCoding");
 
-    if(numCombinations < 2)
-        throw cRuntimeError(this, "Number of combinations must be greater than 2, but received %i", numCombinations);
+    if(networkCoding) {
+        numCombinations = getAncestorPar("numCombinations");
+        if(numCombinations < 2)
+            throw cRuntimeError(this, "Number of combinations must be greater than 2, but received %i", numCombinations);
+    }
 }
 
 void RetransmissionBufferImplBase::handleMessage(cMessage* msg) {

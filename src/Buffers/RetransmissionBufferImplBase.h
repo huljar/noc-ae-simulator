@@ -48,6 +48,7 @@ protected:
     void ncRemoveFromCache(Messages::Flit* flit);
 
     int bufSize;
+    bool networkCoding;
     int numCombinations;
 
     FlitCache ucFlitCache;

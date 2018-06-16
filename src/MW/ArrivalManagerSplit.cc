@@ -496,7 +496,7 @@ void ArrivalManagerSplit::ucTrySendToDecoder(const IdSourceKey& key) {
         send(splitPair.second->dup(), "decOut");
 
         // Set decryption candidate status
-        ucDecryptionCandidate[key] = true;
+        ucDecryptionCandidate.insert(key);
     }
 }
 
@@ -544,7 +544,8 @@ void ArrivalManagerSplit::ucTryVerification(const IdSourceKey& key, Mode mode) {
         ucDeleteFromCache(ucReceivedSplitsCache, key, mode);
 
         // Check if this is the first authentication fail from the current decryption candidate
-        if(ucDecryptionCandidate.at(key)) {
+        auto decCandidate = ucDecryptionCandidate.find(key);
+        if(decCandidate != ucDecryptionCandidate.end()) {
             EV_DEBUG << "Clearing decryption candidate (source: "
                      << key.second << ", ID: " << key.first << ")" << std::endl;
 
@@ -554,7 +555,7 @@ void ArrivalManagerSplit::ucTryVerification(const IdSourceKey& key, Mode mode) {
                 ++ucDiscardDecrypting[key];
 
             // Clear the decryption candidate
-            ucDecryptionCandidate.at(key) = false;
+            ucDecryptionCandidate.erase(decCandidate);
         }
 
         // Also clear the computed MAC to ensure that we don't compare the next
