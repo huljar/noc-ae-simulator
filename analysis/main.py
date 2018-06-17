@@ -126,28 +126,28 @@ def getQueueTimesEncAuthModules(cursorSca):
                where moduleName like :modName and scalarName = :scaName''',
             {'modName': 'Mesh2D.ni[%].encryptQueue', 'scaName': 'timeInQueue:max'}
     )
-    encQueueMax = max(cursorSca.fetchall(), key=lambda row: row[0])[0]
+    encQueueMax = max([row[0] for row in cursorSca.fetchall() if row[0] is not None])
     cursorSca.execute(
             '''select scalarValue
                from scalar
                where moduleName like :modName and scalarName = :scaName''',
             {'modName': 'Mesh2D.ni[%].decryptQueue', 'scaName': 'timeInQueue:max'}
     )
-    decQueueMax = max(cursorSca.fetchall(), key=lambda row: row[0])[0]
+    decQueueMax = max([row[0] for row in cursorSca.fetchall() if row[0] is not None])
     cursorSca.execute(
             '''select scalarValue
                from scalar
                where moduleName like :modName and scalarName = :scaName''',
             {'modName': 'Mesh2D.ni[%].authenticateQueue', 'scaName': 'timeInQueue:max'}
     )
-    authQueueMax = max(cursorSca.fetchall(), key=lambda row: row[0])[0]
+    authQueueMax = max([row[0] for row in cursorSca.fetchall() if row[0] is not None])
     cursorSca.execute(
             '''select scalarValue
                from scalar
                where moduleName like :modName and scalarName = :scaName''',
             {'modName': 'Mesh2D.ni[%].verifyQueue', 'scaName': 'timeInQueue:max'}
     )
-    verQueueMax = max(cursorSca.fetchall(), key=lambda row: row[0])[0]
+    verQueueMax = max([row[0] for row in cursorSca.fetchall() if row[0] is not None])
 
     encMax = max(encQueueMax, decQueueMax)
     authMax = max(authQueueMax, verQueueMax)
@@ -158,33 +158,87 @@ def getQueueTimesEncAuthModules(cursorSca):
                where moduleName like :modName and scalarName = :scaName''',
             {'modName': 'Mesh2D.ni[%].encryptQueue', 'scaName': 'timeInQueue:avg'}
     )
-    encQueueAvg = np.mean(cursorSca.fetchall())
+    encQueueAvg = np.mean([row[0] for row in cursorSca.fetchall() if row[0] is not None])
     cursorSca.execute(
             '''select scalarValue
                from scalar
                where moduleName like :modName and scalarName = :scaName''',
             {'modName': 'Mesh2D.ni[%].decryptQueue', 'scaName': 'timeInQueue:avg'}
     )
-    decQueueAvg = np.mean(cursorSca.fetchall())
+    decQueueAvg = np.mean([row[0] for row in cursorSca.fetchall() if row[0] is not None])
     cursorSca.execute(
             '''select scalarValue
                from scalar
                where moduleName like :modName and scalarName = :scaName''',
             {'modName': 'Mesh2D.ni[%].authenticateQueue', 'scaName': 'timeInQueue:avg'}
     )
-    authQueueAvg = np.mean(cursorSca.fetchall())
+    authQueueAvg = np.mean([row[0] for row in cursorSca.fetchall() if row[0] is not None])
     cursorSca.execute(
             '''select scalarValue
                from scalar
                where moduleName like :modName and scalarName = :scaName''',
             {'modName': 'Mesh2D.ni[%].verifyQueue', 'scaName': 'timeInQueue:avg'}
     )
-    verQueueAvg = np.mean(cursorSca.fetchall())
+    verQueueAvg = np.mean([row[0] for row in cursorSca.fetchall() if row[0] is not None])
 
     encAvg = np.mean([encQueueAvg, decQueueAvg])
     authAvg = np.mean([authQueueAvg, verQueueAvg])
 
     return (encMax, authMax, encAvg, authAvg)
+
+def getQueueTimesEncAuthModulesFullGen(cursorSca):
+    cursorSca.execute(
+            '''select scalarValue
+               from scalar
+               where moduleName like :modName and scalarName = :scaName''',
+            {'modName': 'Mesh2D.ni[%].encryptQueue', 'scaName': 'timeInQueue:max'}
+    )
+    encQueueMax = max([row[0] for row in cursorSca.fetchall() if row[0] is not None])
+    cursorSca.execute(
+            '''select scalarValue
+               from scalar
+               where moduleName like :modName and scalarName = :scaName''',
+            {'modName': 'Mesh2D.ni[%].authenticateQueue', 'scaName': 'timeInQueue:max'}
+    )
+    authQueueMax = max([row[0] for row in cursorSca.fetchall() if row[0] is not None])
+    cursorSca.execute(
+            '''select scalarValue
+               from scalar
+               where moduleName like :modName and scalarName = :scaName''',
+            {'modName': 'Mesh2D.ni[%].decryptVerifyQueue', 'scaName': 'timeInQueue:max'}
+    )
+    decVerQueueMax = max([row[0] for row in cursorSca.fetchall() if row[0] is not None])
+
+    encMax = max(encQueueMax, decVerQueueMax)
+    authMax = max(authQueueMax, decVerQueueMax)
+
+    cursorSca.execute(
+            '''select scalarValue
+               from scalar
+               where moduleName like :modName and scalarName = :scaName''',
+            {'modName': 'Mesh2D.ni[%].encryptQueue', 'scaName': 'timeInQueue:avg'}
+    )
+    encQueueAvg = np.mean([row[0] for row in cursorSca.fetchall() if row[0] is not None])
+    cursorSca.execute(
+            '''select scalarValue
+               from scalar
+               where moduleName like :modName and scalarName = :scaName''',
+            {'modName': 'Mesh2D.ni[%].authenticateQueue', 'scaName': 'timeInQueue:avg'}
+    )
+    authQueueAvg = np.mean([row[0] for row in cursorSca.fetchall() if row[0] is not None])
+    cursorSca.execute(
+            '''select scalarValue
+               from scalar
+               where moduleName like :modName and scalarName = :scaName''',
+            {'modName': 'Mesh2D.ni[%].decryptVerifyQueue', 'scaName': 'timeInQueue:avg'}
+    )
+    decVerQueueAvg = np.mean([row[0] for row in cursorSca.fetchall() if row[0] is not None])
+
+    encAvg = np.mean([encQueueAvg, decVerQueueAvg])
+    authAvg = np.mean([authQueueAvg, decVerQueueAvg])
+
+    return (encMax, authMax, encAvg, authAvg)
+
 
 def getFlitEndToEndLatency(cursorVec, sourceId, targetId):
     sourceIds = []
@@ -241,7 +295,8 @@ if __name__ == '__main__':
     print('... that means we have ' + str(numArqs / numFlits) + ' ARQs per source flit.\n')
 
     # Print max/avg queue times for enc/auth queues
-    (encMax, authMax, encAvg, authAvg) = getQueueTimesEncAuthModules(cursorSca)
+    #(encMax, authMax, encAvg, authAvg) = getQueueTimesEncAuthModules(cursorSca)
+    (encMax, authMax, encAvg, authAvg) = getQueueTimesEncAuthModulesFullGen(cursorSca)
     print('Encryption unit wait time: max ' + str(encMax) + ', avg ' + str(encAvg))
     print('Authentication unit wait time: max ' + str(authMax) + ', avg ' + str(authAvg) + '\n')
 
