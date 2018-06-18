@@ -17,10 +17,11 @@
 #define __HAECCOMM_GENTRAFFIC_H_
 
 #include <omnetpp.h>
-#include <Messages/fieldtypes.h>
+#include <Messages/Flit.h>
 #include <MW/MiddlewareBase.h>
 #include <cinttypes>
 #include <map>
+#include <queue>
 
 using namespace omnetpp;
 
@@ -48,6 +49,7 @@ protected:
     virtual void receiveSignal(cComponent* source, simsignal_t signalID, unsigned long l, cObject* details) override;
 
     virtual void generateFlit(int targetX, int targetY);
+    virtual void processQueue();
 
     bool enabled;
     double injectionProb;
@@ -61,6 +63,8 @@ protected:
     int nodeId;
     int nodeX;
     int nodeY;
+
+    std::queue<Messages::Flit*> sendQueue;
 
     simsignal_t generateFlitSignal;
 };

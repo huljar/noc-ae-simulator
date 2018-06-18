@@ -14,7 +14,6 @@
 // 
 
 #include "GenTraffic.h"
-#include <Messages/Flit.h>
 #include <Messages/MessageFactory.h>
 #include <Util/IdProvider.h>
 #include <sstream>
@@ -42,6 +41,10 @@ GenTraffic::GenTraffic()
 }
 
 GenTraffic::~GenTraffic() {
+    while(!sendQueue.empty()) {
+        delete sendQueue.front();
+        sendQueue.pop();
+    }
 }
 
 void GenTraffic::initialize() {
@@ -110,11 +113,13 @@ void GenTraffic::receiveSignal(cComponent* source, simsignal_t signalID, unsigne
             generateFlit(targetX, targetY);
 
             // If pair generation is enabled, create another one
-            // It's ok to do this on the same clock tick because they are serialized anyway as soon as the enter the NI
             if(generatePairs) {
                 generateFlit(targetX, targetY);
             }
         }
+
+        // Send out up to one flit on this clock cycle
+        processQueue();
 	}
 }
 
@@ -135,11 +140,22 @@ void GenTraffic::generateFlit(int targetX, int targetY) {
     Flit* flit = MessageFactory::createFlit(packetName.str().c_str(), source, target, MODE_DATA, fid);
     take(flit);
 
-    // Send flit
-    emit(generateFlitSignal, flit);
-    EV << "Sending flit \"" << flit->getName() << "\" from " << flit->getSource()
-       << " to " << flit->getTarget() << " (ID: " << flit->getGidOrFid() << ")" << std::endl;
-    send(flit, "out");
+    // Push it into the send queue
+    sendQueue.push(flit);
+}
+
+void GenTraffic::processQueue() {
+    if(!sendQueue.empty()) {
+        // Pop queue
+        Flit* flit = sendQueue.front();
+        sendQueue.pop();
+
+        // Send flit
+        emit(generateFlitSignal, flit);
+        EV << "Sending flit \"" << flit->getName() << "\" from " << flit->getSource()
+           << " to " << flit->getTarget() << " (ID: " << flit->getGidOrFid() << ")" << std::endl;
+        send(flit, "out");
+    }
 }
 
 }} //namespace

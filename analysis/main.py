@@ -138,7 +138,7 @@ def getNumberOfGeneratedFlits(cursorVec):
             '''select vectorCount
                from vector
                where vector.vectorName = :vecName''',
-            {'vecName': 'flitsGenerated:vector(flitId)'}
+            {'vecName': 'flitsProduced:vector(flitId)'}
     )
     flitsPerPe = cursorVec.fetchall()
     totalFlits = 0
@@ -279,34 +279,34 @@ def getQueueTimesEncAuthModulesFullGen(cursorSca):
 
     return (encMax, authMax, encAvg, authAvg)
 
-def getResidualErrorProbability(cursorVec):
-    # Get number of flits that were generated within the first recorded 50000 cycles
+def getResidualErrorProbabilityAndEndToEndLatency(cursorVec): # Both in same function to save time
+    # Get flits that were generated within the first recorded 50000 cycles
     cursorVec.execute(
-            '''select count(d.value)
+            '''select d.value as id
                from vectorData d inner join vector v on d.vectorId = v.vectorId
                where v.vectorName = :vecName and d.simtimeRaw < :simtimeLimit''',
             {'vecName': 'flitsProduced:vector(flitId)', 'simtimeLimit': endSimtimeRaw}
     )
+    flitsProduced = cursorVec.fetchall()
 
-    # Get all flits that arrived (at a processing element) within all recorded cycles
+    # Get flits that were generated within the first recorded 50000 cycles and arrived at the destination PE at some point
+    # Also get their production (aka creation) and consumption (aka arrival at PE) times
+    cursorVec.execute(
+            '''select s.id, s.prodTime, d.consTime
+               from (select d.value as id, d.simtimeRaw as prodTime
+                     from vectorData d inner join vector v on d.vectorId = v.vectorId
+                     where v.vectorName = :vecNameProd and d.simtimeRaw < :simtimeLimit) s
+               inner join (select d.value as id, d.simtimeRaw as consTime
+                           from vectorData d inner join vector v on d.vectorId = v.vectorId
+                           where v.vectorName = :vecNameCons) d
+               on s.id = d.id order by s.id asc''',
+            {'vecNameProd': 'flitsProduced:vector(flitId)', 'simtimeLimit': endSimtimeRaw, 'vecNameCons': 'flitsConsumed:vector(flitId)'}
+    )
+    flitsTransmitted = cursorVec.fetchall()
 
-def getFlitEndToEndLatency(cursorVec, sourceId, targetId):
-    idVecName = 'flitsGenerated:vector(flitId)'
-    sourceIds = [x for x in range(meshRows * meshCols)]
-    targetIds = [x for x in range(meshRows * meshCols)]
-
-    for source in sourceIds:
-        for target in targetIds:
-            # Build source/target module names
-            sourceModName = 'Mesh2D.app[' + str(source) + '].producer'
-            targetModName = 'Mesh2D.app[' + str(target) + '].consumer'
-
-            # Get target raw address
-#            targetRaw = # TODO: look up how python division/modulo rounds
-
-#            cursorVec.execute(
-#                '''select s.simtimeRaw, t.simtimeRaw
-#                   from 
+    # Calculate latencies in cycles (divide by 2000 because raw time is in picoseconds and one cycle is 2 nanoseconds)
+    latencies = [(row[2] - row[1]) / 2000 for row in flitsTransmitted]
+    return (len(flitsProduced), len(flitsTransmitted), np.mean(latencies))
 
 if __name__ == '__main__':
     # Ensure output directory exists
@@ -328,12 +328,11 @@ if __name__ == '__main__':
     numInjectedFlits = getNumberOfInjectedFlits(cursorSca)
     print('The information rate is', numSourceFlits / numInjectedFlits)
 
-    # Print residual error probability
-    getResidualErrorProbability(cursorVec)
-    print('The residual error probability is')
-
-    # Print end-to-end latency
-    print('The average end-to-end latency is')
+    # Print residual error probability and end-to-end latency
+    (flitsProduced, flitsTransmitted, latencies) = getResidualErrorProbabilityAndEndToEndLatency(cursorVec)
+    print('The residual error probability is ' + str((flitsProduced - flitsTransmitted) / flitsProduced) +
+          ' (' + str(flitsProduced - flitsTransmitted) + ' of ' + str(flitsProduced) + ')')
+    print('The average end-to-end latency is ' + str(latencies))
 
     # Plot queue lengths of routers
     #plotRouterQueueLengths(cursorVec, portNum = 5)
