@@ -28,7 +28,7 @@ package HaecComm.MW;
 simple ReportArrival like IMiddlewareBase {
     parameters:
         @signal[receiveFlit](type=HaecComm::Messages::Flit);
-        @statistic[flits](source=receiveFlit; record=vector(flitId),vector(flitSource); title="Received Flits");
+        @statistic[flitsConsumed](source=receiveFlit; record=vector(flitId),vector(flitSource)?; title="Consumed Flits");
         @display("i=block/arrival");
     gates:
         input  in;

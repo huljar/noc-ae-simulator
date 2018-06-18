@@ -8,6 +8,8 @@ import gnuplotpy as gp
 # Global parameters
 meshRows = 8
 meshCols = 8
+numCycles = 50000
+endSimtimeRaw = 101000000 # Flits generated within the first 50000 cycles must have an event time value smaller than this
 
 outputDir = 'plots/'
 
@@ -33,7 +35,7 @@ def dbClose(connSca, connVec):
     connSca.close()
     connVec.close()
 
-def getInjectionRate(cursorSca, numCycles):
+def getNumberOfInjectedFlits(cursorSca):
     cursorSca.execute(
             '''select scalarValue
                from scalar
@@ -44,7 +46,45 @@ def getInjectionRate(cursorSca, numCycles):
     totalFlits = 0
     for node in flitsPerNode:
         totalFlits += node[0]
-    return totalFlits / (meshRows * meshCols * numCycles)
+    return totalFlits
+
+def getInjectionRate(cursorSca):
+    return getNumberOfInjectedFlits(cursorSca) / (meshRows * meshCols * numCycles)
+
+def getRouterQueueLengths(cursorSca):
+    cursorSca.execute(
+            '''select scalarValue
+               from scalar
+               where moduleName like :modName and scalarName = :scaName and scalarValue > 0''',
+            {'modName': 'Mesh2D.router[%].nodeInputQueue[_]', 'scaName': 'queueLength:max'}
+    )
+    lengthMax = max([row[0] for row in cursorSca.fetchall()])
+
+    cursorSca.execute(
+            '''select scalarValue
+               from scalar
+               where moduleName like :modName and scalarName = :scaName and scalarValue > 0''',
+            {'modName': 'Mesh2D.router[%].nodeInputQueue[_]', 'scaName': 'queueLength:timeavg'}
+    )
+    lengthTimeavg = np.mean([row[0] for row in cursorSca.fetchall()])
+
+    cursorSca.execute(
+            '''select scalarValue
+               from scalar
+               where moduleName like :modName and scalarName = :scaName and scalarValue > 0''',
+            {'modName': 'Mesh2D.router[%].localInputQueue', 'scaName': 'queueLength:max'}
+    )
+    localLengthMax = max([row[0] for row in cursorSca.fetchall()])
+
+    cursorSca.execute(
+            '''select scalarValue
+               from scalar
+               where moduleName like :modName and scalarName = :scaName and scalarValue > 0''',
+            {'modName': 'Mesh2D.router[%].localInputQueue', 'scaName': 'queueLength:timeavg'}
+    )
+    localLengthTimeavg = np.mean([row[0] for row in cursorSca.fetchall()])
+
+    return (lengthMax, lengthTimeavg, localLengthMax, localLengthTimeavg)
 
 def plotRouterQueueLengths(cursorVec, routerNum = -1, portNum = -1):
     routerNames = []
@@ -239,22 +279,21 @@ def getQueueTimesEncAuthModulesFullGen(cursorSca):
 
     return (encMax, authMax, encAvg, authAvg)
 
+def getResidualErrorProbability(cursorVec):
+    # Get number of flits that were generated within the first recorded 50000 cycles
+    cursorVec.execute(
+            '''select count(d.value)
+               from vectorData d inner join vector v on d.vectorId = v.vectorId
+               where v.vectorName = :vecName and d.simtimeRaw < :simtimeLimit''',
+            {'vecName': 'flitsProduced:vector(flitId)', 'simtimeLimit': endSimtimeRaw}
+    )
+
+    # Get all flits that arrived (at a processing element) within all recorded cycles
 
 def getFlitEndToEndLatency(cursorVec, sourceId, targetId):
-    sourceIds = []
-    targetIds = []
-
     idVecName = 'flitsGenerated:vector(flitId)'
-
-    if sourceId >= 0:
-        sourceIds = [sourceId]
-    else:
-        sourceIds = [x for x in range(meshRows * meshCols)]
-
-    if targetId >= 0:
-        targetIds = [targetId]
-    else:
-        targetIds = [x for x in range(meshRows * meshCols)]
+    sourceIds = [x for x in range(meshRows * meshCols)]
+    targetIds = [x for x in range(meshRows * meshCols)]
 
     for source in sourceIds:
         for target in targetIds:
@@ -280,25 +319,42 @@ if __name__ == '__main__':
     cursorSca = connSca.cursor()
     cursorVec = connVec.cursor()
 
-    # Print injection rate
-    injectionRate = getInjectionRate(cursorSca, 50000)
-    print('The network injection rate is ' + str(injectionRate) + '.\n')
+    # Print total injection (= acceptance) rate
+    injectionRate = getInjectionRate(cursorSca)
+    print('The total network injection rate is', injectionRate)
+
+    # Print information rate
+    numSourceFlits = getNumberOfGeneratedFlits(cursorVec)
+    numInjectedFlits = getNumberOfInjectedFlits(cursorSca)
+    print('The information rate is', numSourceFlits / numInjectedFlits)
+
+    # Print residual error probability
+    getResidualErrorProbability(cursorVec)
+    print('The residual error probability is')
+
+    # Print end-to-end latency
+    print('The average end-to-end latency is')
 
     # Plot queue lengths of routers
     #plotRouterQueueLengths(cursorVec, portNum = 5)
 
     # Print average number of ARQs per flit created at PE
-    numFlits = getNumberOfGeneratedFlits(cursorVec)
-    numArqs = getNumberOfGeneratedArqs(cursorVec)
-    print('Number of flits generated at the processing elements: ' + str(numFlits))
-    print('Number of ARQs generated: ' + str(numArqs))
-    print('... that means we have ' + str(numArqs / numFlits) + ' ARQs per source flit.\n')
+    #numFlits = getNumberOfGeneratedFlits(cursorVec)
+    #numArqs = getNumberOfGeneratedArqs(cursorVec)
+    #print('Number of flits generated at the processing elements: ' + str(numFlits))
+    #print('Number of ARQs generated: ' + str(numArqs))
+    #print('... that means we have ' + str(numArqs / numFlits) + ' ARQs per source flit.\n')
 
     # Print max/avg queue times for enc/auth queues
     #(encMax, authMax, encAvg, authAvg) = getQueueTimesEncAuthModules(cursorSca)
-    (encMax, authMax, encAvg, authAvg) = getQueueTimesEncAuthModulesFullGen(cursorSca)
-    print('Encryption unit wait time: max ' + str(encMax) + ', avg ' + str(encAvg))
-    print('Authentication unit wait time: max ' + str(authMax) + ', avg ' + str(authAvg) + '\n')
+    #(encMax, authMax, encAvg, authAvg) = getQueueTimesEncAuthModulesFullGen(cursorSca)
+    #print('Encryption unit wait time: max ' + str(encMax) + ', avg ' + str(encAvg))
+    #print('Authentication unit wait time: max ' + str(authMax) + ', avg ' + str(authAvg) + '\n')
+
+    # Print max/avg queue lengths for router ←→ router input queues
+    #(lengthMax, lengthTimeavg, localLengthMax, localLengthTimeavg) = getRouterQueueLengths(cursorSca)
+    #print('Maximum/timeaverage router←→router queue length:', lengthMax, '/', lengthTimeavg)
+    #print('Maximum/timeaverage local input queue length:', localLengthMax, '/', localLengthTimeavg)
 
     # Close DB connections
     dbClose(connSca, connVec)
