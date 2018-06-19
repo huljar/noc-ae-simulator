@@ -134,6 +134,7 @@ private:
     bool checkCompleteGenerationReceived(const IdSourceKey& key, unsigned short numCombinations);
     bool checkVerificationOngoing(const IdSourceKey& key) const;
     bool checkArqPlanned(const IdSourceKey& key) const;
+    bool checkArqTimerActive(const IdSourceKey& key) const;
 };
 
 }} //namespace

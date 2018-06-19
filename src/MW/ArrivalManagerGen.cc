@@ -525,8 +525,8 @@ void ArrivalManagerGen::tryVerification(const IdSourceKey& key) {
             // Try to send a different combination of GEVs to the decoder
             bool anotherTry = tryStartDecodeDecryptAndAuth(key);
 
-            // If we couldn't start another try and there is no ARQ ongoing, we have failed completely
-            if(!anotherTry && requestedData.empty() && !macRequestedViaArq.count(key)) {
+            // If we couldn't start another try, there is no ARQ ongoing, and the timeout has already occured, we have failed completely
+            if(!anotherTry && requestedData.empty() && !macRequestedViaArq.count(key) && !checkArqTimerActive(key)) {
                 // We have failed completely, clean up everything and discard flits from this ID
                 EV_DEBUG << "No more decoder combinations available and ARQ limit reached for source " << key.second << ", ID " << key.first << std::endl;
                 cleanUp(key);
@@ -848,6 +848,14 @@ bool ArrivalManagerGen::checkVerificationOngoing(const IdSourceKey& key) const {
 
 bool ArrivalManagerGen::checkArqPlanned(const IdSourceKey& key) const {
     return plannedArqs.count(key);
+}
+
+bool ArrivalManagerGen::checkArqTimerActive(const IdSourceKey& key) const {
+    TimerCache::const_iterator timerIter = arqTimers.find(key);
+    if(timerIter == arqTimers.end())
+        return false;
+
+    return timerIter->second->isScheduled();
 }
 
 }} //namespace

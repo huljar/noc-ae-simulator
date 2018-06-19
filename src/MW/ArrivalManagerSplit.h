@@ -116,7 +116,7 @@ private:
     void handleArqTimer(Messages::ArqTimer* timer);
 
     void ucTryStartMergeDecryptAndAuth(const IdSourceKey& key, Messages::Mode mode);
-    void ucTrySendToDecoder(const IdSourceKey& key);
+    bool ucTrySendToDecoder(const IdSourceKey& key);
     void ucTryVerification(const IdSourceKey& key, Messages::Mode mode);
     void ucTrySendToApp(const IdSourceKey& key);
     void ucIssueArq(const IdSourceKey& key, Messages::ArqMode arqMode);
@@ -127,8 +127,8 @@ private:
     bool ucDeleteFromCache(SplitCache& cache, const IdSourceKey& key, Messages::Mode mode);
 
     void ncTryStartDecodeMergeDecryptAndAuth(const IdSourceKey& key, uint16_t gev);
-    void ncTrySendToDecoder(const IdSourceKey& key, uint16_t gev);
-    void ncTrySendToDecoder(const IdSourceKey& key);
+    bool ncTrySendToDecoder(const IdSourceKey& key, uint16_t gev);
+    bool ncTrySendToDecoder(const IdSourceKey& key);
     void ncTryVerification(const IdSourceKey& key, uint16_t gev);
     void ncTrySendToApp(const IdSourceKey& key);
     void ncIssueArq(const IdSourceKey& key, Messages::Mode mode, const Messages::GevArqMap& arqModes, Messages::NcMode ncMode);
@@ -152,6 +152,8 @@ private:
     bool ncCheckCompleteGenerationReceived(const IdSourceKey& key, unsigned short numCombinations);
     bool ncCheckVerificationOngoing(const IdSourceKey& key) const;
     bool ncCheckArqPlanned(const IdSourceKey& key) const;
+
+    bool checkArqTimerActive(const IdSourceKey& key) const;
 };
 
 }} //namespace

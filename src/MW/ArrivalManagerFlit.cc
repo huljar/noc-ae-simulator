@@ -447,10 +447,12 @@ void ArrivalManagerFlit::handleArqTimer(ArqTimer* timer) {
     if(issuedArqs[key] >= static_cast<unsigned int>(arqLimit)) {
         // We have failed completely, clean up everything and discard flits from this ID
         EV_DEBUG << "ARQ limit reached for source " << key.second << ", ID " << key.first << std::endl;
-        if(!networkCoding)
+        if(!networkCoding) {
             ucCleanUp(key);
-        else
+        }
+        else if(ncDecryptionCandidate[key].size() < generationSize) {
             ncCleanUp(key);
+        }
         return;
     }
 
@@ -695,7 +697,7 @@ void ArrivalManagerFlit::ncTryStartDecodeDecryptAndAuth(const IdSourceKey& key, 
     ncTrySendToDecoder(key, gev);
 }
 
-void ArrivalManagerFlit::ncTrySendToDecoder(const IdSourceKey& key, uint16_t gev) {
+bool ArrivalManagerFlit::ncTrySendToDecoder(const IdSourceKey& key, uint16_t gev) {
     // Check that we have not yet sent out a non-corrupted generation to the decoder
     GevSet& candidate = ncDecryptionCandidate[key];
 
@@ -718,11 +720,15 @@ void ArrivalManagerFlit::ncTrySendToDecoder(const IdSourceKey& key, uint16_t gev
                 Flit* decCopy = gevCache.at(*it)->dup();
                 send(decCopy, "decOut");
             }
+
+            return true;
         }
     }
+
+    return false;
 }
 
-void ArrivalManagerFlit::ncTrySendToDecoder(const IdSourceKey& key) {
+bool ArrivalManagerFlit::ncTrySendToDecoder(const IdSourceKey& key) {
     // Check that we have not yet sent out a non-corrupted generation to the decoder
     GevSet& candidate = ncDecryptionCandidate[key];
 
@@ -748,10 +754,12 @@ void ArrivalManagerFlit::ncTrySendToDecoder(const IdSourceKey& key) {
                     send(decCopy, "decOut");
                 }
 
-                break;
+                return true;
             }
         }
     }
+
+    return false;
 }
 
 void ArrivalManagerFlit::ncTryVerification(const IdSourceKey& key, uint16_t gev) {
@@ -786,29 +794,30 @@ void ArrivalManagerFlit::ncTryVerification(const IdSourceKey& key, uint16_t gev)
             EV_DEBUG << "MAC verification failed for \"" << recvMac->second->getName() << "\" (source: " << key.second
                      << ", ID: " << key.first << ", GEV: " << gev << ")" << std::endl;
 
-            // Check if we have reached the ARQ limit
-            if(issuedArqs[key] >= static_cast<unsigned int>(arqLimit)) {
-                // We have failed completely, clean up everything and discard flits from this ID
-                EV_DEBUG << "ARQ limit reached for source " << key.second << ", ID " << key.first << std::endl;
-                ncCleanUp(key);
-                return;
+            // Check if we have an ARQ left
+            bool arqIssued = false;
+            if(issuedArqs[key] < static_cast<unsigned int>(arqLimit)) {
+                // Issue ARQ
+                ncIssueArq(key, MODE_ARQ_TELL_MISSING, GevArqMap{{gev, ARQ_DATA_MAC}}, static_cast<NcMode>(recvMac->second->getNcMode()));
+                arqIssued = true;
             }
 
-            // Send out ARQ
-            ncIssueArq(key, MODE_ARQ_TELL_MISSING, GevArqMap{{gev, ARQ_DATA_MAC}}, static_cast<NcMode>(recvMac->second->getNcMode()));
-
-            // Clear received cache to ensure we can receive the retransmission
+            // Clear corrupted flits from the received cache to ensure we can receive the retransmission and don't retry decoding with them
             ncDeleteFromCache(ncReceivedDataCache, key, gev);
             ncDeleteFromCache(ncReceivedMacCache, key, gev);
 
+            // Also clear the computed MAC to ensure that we don't compare the next
+            // received MAC against the wrong computed one
+            ncDeleteFromCache(ncComputedMacCache, key, gev);
+
             // Check if this is the first authentication fail from the current decryption candidate
             if(ncDecryptionCandidate.at(key).count(gev)) {
-                // Check if this candidate was already sent to the decoder
                 EV_DEBUG << "Clearing decryption candidate (caused by GEV " << gev << ") (source: "
                          << key.second << ", ID: " << key.first << ")" << std::endl;
 
+                // Check if this candidate was already sent to the decoder
                 if(ncDecryptionCandidate.at(key).size() == generationSize) {
-                    // Clear the decrypted data flits or, in case it some have not arrived yet,
+                    // Clear the decrypted data flits or, in case some have not arrived yet,
                     // mark that they will be discarded on arrival
                     unsigned short decryptedDeleted = ncDeleteFromCache(ncDecryptedDataCache, key);
                     ASSERT(decryptedDeleted <= generationSize);
@@ -819,12 +828,16 @@ void ArrivalManagerFlit::ncTryVerification(const IdSourceKey& key, uint16_t gev)
                 ncDecryptionCandidate.at(key).clear();
             }
 
-            // Also clear the computed MAC to ensure that we don't compare the next
-            // received MAC against the wrong computed one
-            ncDeleteFromCache(ncComputedMacCache, key, gev);
-
             // Try to send a new combination of GEVs to the decoder, excluding the one that just failed
-            ncTrySendToDecoder(key);
+            bool anotherTry = ncTrySendToDecoder(key);
+
+            // If we couldn't start another try, there is no ARQ ongoing, and the timeout has already occured, we have failed completely
+            if(!anotherTry && !arqIssued && !checkArqTimerActive(key)) {
+                // We have failed completely, clean up everything and discard flits from this ID
+                EV_DEBUG << "Not enough combinations remaining and ARQ limit reached for source " << key.second << ", ID " << key.first << std::endl;
+                ncCleanUp(key);
+                return;
+            }
         }
     }
 }
@@ -1149,6 +1162,14 @@ bool ArrivalManagerFlit::ncCheckVerificationOngoing(const IdSourceKey& key) cons
 
 bool ArrivalManagerFlit::ncCheckArqPlanned(const IdSourceKey& key) const {
     return ncPlannedArqs.count(key);
+}
+
+bool ArrivalManagerFlit::checkArqTimerActive(const IdSourceKey& key) const {
+    TimerCache::const_iterator timerIter = arqTimers.find(key);
+    if(timerIter == arqTimers.end())
+        return false;
+
+    return timerIter->second->isScheduled();
 }
 
 }} //namespace

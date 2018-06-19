@@ -122,8 +122,8 @@ private:
     bool ucDeleteFromCache(FlitCache& cache, const IdSourceKey& key);
 
     void ncTryStartDecodeDecryptAndAuth(const IdSourceKey& key, uint16_t gev);
-    void ncTrySendToDecoder(const IdSourceKey& key, uint16_t gev);
-    void ncTrySendToDecoder(const IdSourceKey& key);
+    bool ncTrySendToDecoder(const IdSourceKey& key, uint16_t gev);
+    bool ncTrySendToDecoder(const IdSourceKey& key);
     void ncTryVerification(const IdSourceKey& key, uint16_t gev);
     void ncTrySendToApp(const IdSourceKey& key);
     void ncIssueArq(const IdSourceKey& key, Messages::Mode mode, const Messages::GevArqMap& arqModes, Messages::NcMode ncMode);
@@ -143,6 +143,8 @@ private:
     bool ncCheckCompleteGenerationReceived(const IdSourceKey& key, unsigned short numCombinations);
     bool ncCheckVerificationOngoing(const IdSourceKey& key) const;
     bool ncCheckArqPlanned(const IdSourceKey& key) const;
+
+    bool checkArqTimerActive(const IdSourceKey& key) const;
 };
 
 }} //namespace
