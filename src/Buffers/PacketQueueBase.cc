@@ -67,6 +67,7 @@ void PacketQueueBase::initialize() {
 	maxLength = par("maxLength");
 	if(maxLength < 0)
 		throw cRuntimeError(this, "Queue max length must be greater or equal to 0, but received %i", maxLength);
+	softLimit = par("softLimit");
 
     queue = new cPacketQueue;
 
@@ -101,9 +102,9 @@ void PacketQueueBase::handleMessage(cMessage* msg) {
         queue->insert(flit);
         enqueueTimes.emplace(flit, clock->getCurrentCycle());
     }
-    else if(queue->getLength() < maxLength) {
+    else if(queue->getLength() < maxLength || softLimit) {
         // Otherwise, if there is a length restriction, but we did not reach
-        // it yet, we can also insert the packet.
+        // it yet (or we only have a soft limit on the queue size), we can also insert the packet.
         queue->insert(flit);
         enqueueTimes.emplace(flit, clock->getCurrentCycle());
 

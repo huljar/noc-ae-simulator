@@ -49,6 +49,7 @@ protected:
     bool awaitSendRequests;
     bool syncFirstPacket;
     int maxLength;
+    bool softLimit;
 
     bool cycleFree;
     cPacketQueue* queue;

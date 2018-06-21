@@ -11,6 +11,7 @@ simple AlwaysFullPacketQueue like IPacketQueueBase {
         bool awaitSendRequests = false;
         bool syncFirstPacket = true;
         int maxLength = 0;
+        bool softLimit = false;
     gates:
         input  in;
         output out;

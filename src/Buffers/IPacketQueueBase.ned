@@ -32,4 +32,5 @@ moduleinterface IPacketQueueBase {
         bool awaitSendRequests;
         bool syncFirstPacket;
         int maxLength;
+        bool softLimit;
 }

@@ -36,6 +36,7 @@ simple PacketQueue like IPacketQueueBase {
         bool syncFirstPacket = default(true);
         // Maximum length of the queue. A value of 0 means no limit.
         int maxLength = default(0);
+        bool softLimit = default(false);
     gates:
         input  in;
         output out;
