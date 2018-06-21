@@ -49,6 +49,8 @@ protected:
 	int nodeX;
 	int nodeY;
 
+	bool softQueueLimits;
+
 	double attackProb;
 
 	simsignal_t sendFlitSignal;

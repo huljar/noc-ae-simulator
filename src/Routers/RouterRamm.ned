@@ -16,17 +16,21 @@
 package HaecComm.Routers;
 
 //
-// Module interface for Router modules.
-// Routers used in the HaecNode compound module must implement this interface.
+// Implementation of XY routing scheme from the HAEC project.
+// It provides a simple XY router with no additional processing performed
+// on the packets.
 //
-moduleinterface IRouter {
+simple RouterRamm like IRouterBase {
     parameters:
-        int id;
-        string internalType;
-        int numPorts;
-        bool softQueueLimits;
+        @signal[sendFlit](type=HaecComm::Messages::Flit);
+        @signal[receiveFlit](type=HaecComm::Messages::Flit);
+        @signal[forwardFlit](type=HaecComm::Messages::Flit);
+        @statistic[flitsSent](source=sendFlit; record=vector(flitId); title="Packets sent into the network");
+        @statistic[flitsReceived](source=receiveFlit; record=vector(flitId); title="Packets arriving from the network");
+        @statistic[flitsForwarded](source=forwardFlit; record=vector(flitId); title="Packets forwarded");
+        @display("i=block/routing");
         double attackProb;
     gates:
         inout local;
-        inout port[numPorts];
+        inout port[];
 }

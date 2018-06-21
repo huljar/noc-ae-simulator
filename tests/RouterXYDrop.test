@@ -18,6 +18,8 @@ sim-time-limit = 100ns
 **.router2.numPorts = 4
 **.router2.attackProb = 1.0
 
+**.softQueueLimits = false
+
 %file: test.ned
 import HaecComm.Core.Clock;
 import HaecComm.Routers.Router;

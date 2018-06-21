@@ -308,6 +308,23 @@ def getResidualErrorProbabilityAndEndToEndLatency(cursorVec): # Both in same fun
     latencies = [(row[2] - row[1]) / 2000 for row in flitsTransmitted]
     return (len(flitsProduced), len(flitsTransmitted), np.mean(latencies))
 
+def getRouterFlitCounts(cursorVec):
+    # Get number of flits sent, forwarded, and received by the routers
+    cursorVec.execute(
+            '''select moduleName, sum(vectorCount)
+               from vector
+               where moduleName like :modName and vectorName like :vecName
+               group by moduleName''',
+            {'modName': 'Mesh2D.router[%].switch', 'vecName': 'flits%:vector(flitId)'}
+    )
+    routerList = cursorVec.fetchall()
+
+    # Sort by router index
+    routerList.sort(key=lambda r: int(r[0][14:-8]))
+
+    # Return only the counts
+    return [row[1] for row in routerList]
+
 if __name__ == '__main__':
     # Ensure output directory exists
     if not os.path.exists(outputDir):
@@ -333,6 +350,15 @@ if __name__ == '__main__':
     print('The residual error probability is ' + str((flitsProduced - flitsTransmitted) / flitsProduced) +
           ' (' + str(flitsProduced - flitsTransmitted) + ' of ' + str(flitsProduced) + ')')
     print('The average end-to-end latency is ' + str(latencies))
+
+    # Print router heat map matrix
+    counts = getRouterFlitCounts(cursorVec)
+    print('\nRouter heat map:')
+    for i in reversed(range(8)): # print rows in reverse order for gnuplot
+        for j in range(8):
+            print("{0:8d}".format(counts[8*i+j]), end='')
+        print('')
+    print('')
 
     # Plot queue lengths of routers
     #plotRouterQueueLengths(cursorVec, portNum = 5)

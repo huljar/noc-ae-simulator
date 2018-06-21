@@ -36,6 +36,8 @@ void RouterBase::initialize() {
     nodeX = nodeId % gridColumns;
     nodeY = nodeId / gridColumns;
 
+    softQueueLimits = getAncestorPar("softQueueLimits");
+
     attackProb = par("attackProb");
     if(attackProb < 0.0 || attackProb > 1.0)
         throw cRuntimeError(this, "Attack probability must be between 0 and 1, but is %f", attackProb);
@@ -153,8 +155,8 @@ void RouterBase::receiveSignal(cComponent* source, simsignal_t signalID, unsigne
             // Get destination port (implemented by subclasses)
             int destPort = computeDestinationPort(flit);
 
-            // Check if the destination port's receiving queue ready
-            if(portReadyMap.at(destPort)) {
+            // Check if the destination port's receiving queue ready (or if we use soft queue limits)
+            if(portReadyMap.at(destPort) || softQueueLimits) {
                 // Insert into map
                 applicableInputs[destPort].push_back(it->first);
             }

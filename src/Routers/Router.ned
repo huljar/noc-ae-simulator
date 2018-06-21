@@ -23,6 +23,7 @@ module Router like IRouter {
         int id;
         string internalType;
         int numPorts;
+        bool softQueueLimits;
         double attackProb = default(0.0);
     gates:
         inout local;
@@ -40,6 +41,7 @@ module Router like IRouter {
         nodeInputQueue[numPorts]: PacketQueue {
             @display("p=70,50,matrix,2,220,140");
             awaitSendRequests = true;
+            softLimit = softQueueLimits;
         }
     connections:
         localInputQueue.in <-- local$i;

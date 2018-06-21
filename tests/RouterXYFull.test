@@ -13,6 +13,8 @@ sim-time-limit = 20ns
 **.router.internalType = "HaecComm.Routers.RouterXY"
 **.router.numPorts = 4
 
+**.softQueueLimits = false
+
 %file: test.ned
 import HaecComm.Core.Clock;
 import HaecComm.Routers.Router;
