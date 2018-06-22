@@ -352,13 +352,13 @@ if __name__ == '__main__':
     print('The average end-to-end latency is ' + str(latencies))
 
     # Print router heat map matrix
-    counts = getRouterFlitCounts(cursorVec)
-    print('\nRouter heat map:')
-    for i in reversed(range(8)): # print rows in reverse order for gnuplot
-        for j in range(8):
-            print("{0:8d}".format(counts[8*i+j]), end='')
-        print('')
-    print('')
+    #counts = getRouterFlitCounts(cursorVec)
+    #print('\nRouter heat map:')
+    #for i in reversed(range(8)): # print rows in reverse order for gnuplot
+    #    for j in range(8):
+    #        print("{0:8d}".format(counts[8*i+j]), end='')
+    #    print('')
+    #print('')
 
     # Plot queue lengths of routers
     #plotRouterQueueLengths(cursorVec, portNum = 5)
