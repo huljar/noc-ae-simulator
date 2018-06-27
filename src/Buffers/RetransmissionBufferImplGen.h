@@ -24,7 +24,7 @@ using namespace omnetpp;
 namespace HaecComm { namespace Buffers {
 
 /**
- * TODO - Generated class
+ * Retransmission Buffer implementation for the full-generation authentication protocol
  */
 class RetransmissionBufferImplGen : public RetransmissionBufferImplBase {
 public:

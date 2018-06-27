@@ -16,8 +16,8 @@
 package HaecComm.Core;
 
 //
-// Module interface for App modules (aka. Processing Units).
-// Apps used in the HaecNode compound module must implement this interface.
+// Module interface for App modules (aka. Processing Elements).
+// Apps used in the Mesh2D network must implement this interface.
 //
 moduleinterface IApp {
     parameters:

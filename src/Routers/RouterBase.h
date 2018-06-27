@@ -26,7 +26,7 @@ using namespace omnetpp;
 namespace HaecComm { namespace Routers {
 
 /**
- * \brief Base class for all router modules
+ * \brief Base class for all router module implementations
  */
 class RouterBase : public cSimpleModule, public cListener {
 public:

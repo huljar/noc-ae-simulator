@@ -24,7 +24,7 @@ using namespace omnetpp;
 namespace HaecComm { namespace MW { namespace Crypto {
 
 /**
- * TODO - Generated class
+ * Implementation of an encryption module for the individual + full-generation authentication protocol
  */
 class EncFlitImpl : public MiddlewareBase {
 protected:

@@ -18,7 +18,7 @@ package HaecComm.MW.Crypto;
 import HaecComm.MW.IMiddlewareBase;
 
 //
-// Interface for authentication modules to implement
+// Interface for encryption and authentication modules to implement
 //
 moduleinterface ICryptoUnit extends IMiddlewareBase {
     parameters:

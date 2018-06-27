@@ -19,7 +19,7 @@ import HaecComm.Buffers.Serializer;
 import HaecComm.MW.*;
 
 //
-// Compound module wrapper around the ~AuthGenerationImpl simple module.
+// Compound module wrapper around the ~AuthGenImpl simple module.
 // In addition to the authentication, a computation delay and
 // serialization (one packet per clock cycle) are performed.
 //

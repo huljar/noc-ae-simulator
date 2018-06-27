@@ -17,6 +17,10 @@ package HaecComm.Buffers;
 
 import HaecComm.MW.Delay;
 
+//
+// Wrapper module for retransmission buffers. Use the internalType parameter to specify
+// the concrete implementation.
+//
 module RetransmissionBuffer {
     parameters:
         @display("i=block/buffer");

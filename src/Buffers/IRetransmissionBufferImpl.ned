@@ -15,6 +15,10 @@
 
 package HaecComm.Buffers;
 
+//
+// Module interface for retransmission buffers. Modules implementing this interface should also inherit from the
+// RetransmissionBufferImplBase C++ class.
+//
 moduleinterface IRetransmissionBufferImpl {
     parameters:
         int bufSize; // Amount of flits that can be cached

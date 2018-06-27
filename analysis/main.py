@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+#
+# This is the main analysis script that was used to extract statistics from the SQLite databases created
+# by OMNeT++ and containing all the recorded values.
+#
 import os
 import sys
 import sqlite3 as sql

@@ -17,6 +17,9 @@ package HaecComm.MW.NetworkCoding;
 
 import HaecComm.Buffers.Serializer;
 
+//
+// Wrapper module for decoders. Use the internalType parameter to specify the concrete module.
+//
 module Decoder like INetworkCodingBase {
     parameters:
         int generationSize;

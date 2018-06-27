@@ -17,6 +17,9 @@ package HaecComm.MW.Crypto;
 
 import HaecComm.Buffers.Serializer;
 
+//
+// Wrapper module for the exit guard for the individual authentication protocol
+//
 module ExitGuardFlit {
     parameters:
         @display("i=block/join");

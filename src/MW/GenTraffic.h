@@ -30,13 +30,13 @@ namespace HaecComm { namespace MW {
 /**
  * \brief Special middleware which generates traffic
  *
- * On each clock tick, this middleware generates a packet an
+ * On each clock tick, this middleware generates a flit and
  * sends it out with a probability defined by the <em>injectionProb</em>
- * parameter. In an unclocked simulation, it currently does nothing.
+ * parameter.
  *
- * \note This module will discard any incoming packets. Its input gate
+ * \note This module will discard any incoming flits. Its input gate
  * is supposed to stay unconnected, since this module creates its own
- * packets.
+ * flits.
  */
 class GenTraffic: public MiddlewareBase, public cListener {
 public:

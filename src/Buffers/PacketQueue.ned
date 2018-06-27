@@ -16,14 +16,12 @@
 package HaecComm.Buffers;
 
 //
-// Packet queue for synchronization with the global clock module.
-// If the simulation is not clocked, no queueing is performed, and packets are
-// redirected immediately.
+// Standard packet queue module
 //
 simple PacketQueue like IPacketQueueBase {
     parameters:
         @signal[flitSent](type=HaecComm::Messages::Flit);
-        @signal[queueLength](type=long); // not using unsigned because queues return signed values for length
+        @signal[queueLength](type=long); //# not using unsigned because queues return signed values for length
         @signal[flitDrop](type=HaecComm::Messages::Flit);
         @signal[timeInQueue](type=unsigned long);
         @signal[queueFull](type=bool);

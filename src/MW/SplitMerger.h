@@ -28,7 +28,7 @@ using namespace omnetpp;
 namespace HaecComm { namespace MW {
 
 /**
- * TODO - Generated class
+ * Implementation of the split merger used in the interwoven authentication protocol
  */
 class SplitMerger : public MiddlewareBase {
 public:

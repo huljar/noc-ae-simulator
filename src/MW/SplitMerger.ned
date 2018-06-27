@@ -16,11 +16,7 @@
 package HaecComm.MW;
 
 //
-// Simple module implementing network decoding. Flits with the same generation
-// ID (combinations) are collected until enough flits are present. These flits
-// are decoded using the <i>gev</i> header field and sent out afterwards. On
-// the sender side, an ~Encoder module is required create the linear combinations
-// of the original flits.
+// Split merger module that is used in the interwoven authentication protocol
 //
 simple SplitMerger like IMiddlewareBase {
     parameters:

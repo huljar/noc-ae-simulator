@@ -18,12 +18,7 @@ package HaecComm.MW.Crypto;
 import HaecComm.MW.IMiddlewareBase;
 
 //
-// Authentication module implementing the half flit authentication scheme
-// as described in the paper. Each incoming flit is split into two flits,
-// with the first flit containing the first half of the payload and the
-// second one containing the second half. For each of these Flits, a short MAC is
-// computed and put into the (now empty) second half of the payload. Then,
-// both flits are sent out.
+// Authentication module for the interwoven authentication scheme.
 //
 simple AuthSplitImpl like IMiddlewareBase {
     parameters:

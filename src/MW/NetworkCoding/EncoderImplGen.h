@@ -29,7 +29,7 @@ using namespace omnetpp;
 namespace HaecComm { namespace MW { namespace NetworkCoding {
 
 /**
- * TODO - Generated class
+ * Network encoder class for the full-generation authentication protocol
  */
 class EncoderImplGen : public NetworkCodingBase {
 public:

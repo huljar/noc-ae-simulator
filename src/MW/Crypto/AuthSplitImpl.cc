@@ -36,8 +36,6 @@ void AuthSplitImpl::handleMessage(cMessage* msg) {
 		return;
 	}
 
-	// TODO: actual MAC computations
-
 	send(flit, "out");
 }
 

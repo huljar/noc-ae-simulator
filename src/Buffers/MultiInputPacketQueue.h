@@ -24,7 +24,7 @@ using namespace omnetpp;
 namespace HaecComm { namespace Buffers {
 
 /**
- * TODO - Generated class
+ * Packet queue that supports multiple input gates and a single output gate.
  */
 class MultiInputPacketQueue : public PacketQueueBase {
 public:

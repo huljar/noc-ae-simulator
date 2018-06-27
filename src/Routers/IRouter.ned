@@ -16,8 +16,8 @@
 package HaecComm.Routers;
 
 //
-// Module interface for Router modules.
-// Routers used in the HaecNode compound module must implement this interface.
+// Module interface for Router wrapper modules.
+// Routers used in the Mesh2D network must implement this interface.
 //
 moduleinterface IRouter {
     parameters:

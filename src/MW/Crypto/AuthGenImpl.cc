@@ -62,8 +62,6 @@ void AuthGenImpl::handleMessage(cMessage* msg) {
 		// Set mode flag that this is a MAC flit
 		macFlit->setMode(MODE_MAC);
 
-		// TODO: do actual MAC computation
-
 		// Send out MAC flit
 		send(macFlit, "out");
 

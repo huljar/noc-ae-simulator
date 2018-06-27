@@ -327,9 +327,6 @@ void ArrivalManagerGen::handleCryptoMessage(Flit* flit) {
 }
 
 void ArrivalManagerGen::handleArqTimer(ArqTimer* timer) {
-    // TODO: clear all requestedViaArq flags
-    // TODO: don't fail immediately on final timeout if a MAC is currently being computed and we have a MAC received
-
     // Get parameters
     uint32_t id = timer->getGidOrFid();
     Address2D source = timer->getSource();

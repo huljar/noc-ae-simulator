@@ -16,7 +16,7 @@
 package HaecComm.Core;
 
 //
-// Default implementation of the channel used to connect two HAEC nodes together.
+// Default implementation of the channel used to connect two routers together.
 //
 channel HaecChannel extends ned.DatarateChannel like IHaecChannel {
     datarate = default(0bps);

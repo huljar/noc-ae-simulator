@@ -24,7 +24,7 @@ using namespace omnetpp;
 namespace HaecComm { namespace Routers {
 
 /**
- * TODO - Generated class
+ * \brief Router implementing the dynamic minimal routing scheme.
  */
 class RouterDM : public RouterBase {
 protected:

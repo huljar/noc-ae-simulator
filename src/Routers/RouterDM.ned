@@ -16,7 +16,7 @@
 package HaecComm.Routers;
 
 //
-// TODO auto-generated module
+// Router implementing the dynamic minimal routing scheme.
 //
 simple RouterDM like IRouterBase {
     parameters:

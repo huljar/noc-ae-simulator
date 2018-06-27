@@ -21,6 +21,9 @@
 
 namespace HaecComm { namespace Messages {
 
+/**
+ * Class providing some static factory methods to generate flits and ARQ timers quickly
+ */
 class MessageFactory {
 public:
     static ArqTimer* createArqTimer(const char* name, uint32_t id, const Address2D& source, NcMode ncMode = NC_UNCODED);

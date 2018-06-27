@@ -28,7 +28,7 @@ using namespace omnetpp;
 namespace HaecComm { namespace MW { namespace Crypto {
 
 /**
- * TODO - implement load balancing for unclocked simulations
+ * Module class that is used to manage the crypto modules in the individual authentication protocol
  */
 class EntryGuardFlit : public cSimpleModule, public cListener {
 public:

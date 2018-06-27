@@ -16,7 +16,8 @@
 package HaecComm.MW.Crypto;
 
 //
-// TODO auto-generated module
+// Module that implements the exit guard where flit streams from the crypto
+// modules converge for the full-generation authentication protocol
 //
 simple ExitGuardGenImpl {
     parameters:

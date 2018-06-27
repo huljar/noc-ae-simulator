@@ -52,8 +52,6 @@ uint32_t NetworkCodingBase::encodeAndSendGeneration(FlitVector& generation, cons
     IdProvider* idp = IdProvider::getInstance();
     uint32_t gid = useGlobalTransmissionIds ? idp->getNextGenId() : idp->getNextGenId(source, target);
 
-    // TODO: do actual network coding
-
     // Logging
     EV << "Creating new generation (ID: " << gid << ", " << source << "->" << target << ") from flit IDs ";
     for(int i = 0; i < generationSize - 1; ++i)
@@ -100,8 +98,6 @@ uint32_t NetworkCodingBase::encodeAndSendGeneration(FlitVector& generation, cons
 }
 
 void NetworkCodingBase::decodeAndSendGeneration(FlitVector& combinations, uint32_t gid, const Address2D& source, const Address2D& target) {
-    // TODO: do actual network decoding
-
     // Logging
     EV << "Decoding generation (ID: " << gid << ", " << source << "->" << target << ") containing flit IDs ";
     for(int i = 0; i < generationSize - 1; ++i)

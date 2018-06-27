@@ -16,7 +16,10 @@
 package HaecComm.MW;
 
 //
-// TODO auto-generated module
+// ArrivalManager module for the interwoven authentication protocol.
+//
+// This module manages flits arriving from the network, including their forwarding to the crypto modules,
+// verification, and ARQ issuance.
 //
 simple ArrivalManagerSplit like IArrivalManager {
     parameters:

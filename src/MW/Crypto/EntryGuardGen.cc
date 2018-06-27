@@ -172,7 +172,6 @@ void EntryGuardGen::handleMessage(cMessage* msg) {
         }
 
         // Set name
-        // TODO: better names
         std::ostringstream flitName;
         flitName << flit->getName() << "-mac";
         flit->setName(flitName.str().c_str());

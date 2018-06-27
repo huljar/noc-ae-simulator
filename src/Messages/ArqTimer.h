@@ -20,6 +20,9 @@
 
 namespace HaecComm { namespace Messages {
 
+/**
+ * Message class that is used to measure ARQ timeouts. It is mainly used by ArrivalManagers as self-messages.
+ */
 class ArqTimer : public ArqTimer_Base {
 public:
     ArqTimer(const char *name=nullptr, short kind=0) : ArqTimer_Base(name,kind) {}

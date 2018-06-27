@@ -20,7 +20,7 @@ import HaecComm.Buffers.RetransmissionBuffer;
 import HaecComm.Util.ArqSplitter;
 
 //
-// Minimal implementation of the Network Interface from the HAEC project.
+// Minimal implementation of a Network Interface.
 // It contains just a retransmission buffer.
 //
 module NetworkInterface like INetworkInterface {

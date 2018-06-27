@@ -26,10 +26,10 @@ namespace HaecComm { namespace MW {
 /**
  * \brief Special middleware which reports message arrivals
  *
- * This middleware logs information about incoming messages. Afterwards,
- * the messages are deleted.
+ * This middleware logs information about incoming flits. Afterwards,
+ * the flits are deleted.
  *
- * \note This module will not send out any messages. Its output gate
+ * \note This module will not send out any flits. Its output gate
  * is supposed to stay unconnected, since this module consumes all
  * incoming traffic.
  */

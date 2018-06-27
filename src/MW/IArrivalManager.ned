@@ -15,6 +15,9 @@
 
 package HaecComm.MW;
 
+//
+// Interface for all arrival manager modules
+//
 moduleinterface IArrivalManager {
     parameters:
         @signal[generateArq](type=HaecComm::Messages::Flit);

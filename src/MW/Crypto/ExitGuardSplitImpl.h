@@ -25,7 +25,7 @@ using namespace omnetpp;
 namespace HaecComm { namespace MW { namespace Crypto {
 
 /**
- * TODO - Generated class
+ * Module class that is used to merge the flit streams from the crypto modules in the interwoven authentication protocol
  */
 class ExitGuardSplitImpl : public cSimpleModule {
 public:

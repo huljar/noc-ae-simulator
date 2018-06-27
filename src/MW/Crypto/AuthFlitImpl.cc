@@ -38,8 +38,6 @@ void AuthFlitImpl::handleMessage(cMessage* msg) {
 	// Set mode flag that this is a MAC flit
 	flit->setMode(MODE_MAC);
 
-	// TODO: do actual MAC computation
-
 	// Send out mac flit
 	send(flit, "out");
 }

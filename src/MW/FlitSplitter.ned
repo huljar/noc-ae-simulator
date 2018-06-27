@@ -17,6 +17,9 @@ package HaecComm.MW;
 
 import HaecComm.Buffers.Serializer;
 
+//
+// Wrapper module for the flit splitter that is used in the interwoven authentication protocol
+//
 module FlitSplitter like IMiddlewareBase {
     parameters:
         @display("i=block/tx");

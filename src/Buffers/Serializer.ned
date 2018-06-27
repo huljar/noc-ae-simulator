@@ -16,7 +16,8 @@
 package HaecComm.Buffers;
 
 //
-// TODO auto-generated module
+// Specialization of the packet queue that acts as a serializer for synchronization
+// with the global clock
 //
 simple Serializer extends PacketQueue {
     parameters:

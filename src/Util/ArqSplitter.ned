@@ -16,7 +16,7 @@
 package HaecComm.Util;
 
 //
-// TODO auto-generated module
+// Helper module that filters ARQ flits from other flits.
 //
 simple ArqSplitter {
     parameters:

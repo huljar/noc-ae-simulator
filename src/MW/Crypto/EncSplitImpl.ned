@@ -18,7 +18,7 @@ package HaecComm.MW.Crypto;
 import HaecComm.MW.IMiddlewareBase;
 
 //
-// Encryption module.
+// Encryption module for the interwoven authentication scheme.
 //
 simple EncSplitImpl like IMiddlewareBase {
     parameters:

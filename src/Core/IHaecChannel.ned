@@ -16,8 +16,8 @@
 package HaecComm.Core;
 
 //
-// Channel interface for HAEC channels which connect HaecNodes with each other.
-// Channels used in the mesh networks must implement this interface.
+// Channel interface for channels which connect routers with each other.
+// Channels used in the Mesh2D network must implement this interface.
 //
 channelinterface IHaecChannel {
     

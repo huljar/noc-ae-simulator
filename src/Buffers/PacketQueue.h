@@ -24,11 +24,10 @@ using namespace omnetpp;
 namespace HaecComm { namespace Buffers {
 
 /**
- * \brief Packet queue class for synchronizing packets with the global clock
+ * \brief Standard packet queue class
  *
- * The packet queue can queue up packets in a single direction. On each clock tick, one
- * packet is sent out (if there is a packet enqueued). If the simulation is not clocked,
- * the packets are redirected immediately, and no queueing is performed.
+ * The packet queue can queue up packets in a single direction. On each clock tick, up to one
+ * packet can be sent out (if there is a packet enqueued).
  */
 class PacketQueue : public PacketQueueBase {
 public:

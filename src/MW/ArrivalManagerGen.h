@@ -31,7 +31,10 @@ using namespace omnetpp;
 namespace HaecComm { namespace MW {
 
 /**
- * TODO - Generated class
+ * \brief Implementation of the ArrivalManager module for the full-generation authentication protocol.
+ *
+ * This class manages flits arriving from the network, including their forwarding to the crypto modules,
+ * verification, and ARQ issuance.
  */
 class ArrivalManagerGen : public cSimpleModule {
 public:

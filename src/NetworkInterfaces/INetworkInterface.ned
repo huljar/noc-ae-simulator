@@ -17,7 +17,7 @@ package HaecComm.NetworkInterfaces;
 
 //
 // Module interface for Network Interface modules.
-// Network Interfaces used in the HaecNode compound module must implement this interface.
+// Network Interfaces used in the Mesh2D network must implement this interface.
 //
 moduleinterface INetworkInterface {
     parameters:

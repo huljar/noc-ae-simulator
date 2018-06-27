@@ -24,7 +24,7 @@ using namespace omnetpp;
 namespace HaecComm { namespace Util {
 
 /**
- * TODO - Generated class
+ * \brief Implementation of a module that filters ARQ flits from other flits.
  */
 class ArqSplitter : public cSimpleModule {
 protected:

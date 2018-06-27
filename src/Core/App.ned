@@ -20,7 +20,7 @@ import HaecComm.MW.ReportArrival;
 import HaecComm.Buffers.PacketQueue;
 
 //
-// Default implementation of the Processing Unit from the HAEC project (called "App" here).
+// Default implementation of the Processing Unit (called "App" here).
 // It contains a packet generator (source) and a packet consumer (sink).
 //
 module App like IApp {

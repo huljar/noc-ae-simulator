@@ -16,7 +16,7 @@
 package HaecComm.Buffers;
 
 //
-// TODO auto-generated module
+// Packet queue module with a variable number of input gates and a single output
 //
 simple MultiInputPacketQueue like IPacketQueueBase {
     parameters:

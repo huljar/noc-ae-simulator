@@ -34,7 +34,6 @@ void EncSplitImpl::handleMessage(cMessage* msg) {
 		delete msg;
 		return;
 	}
-	// TODO: do actual encryption
 
 	// Send out encrypted flit
 	send(flit, "out");

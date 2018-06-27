@@ -28,7 +28,7 @@ using namespace omnetpp;
 namespace HaecComm { namespace MW { namespace NetworkCoding {
 
 /**
- * TODO - Generated class
+ * Network decoder class for the interwoven authentication protocol
  */
 class DecoderImplSplit : public NetworkCodingBase {
 public:

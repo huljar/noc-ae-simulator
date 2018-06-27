@@ -22,8 +22,7 @@ import HaecComm.MW.NetworkCoding.*;
 import HaecComm.Util.*;
 
 //
-// Default implementation of the Network Interface from the HAEC project.
-// It contains a network encoder and decoder.
+// The Network Interface for the network coded individual authentication protocol
 //
 module NetworkInterfaceNcEncAuthFlit like INetworkInterface {
     parameters:

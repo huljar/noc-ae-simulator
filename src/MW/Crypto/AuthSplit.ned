@@ -19,7 +19,7 @@ import HaecComm.Buffers.Serializer;
 import HaecComm.MW.*;
 
 //
-// Compound module wrapper around the ~AuthHalfFlitImpl simple module.
+// Compound module wrapper around the ~AuthSplitImpl simple module.
 // In addition to the authentication, a computation delay and
 // serialization (one packet per clock cycle) are performed.
 //

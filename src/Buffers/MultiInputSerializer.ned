@@ -16,7 +16,8 @@
 package HaecComm.Buffers;
 
 //
-// TODO auto-generated module
+// Specialization of the multi input packet queue that acts as a serializer for synchronization
+// with the global clock
 //
 simple MultiInputSerializer extends MultiInputPacketQueue {
     parameters:

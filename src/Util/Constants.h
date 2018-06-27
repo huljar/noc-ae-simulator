@@ -8,6 +8,9 @@
 #ifndef UTIL_CONSTANTS_H_
 #define UTIL_CONSTANTS_H_
 
+/**
+ * Namespace containing several constants that are used in various locations of the simulator
+ */
 namespace HaecComm { namespace Util { namespace Constants {
     const int NORTH_PORT = 0;
     const int EAST_PORT = 1;

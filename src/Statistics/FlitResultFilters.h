@@ -22,16 +22,28 @@ using namespace omnetpp;
 
 namespace HaecComm { namespace Statistics {
 
+/**
+ * Result filter to be used with OMNeT++ statistics specifications ("flitId" in NED files).
+ * This filter extracts the flit ID from signals containing a flit.
+ */
 class FlitIdFilter : public cObjectResultFilter {
 protected:
     virtual void receiveSignal(cResultFilter* prev, simtime_t_cref t, cObject* object, cObject* details) override;
 };
 
+/**
+ * Result filter to be used with OMNeT++ statistics specifications ("flitSource" in NED files).
+ * This filter extracts the raw flit source from signals containing a flit.
+ */
 class FlitSourceFilter : public cObjectResultFilter {
 protected:
     virtual void receiveSignal(cResultFilter* prev, simtime_t_cref t, cObject* object, cObject* details) override;
 };
 
+/**
+ * Result filter to be used with OMNeT++ statistics specifications ("flitTarget" in NED files).
+ * This filter extracts the raw flit target from signals containing a flit.
+ */
 class FlitTargetFilter : public cObjectResultFilter {
 protected:
     virtual void receiveSignal(cResultFilter* prev, simtime_t_cref t, cObject* object, cObject* details) override;

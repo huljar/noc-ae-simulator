@@ -25,6 +25,9 @@ using namespace omnetpp;
 
 namespace HaecComm { namespace MW { namespace NetworkCoding {
 
+/**
+ * Base class for network coding. Encoders and decoders should inherit this class.
+ */
 class NetworkCodingBase: public MiddlewareBase {
 public:
     typedef std::pair<uint32_t, Messages::Address2D> IdSourceKey;

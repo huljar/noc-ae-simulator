@@ -22,6 +22,10 @@
 
 namespace HaecComm { namespace Messages {
 
+/**
+ * Message class for flits - the standard unit of transmission in the NoC. Flits are employed everywhere
+ * in the simulator.
+ */
 class Flit : public Flit_Base {
 public:
     Flit(const char *name=nullptr, short kind=0) : Flit_Base(name,kind) { adjustMsgKind(); }

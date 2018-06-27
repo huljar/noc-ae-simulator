@@ -24,7 +24,7 @@ using namespace omnetpp;
 namespace HaecComm { namespace MW {
 
 /**
- * TODO - Generated class
+ * Implementation of the flit splitter used in the interwoven authentication protocol
  */
 class FlitSplitterImpl : public MiddlewareBase {
 protected:

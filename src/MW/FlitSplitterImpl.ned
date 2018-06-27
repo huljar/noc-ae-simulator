@@ -16,7 +16,7 @@
 package HaecComm.MW;
 
 //
-// TODO auto-generated module
+// Flit splitter module that is used in the interwoven authentication protocol
 //
 simple FlitSplitterImpl like IMiddlewareBase {
     parameters:

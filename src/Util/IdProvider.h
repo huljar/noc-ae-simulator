@@ -22,6 +22,10 @@
 
 namespace HaecComm { namespace Util {
 
+/**
+ * Singleton class that facilitates globally unique flit and generation IDs, as well as sender-receiver pair-unique IDs.
+ * IDs are ascending with each call to the respective functions, starting at zero.
+ */
 class IdProvider {
 public:
     static IdProvider* getInstance();

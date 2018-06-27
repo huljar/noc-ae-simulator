@@ -16,7 +16,7 @@
 package HaecComm.Buffers;
 
 //
-// TODO auto-generated module
+// Retransmission buffer for the individual authentication protocol
 //
 simple RetransmissionBufferImplFlit like IRetransmissionBufferImpl {
     parameters:

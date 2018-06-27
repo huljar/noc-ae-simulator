@@ -25,6 +25,9 @@ using namespace omnetpp;
 
 namespace HaecComm { namespace Buffers {
 
+/**
+ * Base class for retransmission buffer implementations
+ */
 class RetransmissionBufferImplBase : public cSimpleModule {
 public:
     typedef std::pair<uint32_t, Messages::Address2D> IdTargetKey;

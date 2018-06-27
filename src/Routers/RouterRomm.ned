@@ -16,9 +16,7 @@
 package HaecComm.Routers;
 
 //
-// Implementation of XY routing scheme from the HAEC project.
-// It provides a simple XY router with no additional processing performed
-// on the packets.
+// Router implementing the randomized, oblivious, multi-phase, minimal routing scheme.
 //
 simple RouterRomm like IRouterBase {
     parameters:

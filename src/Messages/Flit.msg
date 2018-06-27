@@ -27,8 +27,8 @@ enum NcMode;
 enum ArqMode;
 
 //
-// Main packet class representing a HAEC flit. This class contains the headers
-// that are specified in the paper and some additional fields for meta information.
+// Message class for flits - the standard unit of transmission in the NoC. This class
+// contains the header fields, a payload, and some additional fields for meta information.
 //
 packet Flit {
     @customize(true);
@@ -46,14 +46,14 @@ packet Flit {
     uint8_t mode @enum(Mode) = MODE_DATA;
     
     // 32 bit memory address marking a region to be read from/written to, depending on mode.
-    uint32_t memAddress; //# TODO: how exactly is this field used?
+    uint32_t memAddress;
     
     // For encoded flits: Generation ID. Specifies the generation that this flit belongs to.
     // For decoded/uncoded flits: Flit ID.
-    uint32_t gidOrFid; //# TODO: assert 24 bit size
+    uint32_t gidOrFid; //# real IDs are only 24 bit long
     
     // Global Encoding Vector. Only used in network coding combinations.
-    uint16_t gev = 0; //# TODO: this should be 8 bit (uint8_t)
+    uint16_t gev = 0; //# real GEVs are only 8 bit long
     
     //# There is a payload of 64 bit. In the simulation, it is only used for ARQs to specify
     //# missing/available flits, so we implement it for this purpose.
@@ -68,7 +68,7 @@ packet Flit {
     bool ncArqGenMac = false;
     
     // The bit length of the flit
-    bitLength = 149; //# TODO: this is not always true; UC flits are 8 bit shorter than NC flits (they don't have a GEV)
+    bitLength = 149; //# this is the length of flits in a network coded environment (8 bit shorter for uncoded)
     
     //# The following fields are helpers which are not "officially" part of the
     //# message (and thus should not be considered when setting the bit length

@@ -16,7 +16,8 @@
 package HaecComm.Buffers;
 
 //
-// TODO auto-generated module
+// Module interface for packet queues. Modules implementing this interface should also inherit from the
+// PacketQueueBase C++ class.
 //
 moduleinterface IPacketQueueBase {
     parameters:

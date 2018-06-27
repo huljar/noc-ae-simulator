@@ -17,6 +17,9 @@ package HaecComm.Routers;
 
 import HaecComm.Buffers.PacketQueue;
 
+//
+// Wrapper module for concrete router implementations. Specify the concrete type via the internalType parameter.
+//
 module Router like IRouter {
     parameters:
         @display("i=block/routing");

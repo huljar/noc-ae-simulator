@@ -144,7 +144,6 @@ void EntryGuardSplit::handleMessage(cMessage* msg) {
         int authIdx = availableAuthUnits.top();
 
         // Set name
-        // TODO: better names
         std::ostringstream flitName;
         flitName << flit->getName() << "-mac";
         flit->setName(flitName.str().c_str());
@@ -199,7 +198,6 @@ void EntryGuardSplit::handleMessage(cMessage* msg) {
         int authIdx = availableAuthUnits.top();
 
         // Set name
-        // TODO: better names
         std::ostringstream flitName;
         flitName << flit->getName() << "-ver";
         flit->setName(flitName.str().c_str());

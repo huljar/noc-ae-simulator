@@ -24,14 +24,15 @@ enum Mode;
 enum NcMode;
 
 //
-// TODO generated message class
+// Message that represents an ARQ timer. It is mainly used by ArrivalManagers as self-scheduled messages to
+// track ARQ timeouts.
 //
 message ArqTimer {
     @customize(true);
     
     // For encoded flits: Generation ID. Specifies the generation that this ARQ belongs to.
     // For decoded/uncoded flits: Flit ID.
-    uint32_t gidOrFid; //# TODO: assert 24 bit size
+    uint32_t gidOrFid; //# real IDs are only 24 bit long
     
     // Address of the sender of the transmission unit that this ARQ belongs to.
     Address2D source;

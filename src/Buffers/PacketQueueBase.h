@@ -25,7 +25,7 @@ using namespace omnetpp;
 namespace HaecComm { namespace Buffers {
 
 /**
- * TODO - Generated class
+ * Base class for packet queues. Classes inheriting from this should also implement the IPacketQueueBase NED interface.
  */
 class PacketQueueBase : public cSimpleModule, public cListener {
 public:

@@ -27,7 +27,7 @@ using namespace omnetpp;
 namespace HaecComm { namespace MW { namespace Crypto {
 
 /**
- * TODO - Generated class
+ * Implementation of an authentication module for the full-generation authentication protocol
  */
 class AuthGenImpl : public MiddlewareBase {
 public:

@@ -16,7 +16,7 @@
 package HaecComm.Buffers;
 
 //
-// TODO auto-generated module
+// Retransmission buffer for the full-generation authentication protocol
 //
 simple RetransmissionBufferImplGen like IRetransmissionBufferImpl {
     parameters:

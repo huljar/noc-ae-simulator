@@ -16,9 +16,7 @@
 package HaecComm.Routers;
 
 //
-// Implementation of YX routing scheme from the HAEC project.
-// It provides a simple YX router with no additional processing performed
-// on the packets.
+// Router implementing a YX dimension order routing scheme.
 //
 simple RouterYX like IRouterBase {
     parameters:

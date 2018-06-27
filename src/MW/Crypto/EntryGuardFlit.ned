@@ -16,7 +16,7 @@
 package HaecComm.MW.Crypto;
 
 //
-// TODO auto-generated module
+// Module that is used to manage the crypto modules in the individual authentication protocol
 //
 simple EntryGuardFlit {
     parameters:

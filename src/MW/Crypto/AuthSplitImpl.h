@@ -24,7 +24,7 @@ using namespace omnetpp;
 namespace HaecComm { namespace MW { namespace Crypto {
 
 /**
- * TODO - Generated class
+ * Implementation of an authentication module for the interwoven authentication protocol
  */
 class AuthSplitImpl : public MiddlewareBase {
 protected:

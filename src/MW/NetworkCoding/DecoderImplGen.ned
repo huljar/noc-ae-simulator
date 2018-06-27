@@ -22,6 +22,8 @@ package HaecComm.MW.NetworkCoding;
 // the sender side, an ~Encoder module is required create the linear combinations
 // of the original flits.
 //
+// This module represents the decoder in the full-generation authentication protocol.
+//
 simple DecoderImplGen like INetworkCodingBase {
     parameters:
         int generationSize;
