@@ -32,7 +32,8 @@ void ReportArrival::handleMessage(cMessage* msg) {
     Flit* flit = check_and_cast<Flit*>(msg);
 
     emit(receiveFlitSignal, flit);
-    EV << "Received flit \"" << flit->getName() << "\" from " << flit->getSource()
+    EV << "Received " << (flit->isModified() || flit->hasBitError() ? "corrupted " : "")
+       << "flit \"" << flit->getName() << "\" from " << flit->getSource()
        << " at " << flit->getTarget() << " with hop count " << +flit->getHopCount()
        << " (flit ID: " << flit->getGidOrFid() << ")" << std::endl;
 

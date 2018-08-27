@@ -7,15 +7,16 @@ import os
 import sys
 import sqlite3 as sql
 import numpy as np
-import gnuplotpy as gp
+#import gnuplotpy as gp
 
 # Global parameters
 meshRows = 8
 meshCols = 8
 numCycles = 50000
-endSimtimeRaw = 101000000 # Flits generated within the first 50000 cycles must have an event time value smaller than this
+endSimtimeRaw = 101000000  # Flits generated within the first 50000 cycles must have an event time value smaller than this
 
 outputDir = 'plots/'
+
 
 def dbConnect():
     # Database paths
@@ -34,10 +35,12 @@ def dbConnect():
     # Return connections
     return (connSca, connVec)
 
+
 def dbClose(connSca, connVec):
     # Close DB connections
     connSca.close()
     connVec.close()
+
 
 def getNumberOfInjectedFlits(cursorSca):
     cursorSca.execute(
@@ -52,8 +55,10 @@ def getNumberOfInjectedFlits(cursorSca):
         totalFlits += node[0]
     return totalFlits
 
+
 def getInjectionRate(cursorSca):
     return getNumberOfInjectedFlits(cursorSca) / (meshRows * meshCols * numCycles)
+
 
 def getRouterQueueLengths(cursorSca):
     cursorSca.execute(
@@ -90,6 +95,7 @@ def getRouterQueueLengths(cursorSca):
 
     return (lengthMax, lengthTimeavg, localLengthMax, localLengthTimeavg)
 
+
 def plotRouterQueueLengths(cursorVec, routerNum = -1, portNum = -1):
     routerNames = []
     moduleNames = []
@@ -108,7 +114,7 @@ def plotRouterQueueLengths(cursorVec, routerNum = -1, portNum = -1):
         moduleNames.append('localInputQueue')
 
     for router in routerNames:
-        for module in moduleNames:        
+        for module in moduleNames:
             fullName = router + '.' + module
 
             cursorVec.execute(
@@ -123,7 +129,7 @@ def plotRouterQueueLengths(cursorVec, routerNum = -1, portNum = -1):
 
             # Get gnuplot parameters
             args = {
-                'the_title': fullName, 
+                'the_title': fullName,
                 'x_max': len(result),
                 'y_max': 10,
                 'filename': outputDir + fullName + '.png'
@@ -136,6 +142,7 @@ def plotRouterQueueLengths(cursorVec, routerNum = -1, portNum = -1):
 
             # Run gnuplot
             gp.gnuplot('queuelength.gpi', args, data)
+
 
 def getNumberOfGeneratedFlits(cursorVec):
     cursorVec.execute(
@@ -150,6 +157,7 @@ def getNumberOfGeneratedFlits(cursorVec):
         totalFlits += pe[0]
     return totalFlits
 
+
 def getNumberOfGeneratedArqs(cursorVec):
     cursorVec.execute(
             '''select vectorCount
@@ -162,6 +170,7 @@ def getNumberOfGeneratedArqs(cursorVec):
     for ni in arqsPerNi:
         totalArqs += ni[0]
     return totalArqs
+
 
 def getQueueTimesEncAuthModules(cursorSca):
     cursorSca.execute(
@@ -230,6 +239,7 @@ def getQueueTimesEncAuthModules(cursorSca):
 
     return (encMax, authMax, encAvg, authAvg)
 
+
 def getQueueTimesEncAuthModulesFullGen(cursorSca):
     cursorSca.execute(
             '''select scalarValue
@@ -283,7 +293,8 @@ def getQueueTimesEncAuthModulesFullGen(cursorSca):
 
     return (encMax, authMax, encAvg, authAvg)
 
-def getResidualErrorProbabilityAndEndToEndLatency(cursorVec): # Both in same function to save time
+
+def getResidualErrorProbabilityAndEndToEndLatency(cursorVec):  # Both in same function to save time
     # Get flits that were generated within the first recorded 50000 cycles
     cursorVec.execute(
             '''select d.value as id
@@ -293,7 +304,7 @@ def getResidualErrorProbabilityAndEndToEndLatency(cursorVec): # Both in same fun
     )
     flitsProduced = cursorVec.fetchall()
 
-    # Get flits that were generated within the first recorded 50000 cycles and arrived at the destination PE at some point
+    # Get flits that were generated within the first recorded 50000 cycles and arrived at the destination PE at some point (uncorrupted)
     # Also get their production (aka creation) and consumption (aka arrival at PE) times
     cursorVec.execute(
             '''select s.id, s.prodTime, d.consTime
@@ -312,6 +323,42 @@ def getResidualErrorProbabilityAndEndToEndLatency(cursorVec): # Both in same fun
     latencies = [(row[2] - row[1]) / 2000 for row in flitsTransmitted]
     return (len(flitsProduced), len(flitsTransmitted), np.mean(latencies))
 
+
+def getResidualErrorProbabilityAndEndToEndLatencyNoSec(cursorVec):  # Both in same function to save time
+    # Get flits that were generated within the first recorded 50000 cycles
+    cursorVec.execute(
+            '''select d.value as id
+               from vectorData d inner join vector v on d.vectorId = v.vectorId
+               where v.vectorName = :vecName and d.simtimeRaw < :simtimeLimit''',
+            {'vecName': 'flitsProduced:vector(flitId)', 'simtimeLimit': endSimtimeRaw}
+    )
+    flitsProduced = cursorVec.fetchall()
+
+    # Get flits that were generated within the first recorded 50000 cycles and arrived at the destination PE at some point (uncorrupted)
+    # Also get their production (aka creation) and consumption (aka arrival at PE) times
+    cursorVec.execute(
+            '''select s.id, s.prodTime, d.consTime, d.corrupted
+               from (select d.value as id, d.simtimeRaw as prodTime
+                     from vectorData d inner join vector v on d.vectorId = v.vectorId
+                     where v.vectorName = :vecNameProd and d.simtimeRaw < :simtimeLimit) s
+               inner join (select d.value as id, d.simtimeRaw as consTime, d2.value as corrupted
+                           from vectorData d inner join vector v on d.vectorId = v.vectorId
+                           inner join vector v2 on v.moduleName = v2.moduleName
+                           inner join vectorData d2 on d2.vectorId = v2.vectorId
+                           where v.vectorName = :vecNameCons and v2.vectorName = :vecNameCorr
+                           and d2.simtimeRaw = d.simtimeRaw) d
+               on s.id = d.id order by s.id asc''',
+            {'vecNameProd': 'flitsProduced:vector(flitId)', 'simtimeLimit': endSimtimeRaw,
+             'vecNameCons': 'flitsConsumed:vector(flitId)', 'vecNameCorr': 'flitsConsumed:vector(flitCorrupted)'}
+    )
+    flitsTransmitted = cursorVec.fetchall()
+    transmittedFlitsCorrupted = [x for x in flitsTransmitted if x[3] == 1]
+
+    # Calculate latencies in cycles (divide by 2000 because raw time is in picoseconds and one cycle is 2 nanoseconds)
+    latencies = [(row[2] - row[1]) / 2000 for row in flitsTransmitted]
+    return (len(flitsProduced), len(flitsTransmitted), len(transmittedFlitsCorrupted), np.mean(latencies))
+
+
 def getRouterFlitCounts(cursorVec):
     # Get number of flits sent, forwarded, and received by the routers
     cursorVec.execute(
@@ -328,6 +375,7 @@ def getRouterFlitCounts(cursorVec):
 
     # Return only the counts
     return [row[1] for row in routerList]
+
 
 if __name__ == '__main__':
     # Ensure output directory exists
@@ -350,9 +398,12 @@ if __name__ == '__main__':
     print('The information rate is', numSourceFlits / numInjectedFlits)
 
     # Print residual error probability and end-to-end latency
-    (flitsProduced, flitsTransmitted, latencies) = getResidualErrorProbabilityAndEndToEndLatency(cursorVec)
-    print('The residual error probability is ' + str((flitsProduced - flitsTransmitted) / flitsProduced) +
-          ' (' + str(flitsProduced - flitsTransmitted) + ' of ' + str(flitsProduced) + ')')
+    #(flitsProduced, flitsTransmitted, latencies) = getResidualErrorProbabilityAndEndToEndLatency(cursorVec)
+    (flitsProduced, flitsTransmitted, transmittedFlitsCorrupted, latencies) = getResidualErrorProbabilityAndEndToEndLatencyNoSec(cursorVec)
+    print('The residual error probability is ' + str((flitsProduced - (flitsTransmitted - transmittedFlitsCorrupted)) / flitsProduced) +
+          ' (' + str(flitsProduced - (flitsTransmitted - transmittedFlitsCorrupted)) + ' of ' + str(flitsProduced) + ')')
+    print('The corrupted portion of transmitted flits is ' + str(transmittedFlitsCorrupted / flitsTransmitted) +
+          ' (' + str(transmittedFlitsCorrupted) + ' of ' + str(flitsTransmitted) + ')')
     print('The average end-to-end latency is ' + str(latencies))
 
     # Print router heat map matrix

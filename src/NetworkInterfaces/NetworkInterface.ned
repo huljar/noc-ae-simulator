@@ -16,12 +16,11 @@
 package HaecComm.NetworkInterfaces;
 
 import HaecComm.Buffers.PacketQueue;
-import HaecComm.Buffers.RetransmissionBuffer;
-import HaecComm.Util.ArqSplitter;
+import HaecComm.Buffers.Serializer;
 
 //
 // Minimal implementation of a Network Interface.
-// It contains just a retransmission buffer.
+// It contains pretty much nothing.
 //
 module NetworkInterface like INetworkInterface {
     parameters:
@@ -35,26 +34,17 @@ module NetworkInterface like INetworkInterface {
         appInputQueue: PacketQueue {
             @display("p=80,100");
         }
-        retransmissionBuffer: RetransmissionBuffer {
-            @display("p=200,100");
-        }
-        arqSplitter: ArqSplitter {
-            @display("p=200,250");
-        }
-        arqQueue: PacketQueue {
-            @display("p=160,175");
+        netStream: Serializer {
+            @display("p=180,100");
         }
         routerInputQueue: PacketQueue {
             @display("p=80,250");
         }
     connections:
         app$i --> appInputQueue.in;
-        retransmissionBuffer.dataIn <-- appInputQueue.out;
-        retransmissionBuffer.out --> router$o;
+        netStream.in <-- appInputQueue.out;
+        netStream.out --> router$o;
         
-        arqSplitter.in <-- router$i;
-        arqSplitter.arqOut --> arqQueue.in;
-        arqQueue.out --> retransmissionBuffer.arqIn;
-        arqSplitter.othersOut --> routerInputQueue.in;
-        routerInputQueue.out --> app$o;
+        router$i --> routerInputQueue.in;
+        app$o <-- routerInputQueue.out;
 }

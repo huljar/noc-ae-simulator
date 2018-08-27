@@ -49,6 +49,15 @@ protected:
     virtual void receiveSignal(cResultFilter* prev, simtime_t_cref t, cObject* object, cObject* details) override;
 };
 
+/**
+ * Result filter to be used with OMNeT++ statistics specifications ("flitModified" in NED files).
+ * This filter extracts the corruption status (modified || bitError flags) from signals containing a flit.
+ */
+class FlitCorruptedFilter : public cObjectResultFilter {
+protected:
+    virtual void receiveSignal(cResultFilter* prev, simtime_t_cref t, cObject* object, cObject* details) override;
+};
+
 }} //namespace
 
 #endif /* STATISTICS_FLITRESULTFILTERS_H_ */

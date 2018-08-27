@@ -23,6 +23,7 @@ namespace HaecComm { namespace Statistics {
 Register_ResultFilter("flitId", FlitIdFilter);
 Register_ResultFilter("flitSource", FlitSourceFilter);
 Register_ResultFilter("flitTarget", FlitTargetFilter);
+Register_ResultFilter("flitCorrupted", FlitCorruptedFilter);
 
 void FlitIdFilter::receiveSignal(cResultFilter* prev, simtime_t_cref t, cObject* object, cObject* details) {
     if(object) {
@@ -44,6 +45,14 @@ void FlitTargetFilter::receiveSignal(cResultFilter* prev, simtime_t_cref t, cObj
     if(object) {
         if(Flit* flit = check_and_cast<Flit*>(object)) {
             fire(this, t, static_cast<unsigned long>(flit->getTarget().raw()), details);
+        }
+    }
+}
+
+void FlitCorruptedFilter::receiveSignal(cResultFilter* prev, simtime_t_cref t, cObject* object, cObject* details) {
+    if(object) {
+        if(Flit* flit = check_and_cast<Flit*>(object)) {
+            fire(this, t, flit->isModified() || flit->hasBitError(), details);
         }
     }
 }
